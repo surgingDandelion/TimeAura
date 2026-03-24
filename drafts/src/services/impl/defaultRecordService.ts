@@ -44,6 +44,21 @@ export class DefaultRecordService implements RecordService {
       nextPatch.status = "已完成";
     }
 
+    if (patch.status === "已完成") {
+      nextPatch.completedAt = patch.completedAt ?? this.now();
+      nextPatch.archivedAt = null;
+    }
+
+    if (patch.status === "已归档") {
+      nextPatch.archivedAt = patch.archivedAt ?? this.now();
+      nextPatch.completedAt = patch.completedAt ?? this.now();
+    }
+
+    if (patch.status === "未开始" || patch.status === "进行中") {
+      nextPatch.completedAt = null;
+      nextPatch.archivedAt = null;
+    }
+
     if (patch.tags && patch.tags.length === 0) {
       nextPatch.tags = ["tag_uncategorized"];
     }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 
 import type { RecordEntity, RecordPriority, RecordStatus, ReminderSummary, TagEntity } from "@timeaura-core";
 
@@ -6,6 +6,7 @@ import { useAppServices } from "../../app/providers/AppServicesProvider";
 
 type WorkspaceStatusFilter = "all" | "todo" | "done";
 type WorkspaceSort = "smart" | "due" | "priority" | "updated";
+type ContentMode = "edit" | "preview";
 
 interface RecordDraft {
   title: string;
@@ -15,6 +16,7 @@ interface RecordDraft {
   plannedAt: string;
   contentMarkdown: string;
   tags: string[];
+  isPinned: boolean;
 }
 
 export function WorkspacePage(): JSX.Element {
@@ -22,6 +24,7 @@ export function WorkspacePage(): JSX.Element {
   const [records, setRecords] = useState<RecordEntity[]>([]);
   const [tags, setTags] = useState<TagEntity[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [draft, setDraft] = useState<RecordDraft | null>(null);
   const [quickAdd, setQuickAdd] = useState("");
   const [keyword, setKeyword] = useState("");
@@ -29,6 +32,7 @@ export function WorkspacePage(): JSX.Element {
   const [tagId, setTagId] = useState<string>("all");
   const [sortBy, setSortBy] = useState<WorkspaceSort>("smart");
   const [reminder, setReminder] = useState<ReminderSummary | null>(null);
+  const [contentMode, setContentMode] = useState<ContentMode>("edit");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -37,6 +41,32 @@ export function WorkspacePage(): JSX.Element {
     () => records.find((item) => item.id === selectedId) ?? null,
     [records, selectedId],
   );
+  const selectedCount = selectedIds.length;
+  const batchTargetIds = selectedIds.length > 0 ? selectedIds : reminder?.recordIds ?? [];
+  const visibleSelectedCount = useMemo(
+    () => records.filter((record) => selectedIds.includes(record.id)).length,
+    [records, selectedIds],
+  );
+  const currentTagName = useMemo(
+    () => (tagId === "all" ? "全部标签" : tags.find((tag) => tag.id === tagId)?.name ?? "当前标签"),
+    [tagId, tags],
+  );
+  const draftDirty = useMemo(() => {
+    if (!selectedRecord || !draft) {
+      return false;
+    }
+
+    return (
+      draft.title !== selectedRecord.title ||
+      draft.status !== selectedRecord.status ||
+      draft.priority !== selectedRecord.priority ||
+      draft.dueAt !== toInputValue(selectedRecord.dueAt) ||
+      draft.plannedAt !== toInputValue(selectedRecord.plannedAt) ||
+      draft.contentMarkdown !== selectedRecord.contentMarkdown ||
+      draft.isPinned !== selectedRecord.isPinned ||
+      !sameTags(draft.tags, selectedRecord.tags)
+    );
+  }, [draft, selectedRecord]);
 
   const loadWorkspace = useCallback(async () => {
     setLoading(true);
@@ -76,6 +106,10 @@ export function WorkspacePage(): JSX.Element {
   }, [loadWorkspace]);
 
   useEffect(() => {
+    setSelectedIds((current) => current.filter((id) => records.some((record) => record.id === id)));
+  }, [records]);
+
+  useEffect(() => {
     if (!selectedRecord) {
       setDraft(null);
       return;
@@ -89,7 +123,9 @@ export function WorkspacePage(): JSX.Element {
       plannedAt: toInputValue(selectedRecord.plannedAt),
       contentMarkdown: selectedRecord.contentMarkdown,
       tags: selectedRecord.tags,
+      isPinned: selectedRecord.isPinned,
     });
+    setContentMode("edit");
   }, [selectedRecord]);
 
   async function handleQuickAdd(): Promise<void> {
@@ -99,14 +135,16 @@ export function WorkspacePage(): JSX.Element {
       return;
     }
 
-    await services.recordService.createRecord({
+    const created = await services.recordService.createRecord({
       title,
       tags: tagId !== "all" ? [tagId] : undefined,
       priority: "P3",
       status: "未开始",
+      plannedAt: null,
     });
 
     setQuickAdd("");
+    setSelectedId(created.id);
     setMessage("已新增记录");
     await loadWorkspace();
   }
@@ -127,6 +165,7 @@ export function WorkspacePage(): JSX.Element {
         plannedAt: fromInputValue(draft.plannedAt),
         contentMarkdown: draft.contentMarkdown,
         tags: draft.tags,
+        isPinned: draft.isPinned,
       });
 
       setMessage("记录已保存");
@@ -139,6 +178,30 @@ export function WorkspacePage(): JSX.Element {
   async function handleComplete(recordId: string): Promise<void> {
     await services.recordService.completeRecord(recordId);
     setMessage("已完成该任务");
+    await loadWorkspace();
+  }
+
+  async function handleDelete(recordId: string): Promise<void> {
+    const confirmed = globalThis.confirm?.("确认删除这条记录吗？") ?? true;
+
+    if (!confirmed) {
+      return;
+    }
+
+    await services.recordService.deleteRecord(recordId);
+
+    if (selectedId === recordId) {
+      setSelectedId(null);
+    }
+
+    setSelectedIds((current) => current.filter((id) => id !== recordId));
+    setMessage("记录已删除");
+    await loadWorkspace();
+  }
+
+  async function handleArchive(recordId: string): Promise<void> {
+    await services.recordService.archiveRecord(recordId);
+    setMessage("记录已归档");
     await loadWorkspace();
   }
 
@@ -161,13 +224,39 @@ export function WorkspacePage(): JSX.Element {
     }
   }
 
-  async function handleReschedule(preset: "plus_1_hour" | "tomorrow_09"): Promise<void> {
-    if (!reminder?.recordIds.length) {
+  async function handlePolishMarkdown(): Promise<void> {
+    if (!selectedRecord || !draft) {
       return;
     }
 
-    await services.recordService.batchReschedule(reminder.recordIds, { preset });
-    setMessage("已完成一键改期");
+    setSaving(true);
+
+    try {
+      const result = await services.aiService.polishMarkdown({
+        recordId: selectedRecord.id,
+        markdown: draft.contentMarkdown,
+      });
+      setDraft({
+        ...draft,
+        contentMarkdown: result.content,
+      });
+      setContentMode("preview");
+      setMessage("内容已完成 AI 润色，可预览后再保存");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleReschedule(
+    preset: "plus_1_hour" | "tomorrow_09" | "today_18",
+  ): Promise<void> {
+    if (batchTargetIds.length === 0) {
+      return;
+    }
+
+    await services.recordService.batchReschedule(batchTargetIds, { preset });
+    setMessage(selectedIds.length > 0 ? "已完成批量改期" : "已完成一键改期");
+    setSelectedIds([]);
     await loadWorkspace();
   }
 
@@ -185,6 +274,21 @@ export function WorkspacePage(): JSX.Element {
       ...draft,
       tags: nextTags.length > 0 ? nextTags : ["tag_uncategorized"],
     });
+  }
+
+  function toggleSelection(recordId: string): void {
+    setSelectedIds((current) =>
+      current.includes(recordId) ? current.filter((id) => id !== recordId) : [...current, recordId],
+    );
+  }
+
+  function toggleSelectAllVisible(): void {
+    if (visibleSelectedCount === records.length && records.length > 0) {
+      setSelectedIds([]);
+      return;
+    }
+
+    setSelectedIds(records.map((record) => record.id));
   }
 
   return (
@@ -210,6 +314,9 @@ export function WorkspacePage(): JSX.Element {
               <button className="button-ghost" onClick={() => void handleReschedule("plus_1_hour")}>
                 顺延 1 小时
               </button>
+              <button className="button-ghost" onClick={() => void handleReschedule("today_18")}>
+                改到今晚 18:00
+              </button>
               <button className="button-primary" onClick={() => void handleReschedule("tomorrow_09")}>
                 改到明早 09:00
               </button>
@@ -227,7 +334,7 @@ export function WorkspacePage(): JSX.Element {
                 void handleQuickAdd();
               }
             }}
-            placeholder="单行快速新增，例如：下周例会纪要"
+            placeholder={`单行快速新增到「${currentTagName}」`}
           />
           <button className="button-primary" onClick={() => void handleQuickAdd()}>
             新增
@@ -262,6 +369,43 @@ export function WorkspacePage(): JSX.Element {
           </select>
         </div>
 
+        <div className="list-toolbar">
+          <div className="list-toolbar-meta">
+            <span>{records.length} 条记录</span>
+            {selectedCount > 0 ? <span>已选 {selectedCount} 条</span> : null}
+          </div>
+          <div className="list-toolbar-actions">
+            <button className="button-mini" onClick={toggleSelectAllVisible}>
+              {visibleSelectedCount === records.length && records.length > 0 ? "清空全选" : "全选当前列表"}
+            </button>
+            {selectedCount > 0 ? (
+              <button className="button-mini" onClick={() => setSelectedIds([])}>
+                清空选择
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        {selectedCount > 0 ? (
+          <div className="selection-banner">
+            <div>
+              <div className="selection-title">批量处理已选记录</div>
+              <div className="selection-text">你可以对当前选中的 {selectedCount} 条记录统一改期。</div>
+            </div>
+            <div className="reminder-actions">
+              <button className="button-ghost" onClick={() => void handleReschedule("plus_1_hour")}>
+                顺延 1 小时
+              </button>
+              <button className="button-ghost" onClick={() => void handleReschedule("today_18")}>
+                今晚 18:00
+              </button>
+              <button className="button-primary" onClick={() => void handleReschedule("tomorrow_09")}>
+                明早 09:00
+              </button>
+            </div>
+          </div>
+        ) : null}
+
         {message ? <div className="inline-message">{message}</div> : null}
 
         <div className="record-list">
@@ -269,49 +413,67 @@ export function WorkspacePage(): JSX.Element {
 
           {!loading && records.length === 0 ? <div className="empty-state">当前没有符合筛选条件的记录。</div> : null}
 
-          {records.map((record) => (
-            <button
-              key={record.id}
-              className={`record-row${record.id === selectedId ? " record-row-active" : ""}`}
-              onClick={() => setSelectedId(record.id)}
-            >
-              <div className={`priority-pill priority-${record.priority.toLowerCase()}`}>{record.priority}</div>
-              <div className="record-main">
-                <div className="record-topline">
-                  <div className="record-title-text">{record.title}</div>
-                  <div className="record-meta">{record.status}</div>
-                </div>
-                <div className="record-bottomline">
-                  <div className="record-tags">
-                    {record.tags.map((tagRef) => {
-                      const tag = tags.find((item) => item.id === tagRef);
-                      return (
-                        <span key={tagRef} className="tag-chip">
-                          {tag?.name ?? tagRef}
-                        </span>
-                      );
-                    })}
+          {records.map((record) => {
+            const recordTags = record.tags
+              .map((tagRef) => tags.find((item) => item.id === tagRef))
+              .filter((item): item is TagEntity => Boolean(item));
+
+            return (
+              <button
+                key={record.id}
+                className={`record-row${record.id === selectedId ? " record-row-active" : ""}`}
+                onClick={() => setSelectedId(record.id)}
+              >
+                <label
+                  className="record-check"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(record.id)}
+                    onChange={() => toggleSelection(record.id)}
+                  />
+                </label>
+                <div className={`priority-pill priority-${record.priority.toLowerCase()}`}>{record.priority}</div>
+                <div className="record-main">
+                  <div className="record-topline">
+                    <div className="record-title-wrap">
+                      {record.isPinned ? <span className="pin-indicator">置顶</span> : null}
+                      <div className="record-title-text">{record.title}</div>
+                    </div>
+                    <div className="record-meta">{record.status}</div>
                   </div>
-                  <div className="record-due">{formatDateLabel(record.dueAt)}</div>
+                  <div className="record-bottomline">
+                    <div className="record-tags">
+                      {recordTags.map((tag) => (
+                        <span key={tag.id} className="tag-chip">
+                          {tag.name}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="record-due">{formatDateLabel(record.dueAt)}</div>
+                  </div>
                 </div>
-              </div>
-              <div className="record-actions">
-                {record.status !== "已完成" ? (
-                  <span
-                    className="button-mini"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      void handleComplete(record.id);
-                    }}
-                  >
-                    完成
-                  </span>
-                ) : (
-                  <span className="record-done">已完成</span>
-                )}
-              </div>
-            </button>
-          ))}
+                <div className="record-actions">
+                  {record.status !== "已完成" ? (
+                    <span
+                      className="button-mini"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void handleComplete(record.id);
+                      }}
+                    >
+                      完成
+                    </span>
+                  ) : (
+                    <span className="record-done">已完成</span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </section>
 
@@ -324,109 +486,226 @@ export function WorkspacePage(): JSX.Element {
               <div>
                 <div className="panel-kicker">详情</div>
                 <h2 className="panel-title panel-title-small">Inspector</h2>
+                <div className="channel-panel-subtitle">
+                  {selectedRecord.recordKind === "report" ? "报告记录" : selectedRecord.recordKind === "note" ? "备忘记录" : "待办记录"}
+                </div>
               </div>
               <div className="detail-header-actions">
-                <button className="button-ghost" onClick={() => void handleGenerateSummary()}>
+                <button className="button-ghost" disabled={saving} onClick={() => void handleGenerateSummary()}>
                   AI 摘要
                 </button>
-                <button className="button-primary" disabled={saving} onClick={() => void handleSave()}>
-                  {saving ? "保存中…" : "保存"}
+                <button className="button-ghost" disabled={saving} onClick={() => void handlePolishMarkdown()}>
+                  AI 润色
+                </button>
+                <button className="button-ghost" onClick={() => void handleArchive(selectedRecord.id)}>
+                  归档
+                </button>
+                <button className="button-ghost button-danger-soft" onClick={() => void handleDelete(selectedRecord.id)}>
+                  删除
+                </button>
+                <button className="button-primary" disabled={saving || !draftDirty} onClick={() => void handleSave()}>
+                  {saving ? "保存中…" : draftDirty ? "保存" : "已保存"}
                 </button>
               </div>
             </div>
 
-            <div className="detail-grid">
-              <label className="field">
-                <span className="field-label">标题</span>
-                <input
-                  className="input"
-                  value={draft.title}
-                  onChange={(event) => setDraft({ ...draft, title: event.target.value })}
-                />
-              </label>
-
-              <div className="field-inline-group">
-                <label className="field">
-                  <span className="field-label">状态</span>
-                  <select
-                    className="select"
-                    value={draft.status}
-                    onChange={(event) => setDraft({ ...draft, status: event.target.value as RecordStatus })}
-                  >
-                    <option value="未开始">未开始</option>
-                    <option value="进行中">进行中</option>
-                    <option value="已完成">已完成</option>
-                    <option value="已归档">已归档</option>
-                  </select>
-                </label>
-
-                <label className="field">
-                  <span className="field-label">优先级</span>
-                  <select
-                    className="select"
-                    value={draft.priority}
-                    onChange={(event) => setDraft({ ...draft, priority: event.target.value as RecordPriority })}
-                  >
-                    <option value="P1">P1</option>
-                    <option value="P2">P2</option>
-                    <option value="P3">P3</option>
-                    <option value="P4">P4</option>
-                  </select>
-                </label>
-              </div>
-
-              <div className="field-inline-group">
-                <label className="field">
-                  <span className="field-label">截止时间</span>
-                  <input
-                    className="input"
-                    type="datetime-local"
-                    value={draft.dueAt}
-                    onChange={(event) => setDraft({ ...draft, dueAt: event.target.value })}
-                  />
-                </label>
-
-                <label className="field">
-                  <span className="field-label">计划时间</span>
-                  <input
-                    className="input"
-                    type="datetime-local"
-                    value={draft.plannedAt}
-                    onChange={(event) => setDraft({ ...draft, plannedAt: event.target.value })}
-                  />
-                </label>
-              </div>
-
-              <div className="field">
-                <span className="field-label">标签</span>
-                <div className="tag-selector">
-                  {tags.map((tag) => (
-                    <label key={tag.id} className={`tag-toggle${draft.tags.includes(tag.id) ? " tag-toggle-active" : ""}`}>
-                      <input
-                        type="checkbox"
-                        checked={draft.tags.includes(tag.id)}
-                        onChange={() => toggleTag(tag.id)}
-                      />
-                      <span className="tag-dot" style={{ backgroundColor: tag.color }} />
-                      <span>{tag.name}</span>
-                    </label>
-                  ))}
+            <div className="channel-inspector">
+              <section className="inspector-section">
+                <div className="inspector-section-header">
+                  <div className="inspector-section-title">基础信息</div>
+                  <div className="inspector-section-note">快速管理标题、状态、优先级与置顶状态。</div>
                 </div>
-              </div>
 
-              <label className="field">
-                <span className="field-label">内容（Markdown）</span>
-                <textarea
-                  className="textarea"
-                  value={draft.contentMarkdown}
-                  onChange={(event) => setDraft({ ...draft, contentMarkdown: event.target.value })}
-                />
-              </label>
+                <div className="inspector-row">
+                  <div className="inspector-row-label">标题</div>
+                  <div className="inspector-row-content">
+                    <input
+                      className="input"
+                      value={draft.title}
+                      onChange={(event) => setDraft({ ...draft, title: event.target.value })}
+                    />
+                  </div>
+                </div>
 
-              <div className="field">
-                <span className="field-label">AI 摘要</span>
-                <div className="summary-box">{selectedRecord.aiSummary ?? "尚未生成 AI 摘要。"}</div>
-              </div>
+                <div className="inspector-row">
+                  <div className="inspector-row-label">状态</div>
+                  <div className="inspector-row-content">
+                    <div className="segmented-group segmented-group-wrap">
+                      {(["未开始", "进行中", "已完成", "已归档"] as RecordStatus[]).map((option) => (
+                        <button
+                          key={option}
+                          className={`segmented-item${draft.status === option ? " segmented-item-active" : ""}`}
+                          onClick={() => setDraft({ ...draft, status: option })}
+                          type="button"
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="inspector-row">
+                  <div className="inspector-row-label">优先级</div>
+                  <div className="inspector-row-content">
+                    <div className="segmented-group">
+                      {(["P1", "P2", "P3", "P4"] as RecordPriority[]).map((option) => (
+                        <button
+                          key={option}
+                          className={`segmented-item${draft.priority === option ? " segmented-item-active" : ""}`}
+                          onClick={() => setDraft({ ...draft, priority: option })}
+                          type="button"
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="inspector-row">
+                  <div className="inspector-row-label">置顶</div>
+                  <div className="inspector-row-content">
+                    <div className="toggle-pair">
+                      <label className="toggle-chip">
+                        <input
+                          type="checkbox"
+                          checked={draft.isPinned}
+                          onChange={(event) => setDraft({ ...draft, isPinned: event.target.checked })}
+                        />
+                        <span>{draft.isPinned ? "已置顶" : "普通排序"}</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="inspector-section">
+                <div className="inspector-section-header">
+                  <div className="inspector-section-title">时间与节奏</div>
+                  <div className="inspector-section-note">可直接编辑时间，也可以快速改到今晚或明早。</div>
+                </div>
+
+                <div className="inspector-row">
+                  <div className="inspector-row-label">截止时间</div>
+                  <div className="inspector-row-content">
+                    <input
+                      className="input"
+                      type="datetime-local"
+                      value={draft.dueAt}
+                      onChange={(event) => setDraft({ ...draft, dueAt: event.target.value })}
+                    />
+                    <div className="quick-chip-row">
+                      <button className="button-mini" onClick={() => setDraft({ ...draft, dueAt: toInputValue(resolvePresetDate("today_18")) })}>
+                        今晚 18:00
+                      </button>
+                      <button className="button-mini" onClick={() => setDraft({ ...draft, dueAt: toInputValue(resolvePresetDate("tomorrow_09")) })}>
+                        明早 09:00
+                      </button>
+                      <button className="button-mini" onClick={() => setDraft({ ...draft, dueAt: "" })}>
+                        清空时间
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="inspector-row">
+                  <div className="inspector-row-label">计划时间</div>
+                  <div className="inspector-row-content">
+                    <input
+                      className="input"
+                      type="datetime-local"
+                      value={draft.plannedAt}
+                      onChange={(event) => setDraft({ ...draft, plannedAt: event.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="inspector-row">
+                  <div className="inspector-row-label">记录信息</div>
+                  <div className="inspector-row-content">
+                    <div className="metadata-grid">
+                      <span>创建于 {formatDateTime(selectedRecord.createdAt)}</span>
+                      <span>更新于 {formatDateTime(selectedRecord.updatedAt)}</span>
+                      <span>{selectedRecord.completedAt ? `完成于 ${formatDateTime(selectedRecord.completedAt)}` : "尚未完成"}</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="inspector-section">
+                <div className="inspector-section-header">
+                  <div className="inspector-section-title">标签与内容</div>
+                  <div className="inspector-section-note">支持 Markdown 编辑与预览，标签保持轻量切换。</div>
+                </div>
+
+                <div className="inspector-row inspector-row-stack">
+                  <div className="inspector-row-label">标签</div>
+                  <div className="inspector-row-content">
+                    <div className="tag-selector">
+                      {tags.map((tag) => (
+                        <label key={tag.id} className={`tag-toggle${draft.tags.includes(tag.id) ? " tag-toggle-active" : ""}`}>
+                          <input
+                            type="checkbox"
+                            checked={draft.tags.includes(tag.id)}
+                            onChange={() => toggleTag(tag.id)}
+                          />
+                          <span className="tag-dot" style={{ backgroundColor: tag.color }} />
+                          <span>{tag.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="inspector-row inspector-row-stack">
+                  <div className="inspector-row-label">内容</div>
+                  <div className="inspector-row-content">
+                    <div className="segmented-group workspace-segment">
+                      <button
+                        className={`segmented-item${contentMode === "edit" ? " segmented-item-active" : ""}`}
+                        onClick={() => setContentMode("edit")}
+                        type="button"
+                      >
+                        编辑
+                      </button>
+                      <button
+                        className={`segmented-item${contentMode === "preview" ? " segmented-item-active" : ""}`}
+                        onClick={() => setContentMode("preview")}
+                        type="button"
+                      >
+                        预览
+                      </button>
+                    </div>
+
+                    {contentMode === "edit" ? (
+                      <textarea
+                        className="textarea"
+                        value={draft.contentMarkdown}
+                        onChange={(event) => setDraft({ ...draft, contentMarkdown: event.target.value })}
+                      />
+                    ) : (
+                      <div className="markdown-preview workspace-markdown-preview">
+                        {renderMarkdownPreview(draft.contentMarkdown)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </section>
+
+              <section className="inspector-section">
+                <div className="inspector-section-header">
+                  <div className="inspector-section-title">AI 摘要</div>
+                  <div className="inspector-section-note">用于列表快速浏览与后续报告汇总的辅助摘要。</div>
+                </div>
+
+                <div className="inspector-row inspector-row-stack">
+                  <div className="inspector-row-label">摘要内容</div>
+                  <div className="inspector-row-content">
+                    <div className="summary-box">{selectedRecord.aiSummary ?? "尚未生成 AI 摘要。"}</div>
+                  </div>
+                </div>
+              </section>
             </div>
           </>
         )}
@@ -462,4 +741,113 @@ function formatDateLabel(value: string | null): string {
   return `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, "0")}:${String(
     date.getMinutes(),
   ).padStart(2, "0")}`;
+}
+
+function formatDateTime(value: string | null): string {
+  if (!value) {
+    return "未设置";
+  }
+
+  const date = new Date(value);
+  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, "0")}:${String(
+    date.getMinutes(),
+  ).padStart(2, "0")}`;
+}
+
+function sameTags(left: string[], right: string[]): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  const leftSorted = [...left].sort();
+  const rightSorted = [...right].sort();
+  return leftSorted.every((tag, index) => tag === rightSorted[index]);
+}
+
+function resolvePresetDate(preset: "today_18" | "tomorrow_09"): string {
+  const now = new Date();
+  const target = new Date(now);
+
+  if (preset === "today_18") {
+    target.setHours(18, 0, 0, 0);
+  } else {
+    target.setDate(target.getDate() + 1);
+    target.setHours(9, 0, 0, 0);
+  }
+
+  return target.toISOString();
+}
+
+function renderMarkdownPreview(markdown: string): JSX.Element {
+  const lines = markdown.split("\n");
+  const elements: JSX.Element[] = [];
+  let listBuffer: string[] = [];
+
+  const flushList = (): void => {
+    if (listBuffer.length === 0) {
+      return;
+    }
+
+    elements.push(
+      <ul key={`list-${elements.length}`} className="workspace-preview-list">
+        {listBuffer.map((item, index) => (
+          <li key={`${item}-${index}`}>{item}</li>
+        ))}
+      </ul>,
+    );
+    listBuffer = [];
+  };
+
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      flushList();
+      return;
+    }
+
+    if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+      listBuffer.push(trimmed.slice(2));
+      return;
+    }
+
+    flushList();
+
+    if (trimmed.startsWith("### ")) {
+      elements.push(
+        <h3 key={`h3-${index}`} className="workspace-preview-h3">
+          {trimmed.slice(4)}
+        </h3>,
+      );
+      return;
+    }
+
+    if (trimmed.startsWith("## ")) {
+      elements.push(
+        <h2 key={`h2-${index}`} className="workspace-preview-h2">
+          {trimmed.slice(3)}
+        </h2>,
+      );
+      return;
+    }
+
+    if (trimmed.startsWith("# ")) {
+      elements.push(
+        <h1 key={`h1-${index}`} className="workspace-preview-h1">
+          {trimmed.slice(2)}
+        </h1>,
+      );
+      return;
+    }
+
+    elements.push(
+      <p key={`p-${index}`} className="workspace-preview-p">
+        {trimmed}
+      </p>,
+    );
+  });
+
+  flushList();
+
+  return elements.length > 0 ? <>{elements}</> : <span>还没有内容，先写一点 Markdown 再回来预览。</span>;
 }
