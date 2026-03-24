@@ -15,6 +15,7 @@ export interface NotificationLogEntry {
   title: string;
   body: string;
   actions?: Array<{ key: string; label: string }>;
+  extra?: Record<string, unknown>;
   createdAt: string;
   cancelledAt?: string | null;
 }

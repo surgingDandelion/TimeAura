@@ -69,6 +69,8 @@ export function createMockAppServices(): MockAppContainer {
     repositories.channelRepository,
     repositories.settingsRepository,
   );
+  const recordService = new MockRecordService(repositories.recordRepository, runtime.now);
+  const reminderService = new MockReminderService(repositories.recordRepository, runtime.now);
 
   const services: MockAppServices = {
     aiService: sharedAIService,
@@ -77,9 +79,9 @@ export function createMockAppServices(): MockAppContainer {
       repositories.settingsRepository,
       runtime.now,
     ),
-    notificationService: new MockNotificationService(runtime),
-    recordService: new MockRecordService(repositories.recordRepository, runtime.now),
-    reminderService: new MockReminderService(repositories.recordRepository, runtime.now),
+    notificationService: new MockNotificationService(runtime, reminderService),
+    recordService,
+    reminderService,
     reportService: new MockReportService(
       repositories.recordRepository,
       repositories.reportTemplateRepository,

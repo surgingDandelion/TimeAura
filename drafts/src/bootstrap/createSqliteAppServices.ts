@@ -65,6 +65,7 @@ export async function createSqliteAppServices(
   const aiGateway = options.aiGateway ?? new UnavailableAIProviderGateway();
   const credentialVault: CredentialVault = options.credentialVault ?? new MemoryCredentialVault();
   const notificationDriver = options.notificationDriver ?? new NoopNotificationDriver();
+  const reminderService = new DefaultReminderService(repositories.recordRepository, now);
   const aiService = new DefaultAIService(
     repositories.recordRepository,
     repositories.channelRepository,
@@ -82,9 +83,9 @@ export async function createSqliteAppServices(
       credentialVault,
       now,
     ),
-    notificationService: new DefaultNotificationService(notificationDriver),
+    notificationService: new DefaultNotificationService(notificationDriver, reminderService),
     recordService: new DefaultRecordService(repositories.recordRepository, now),
-    reminderService: new DefaultReminderService(repositories.recordRepository, now),
+    reminderService,
     reportService: new DefaultReportService(
       repositories.recordRepository,
       repositories.reportTemplateRepository,

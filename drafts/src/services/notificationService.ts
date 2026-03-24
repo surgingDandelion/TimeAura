@@ -3,6 +3,7 @@ export interface AppNotificationInput {
   title: string;
   body: string;
   actions?: Array<{ key: string; label: string }>;
+  extra?: Record<string, unknown>;
 }
 
 export interface NotificationService {

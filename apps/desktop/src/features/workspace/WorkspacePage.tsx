@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { RecordEntity, RecordPriority, RecordStatus, ReminderSummary, TagEntity } from "@timeaura-core";
 
@@ -7,6 +7,20 @@ import { useAppServices } from "../../app/providers/AppServicesProvider";
 type WorkspaceStatusFilter = "all" | "todo" | "done";
 type WorkspaceSort = "smart" | "due" | "priority" | "updated";
 type ContentMode = "edit" | "preview";
+
+interface WorkspaceFocusTarget {
+  recordId: string;
+  nonce: number;
+}
+
+interface WorkspacePageProps {
+  activeTagId: string;
+  activeView: "today" | "plan" | "all" | "done";
+  focusTarget: WorkspaceFocusTarget | null;
+  quickAddTarget: { nonce: number } | null;
+  onTagFilterChange(tagId: string): void;
+  onWorkspaceChanged?(): void;
+}
 
 interface RecordDraft {
   title: string;
@@ -19,23 +33,44 @@ interface RecordDraft {
   isPinned: boolean;
 }
 
-export function WorkspacePage(): JSX.Element {
+interface TagEditorDraft {
+  id: string | null;
+  name: string;
+  color: string;
+}
+
+export function WorkspacePage({
+  activeTagId,
+  activeView,
+  focusTarget,
+  quickAddTarget,
+  onTagFilterChange,
+  onWorkspaceChanged,
+}: WorkspacePageProps): JSX.Element {
   const { services } = useAppServices();
+  const quickAddRef = useRef<HTMLInputElement | null>(null);
   const [records, setRecords] = useState<RecordEntity[]>([]);
   const [tags, setTags] = useState<TagEntity[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [highlightedRecordId, setHighlightedRecordId] = useState<string | null>(null);
   const [draft, setDraft] = useState<RecordDraft | null>(null);
   const [quickAdd, setQuickAdd] = useState("");
   const [keyword, setKeyword] = useState("");
   const [status, setStatus] = useState<WorkspaceStatusFilter>("todo");
-  const [tagId, setTagId] = useState<string>("all");
   const [sortBy, setSortBy] = useState<WorkspaceSort>("smart");
   const [reminder, setReminder] = useState<ReminderSummary | null>(null);
   const [contentMode, setContentMode] = useState<ContentMode>("edit");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [quickAddActive, setQuickAddActive] = useState(false);
+  const [tagManagerOpen, setTagManagerOpen] = useState(false);
+  const [tagEditor, setTagEditor] = useState<TagEditorDraft>({
+    id: null,
+    name: "",
+    color: "#5f89ff",
+  });
 
   const selectedRecord = useMemo(
     () => records.find((item) => item.id === selectedId) ?? null,
@@ -48,8 +83,12 @@ export function WorkspacePage(): JSX.Element {
     [records, selectedIds],
   );
   const currentTagName = useMemo(
-    () => (tagId === "all" ? "全部标签" : tags.find((tag) => tag.id === tagId)?.name ?? "当前标签"),
-    [tagId, tags],
+    () => (activeTagId === "all" ? "全部标签" : tags.find((tag) => tag.id === activeTagId)?.name ?? "当前标签"),
+    [activeTagId, tags],
+  );
+  const editingTag = useMemo(
+    () => (tagEditor.id ? tags.find((tag) => tag.id === tagEditor.id) ?? null : null),
+    [tagEditor.id, tags],
   );
   const draftDirty = useMemo(() => {
     if (!selectedRecord || !draft) {
@@ -74,11 +113,11 @@ export function WorkspacePage(): JSX.Element {
     try {
       const [recordResult, tagResult, reminderResult] = await Promise.all([
         services.recordService.listRecords({
+          view: activeView,
           keyword: keyword.trim() || undefined,
-          status,
-          tagId,
+          status: activeView === "done" ? "done" : status,
+          tagId: activeTagId,
           sortBy,
-          view: status === "done" ? "done" : "all",
         }),
         services.tagService.listTags(),
         services.reminderService.getReminderSummary(new Date().toISOString()),
@@ -93,13 +132,13 @@ export function WorkspacePage(): JSX.Element {
         return;
       }
 
-      if (!selectedId || !recordResult.items.some((item) => item.id === selectedId)) {
-        setSelectedId(recordResult.items[0].id);
+      if (selectedId && !recordResult.items.some((item) => item.id === selectedId)) {
+        setSelectedId(null);
       }
     } finally {
       setLoading(false);
     }
-  }, [keyword, selectedId, services.recordService, services.reminderService, services.tagService, sortBy, status, tagId]);
+  }, [activeTagId, activeView, keyword, selectedId, services.recordService, services.reminderService, services.tagService, sortBy, status]);
 
   useEffect(() => {
     void loadWorkspace();
@@ -128,6 +167,64 @@ export function WorkspacePage(): JSX.Element {
     setContentMode("edit");
   }, [selectedRecord]);
 
+  useEffect(() => {
+    if (!focusTarget?.recordId) {
+      return;
+    }
+
+    setKeyword("");
+    setStatus("todo");
+    onTagFilterChange("all");
+    setSelectedId(focusTarget.recordId);
+    setHighlightedRecordId(focusTarget.recordId);
+  }, [focusTarget, onTagFilterChange]);
+
+  useEffect(() => {
+    if (!highlightedRecordId) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setHighlightedRecordId((current) => (current === highlightedRecordId ? null : current));
+    }, 2200);
+
+    return () => window.clearTimeout(timer);
+  }, [highlightedRecordId]);
+
+  useEffect(() => {
+    if (!quickAddTarget) {
+      return;
+    }
+
+    setKeyword("");
+    setStatus("todo");
+    onTagFilterChange("all");
+    setSelectedId(null);
+    setQuickAddActive(true);
+    quickAddRef.current?.focus();
+  }, [quickAddTarget, onTagFilterChange]);
+
+  useEffect(() => {
+    if (!quickAddActive) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setQuickAddActive(false);
+    }, 1400);
+
+    return () => window.clearTimeout(timer);
+  }, [quickAddActive]);
+
+  async function syncWorkspace(afterMessage?: string): Promise<void> {
+    await loadWorkspace();
+    await onWorkspaceChanged?.();
+
+    if (afterMessage) {
+      setMessage(afterMessage);
+    }
+  }
+
   async function handleQuickAdd(): Promise<void> {
     const title = quickAdd.trim();
 
@@ -137,7 +234,7 @@ export function WorkspacePage(): JSX.Element {
 
     const created = await services.recordService.createRecord({
       title,
-      tags: tagId !== "all" ? [tagId] : undefined,
+      tags: activeTagId !== "all" ? [activeTagId] : undefined,
       priority: "P3",
       status: "未开始",
       plannedAt: null,
@@ -145,8 +242,7 @@ export function WorkspacePage(): JSX.Element {
 
     setQuickAdd("");
     setSelectedId(created.id);
-    setMessage("已新增记录");
-    await loadWorkspace();
+    await syncWorkspace("已新增记录");
   }
 
   async function handleSave(): Promise<void> {
@@ -168,8 +264,7 @@ export function WorkspacePage(): JSX.Element {
         isPinned: draft.isPinned,
       });
 
-      setMessage("记录已保存");
-      await loadWorkspace();
+      await syncWorkspace("记录已保存");
     } finally {
       setSaving(false);
     }
@@ -177,8 +272,7 @@ export function WorkspacePage(): JSX.Element {
 
   async function handleComplete(recordId: string): Promise<void> {
     await services.recordService.completeRecord(recordId);
-    setMessage("已完成该任务");
-    await loadWorkspace();
+    await syncWorkspace("已完成该任务");
   }
 
   async function handleDelete(recordId: string): Promise<void> {
@@ -195,14 +289,12 @@ export function WorkspacePage(): JSX.Element {
     }
 
     setSelectedIds((current) => current.filter((id) => id !== recordId));
-    setMessage("记录已删除");
-    await loadWorkspace();
+    await syncWorkspace("记录已删除");
   }
 
   async function handleArchive(recordId: string): Promise<void> {
     await services.recordService.archiveRecord(recordId);
-    setMessage("记录已归档");
-    await loadWorkspace();
+    await syncWorkspace("记录已归档");
   }
 
   async function handleGenerateSummary(): Promise<void> {
@@ -217,8 +309,7 @@ export function WorkspacePage(): JSX.Element {
       await services.recordService.updateRecord(selectedRecord.id, {
         aiSummary: result.content,
       });
-      setMessage("AI 摘要已写入");
-      await loadWorkspace();
+      await syncWorkspace("AI 摘要已写入");
     } finally {
       setSaving(false);
     }
@@ -255,9 +346,17 @@ export function WorkspacePage(): JSX.Element {
     }
 
     await services.recordService.batchReschedule(batchTargetIds, { preset });
-    setMessage(selectedIds.length > 0 ? "已完成批量改期" : "已完成一键改期");
     setSelectedIds([]);
-    await loadWorkspace();
+    await syncWorkspace(selectedIds.length > 0 ? "已完成批量改期" : "已完成一键改期");
+  }
+
+  async function handleSnoozeReminder(minutes: number): Promise<void> {
+    if (!reminder || reminder.recordIds.length === 0) {
+      return;
+    }
+
+    await services.reminderService.snoozeReminder(reminder.recordIds, minutes);
+    await syncWorkspace(`已延后提醒 ${minutes} 分钟`);
   }
 
   function toggleTag(tagValue: string): void {
@@ -291,6 +390,92 @@ export function WorkspacePage(): JSX.Element {
     setSelectedIds(records.map((record) => record.id));
   }
 
+  function openTagManager(): void {
+    setTagManagerOpen(true);
+    setTagEditor({
+      id: null,
+      name: "",
+      color: "#5f89ff",
+    });
+  }
+
+  function startEditTag(tag: TagEntity): void {
+    setTagEditor({
+      id: tag.id,
+      name: tag.name,
+      color: tag.color,
+    });
+  }
+
+  async function handleCreateOrUpdateTag(): Promise<void> {
+    const name = tagEditor.name.trim();
+
+    if (!name) {
+      setMessage("标签名称不能为空");
+      return;
+    }
+
+    if (tagEditor.id) {
+      await services.tagService.updateTag(tagEditor.id, {
+        name,
+        color: tagEditor.color,
+      });
+      await syncWorkspace("标签已更新");
+      return;
+    }
+
+    const created = await services.tagService.createTag({
+      name,
+      color: tagEditor.color,
+    });
+
+    if (draft) {
+      setDraft({
+        ...draft,
+        tags: [...draft.tags.filter((item) => item !== "tag_uncategorized"), created.id],
+      });
+    }
+
+    setTagEditor({
+      id: created.id,
+      name: created.name,
+      color: created.color,
+    });
+    await syncWorkspace("已创建新标签");
+  }
+
+  async function handleDeleteTag(tag: TagEntity): Promise<void> {
+    const confirmed = globalThis.confirm?.(`确认删除标签“${tag.name}”吗？`) ?? true;
+
+    if (!confirmed) {
+      return;
+    }
+
+    await services.tagService.deleteTag(tag.id);
+
+    if (activeTagId === tag.id) {
+      onTagFilterChange("all");
+    }
+
+    if (draft?.tags.includes(tag.id)) {
+      setDraft({
+        ...draft,
+        tags: draft.tags.filter((item) => item !== tag.id),
+      });
+    }
+
+    setTagEditor({
+      id: null,
+      name: "",
+      color: "#5f89ff",
+    });
+    await syncWorkspace("标签已删除");
+  }
+
+  function closeInspector(): void {
+    setSelectedId(null);
+  }
+
   return (
     <div className="workspace-layout">
       <section className="panel panel-list">
@@ -298,6 +483,15 @@ export function WorkspacePage(): JSX.Element {
           <div>
             <div className="panel-kicker">备忘录</div>
             <h1 className="panel-title">统一记录列表</h1>
+            <div className="channel-panel-subtitle">
+              {activeView === "today"
+                ? "聚焦今天、逾期和临近到期记录。"
+                : activeView === "plan"
+                  ? "查看已排期的后续记录。"
+                  : activeView === "done"
+                    ? "浏览已完成与已归档记录。"
+                    : "在一个工作台里整理全部待办与备忘。"}
+            </div>
           </div>
           <button className="button-secondary" onClick={() => void loadWorkspace()}>
             刷新
@@ -309,8 +503,12 @@ export function WorkspacePage(): JSX.Element {
             <div>
               <div className="reminder-title">{reminder.title}</div>
               <div className="reminder-text">{reminder.description}</div>
+              <div className="reminder-meta">桌面提醒会持续扫描；点击系统通知会直接回到对应记录。</div>
             </div>
             <div className="reminder-actions">
+              <button className="button-ghost" onClick={() => void handleSnoozeReminder(30)}>
+                30 分钟后提醒
+              </button>
               <button className="button-ghost" onClick={() => void handleReschedule("plus_1_hour")}>
                 顺延 1 小时
               </button>
@@ -326,7 +524,8 @@ export function WorkspacePage(): JSX.Element {
 
         <div className="quick-add-row">
           <input
-            className="input"
+            ref={quickAddRef}
+            className={`input${quickAddActive ? " input-spotlight" : ""}`}
             value={quickAdd}
             onChange={(event) => setQuickAdd(event.target.value)}
             onKeyDown={(event) => {
@@ -348,12 +547,17 @@ export function WorkspacePage(): JSX.Element {
             onChange={(event) => setKeyword(event.target.value)}
             placeholder="模糊检索标题或内容"
           />
-          <select className="select" value={status} onChange={(event) => setStatus(event.target.value as WorkspaceStatusFilter)}>
+          <select
+            className="select"
+            value={activeView === "done" ? "done" : status}
+            onChange={(event) => setStatus(event.target.value as WorkspaceStatusFilter)}
+            disabled={activeView === "done"}
+          >
             <option value="todo">待处理</option>
             <option value="all">全部</option>
             <option value="done">已完成</option>
           </select>
-          <select className="select" value={tagId} onChange={(event) => setTagId(event.target.value)}>
+          <select className="select" value={activeTagId} onChange={(event) => onTagFilterChange(event.target.value)}>
             <option value="all">全部标签</option>
             {tags.map((tag) => (
               <option key={tag.id} value={tag.id}>
@@ -421,7 +625,7 @@ export function WorkspacePage(): JSX.Element {
             return (
               <button
                 key={record.id}
-                className={`record-row${record.id === selectedId ? " record-row-active" : ""}`}
+                className={`record-row${record.id === selectedId ? " record-row-active" : ""}${record.id === highlightedRecordId ? " record-row-highlighted" : ""}`}
                 onClick={() => setSelectedId(record.id)}
               >
                 <label
@@ -502,6 +706,9 @@ export function WorkspacePage(): JSX.Element {
                 </button>
                 <button className="button-ghost button-danger-soft" onClick={() => void handleDelete(selectedRecord.id)}>
                   删除
+                </button>
+                <button className="button-ghost" onClick={closeInspector}>
+                  收起
                 </button>
                 <button className="button-primary" disabled={saving || !draftDirty} onClick={() => void handleSave()}>
                   {saving ? "保存中…" : draftDirty ? "保存" : "已保存"}
@@ -642,6 +849,11 @@ export function WorkspacePage(): JSX.Element {
                 <div className="inspector-row inspector-row-stack">
                   <div className="inspector-row-label">标签</div>
                   <div className="inspector-row-content">
+                    <div className="inspector-inline-actions">
+                      <button className="button-mini" onClick={openTagManager}>
+                        管理标签
+                      </button>
+                    </div>
                     <div className="tag-selector">
                       {tags.map((tag) => (
                         <label key={tag.id} className={`tag-toggle${draft.tags.includes(tag.id) ? " tag-toggle-active" : ""}`}>
@@ -710,6 +922,135 @@ export function WorkspacePage(): JSX.Element {
           </>
         )}
       </section>
+
+      {tagManagerOpen ? (
+        <div className="sheet-backdrop" onClick={() => setTagManagerOpen(false)}>
+          <div
+            className="sheet-panel"
+            onClick={(event) => {
+              event.stopPropagation();
+            }}
+          >
+            <div className="sheet-header">
+              <div>
+                <div className="panel-kicker">标签管理</div>
+                <h3 className="panel-title panel-title-small">当前记录标签</h3>
+                <div className="channel-panel-subtitle">先处理当前记录标签，再在标签库里新增、编辑或清理标签。</div>
+              </div>
+              <div className="sheet-header-actions">
+                <button
+                  className="button-mini"
+                  onClick={() =>
+                    setTagEditor({
+                      id: null,
+                      name: "",
+                      color: "#5f89ff",
+                    })
+                  }
+                >
+                  新建标签
+                </button>
+                <button className="button-ghost" onClick={() => setTagManagerOpen(false)}>
+                  关闭
+                </button>
+              </div>
+            </div>
+
+            <div className="sheet-section">
+              <div className="sheet-section-title">当前记录标签</div>
+              <div className="tag-selector">
+                {tags.map((tag) => (
+                  <label key={tag.id} className={`tag-toggle${draft?.tags.includes(tag.id) ? " tag-toggle-active" : ""}`}>
+                    <input
+                      type="checkbox"
+                      checked={Boolean(draft?.tags.includes(tag.id))}
+                      onChange={() => toggleTag(tag.id)}
+                    />
+                    <span className="tag-dot" style={{ backgroundColor: tag.color }} />
+                    <span>{tag.name}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="sheet-section sheet-section-grid">
+              <div>
+                <div className="sheet-section-title">标签库</div>
+                <div className="sheet-tag-library">
+                  {tags.map((tag) => (
+                    <button
+                      key={tag.id}
+                      className={`sheet-tag-row${tagEditor.id === tag.id ? " sheet-tag-row-active" : ""}`}
+                      onClick={() => startEditTag(tag)}
+                    >
+                      <span className="sidebar-tag-label">
+                        <span className="tag-dot" style={{ backgroundColor: tag.color }} />
+                        <span>{tag.name}</span>
+                      </span>
+                      {tag.isSystem ? <span className="sheet-tag-meta">系统</span> : null}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="sheet-section-title">{editingTag ? "编辑标签" : "新建标签"}</div>
+                <div className="sheet-form">
+                  <label className="field">
+                    <span className="field-label">名称</span>
+                    <input
+                      className="input"
+                      value={tagEditor.name}
+                      onChange={(event) => setTagEditor({ ...tagEditor, name: event.target.value })}
+                      placeholder="例如：项目A"
+                    />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">颜色</span>
+                    <div className="color-field">
+                      <input
+                        className="input color-input"
+                        type="color"
+                        value={tagEditor.color}
+                        onChange={(event) => setTagEditor({ ...tagEditor, color: event.target.value })}
+                      />
+                      <span className="color-field-value">{tagEditor.color.toUpperCase()}</span>
+                    </div>
+                  </label>
+                  <div className="sheet-actions">
+                    <button className="button-primary" onClick={() => void handleCreateOrUpdateTag()}>
+                      {editingTag ? "保存标签" : "新建标签"}
+                    </button>
+                    {editingTag ? (
+                      <>
+                        <button
+                          className="button-ghost"
+                          onClick={() =>
+                            setTagEditor({
+                              id: null,
+                              name: "",
+                              color: "#5f89ff",
+                            })
+                          }
+                        >
+                          取消编辑
+                        </button>
+                        <button
+                          className="button-ghost button-danger-soft"
+                          disabled={editingTag.isSystem}
+                          onClick={() => void handleDeleteTag(editingTag)}
+                        >
+                          删除标签
+                        </button>
+                      </>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

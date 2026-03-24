@@ -21,6 +21,8 @@ export class TauriNotificationDriver implements NotificationDriver {
       title: input.title,
       body: input.body,
       largeBody: input.body,
+      autoCancel: true,
+      extra: input.extra,
     });
   }
 

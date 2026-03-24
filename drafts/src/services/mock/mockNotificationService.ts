@@ -1,9 +1,15 @@
 import type { NotificationService, AppNotificationInput } from "../notificationService";
 
 import type { MockRuntime } from "../../mock/index";
+import type { ReminderService } from "../reminderService";
 
 export class MockNotificationService implements NotificationService {
-  constructor(private readonly runtime: MockRuntime) {}
+  private lastReminderSignature: string | null = null;
+
+  constructor(
+    private readonly runtime: MockRuntime,
+    private readonly reminderService: ReminderService,
+  ) {}
 
   async notify(input: AppNotificationInput): Promise<void> {
     this.runtime.notifications.unshift({
@@ -24,6 +30,31 @@ export class MockNotificationService implements NotificationService {
   }
 
   async scheduleReminderNotifications(): Promise<void> {
-    return Promise.resolve();
+    const reminder = await this.reminderService.getReminderSummary(this.runtime.now());
+
+    if (!reminder) {
+      this.lastReminderSignature = null;
+      return;
+    }
+
+    const signature = `${reminder.kind}:${reminder.recordIds.join(",")}`;
+
+    if (signature === this.lastReminderSignature) {
+      return;
+    }
+
+    this.lastReminderSignature = signature;
+
+    await this.notify({
+      id: `reminder:${reminder.kind}:${reminder.recordIds[0] ?? "none"}`,
+      title: reminder.title,
+      body: reminder.description,
+      extra: {
+        type: "reminder",
+        page: "workspace",
+        recordId: reminder.recordIds[0] ?? null,
+        recordIds: reminder.recordIds,
+      },
+    });
   }
 }
