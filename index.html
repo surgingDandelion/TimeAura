@@ -1028,19 +1028,59 @@
     .field-date {
       appearance: none;
       -webkit-appearance: none;
+      -moz-appearance: none;
       font-variant-numeric: tabular-nums;
     }
 
     .field-select {
       padding-right: 34px;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath d='M3.25 5.25L7 9l3.75-3.75' fill='none' stroke='%238495a8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 12px center;
-      background-size: 14px 14px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.97), rgba(249,252,255,0.92)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath d='M3.25 5.25L7 9l3.75-3.75' fill='none' stroke='%238495a8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat, no-repeat;
+      background-position: left top, right 12px center;
+      background-size: auto, 14px 14px;
+    }
+
+    .field-select:hover {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.99), rgba(250,253,255,0.95)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath d='M3.25 5.25L7 9l3.75-3.75' fill='none' stroke='%23788ba5' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat, no-repeat;
+      background-position: left top, right 12px center;
+      background-size: auto, 14px 14px;
     }
 
     body[data-theme="dark"] .field-select {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath d='M3.25 5.25L7 9l3.75-3.75' fill='none' stroke='%239fb0c8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.04)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath d='M3.25 5.25L7 9l3.75-3.75' fill='none' stroke='%239fb0c8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat, no-repeat;
+      background-position: left top, right 12px center;
+      background-size: auto, 14px 14px;
+    }
+
+    body[data-theme="dark"] .field-select:hover {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.062), rgba(255,255,255,0.05)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath d='M3.25 5.25L7 9l3.75-3.75' fill='none' stroke='%23bfd0e4' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat, no-repeat;
+      background-position: left top, right 12px center;
+      background-size: auto, 14px 14px;
+    }
+
+    .field-select::-ms-expand {
+      display: none;
+    }
+
+    .field-select option {
+      color: #1b2430;
+      background: #f7fafc;
+    }
+
+    body[data-theme="dark"] .field-select option {
+      color: #e8eef8;
+      background: #172232;
     }
 
     .field-date {
