@@ -8,20 +8,31 @@
 - 副作用是否可替换、可观察
 - 页面编排层是否正确把状态与命令拼装给组件
 
-当前桌面端尚未接入 `Vitest / Testing Library`，因此本计划先提供：
+当前桌面端已经接入最小测试链路：
 
-- 一套推荐的 hook 测试优先级
-- 一套最小化的 test seams 使用方式
-- 一套后续接入测试 runner 后可直接落地的测试骨架思路
-- 一份可直接复制落首个 hook 单测的最小脚手架文档
+- `Vitest`
+- `jsdom`
+- `@testing-library/react`
+- `apps/desktop/package.json` 中的 `test / test:watch` 脚本
+- 第一批 workspace 命令型 hook 单测
+
+本计划继续承担两件事：
+
+- 说明后续 hook 测试优先级
+- 约束这套 `seams + fixtures + command result` 的扩展方式
 
 ## 2. 当前测试基础
 
-- 当前 `apps/desktop/package.json` 中没有 `test` 脚本
-- 当前项目中没有 `vitest.config.ts`、`jest.config.ts`、`*.test.ts`
-- 当前已经具备可测前提：
+- 当前 `apps/desktop/package.json` 已包含 `test` 与 `test:watch` 脚本
+- 当前 `apps/desktop/vite.config.ts` 已包含最小 `Vitest` 配置
+- 当前已经落地的首批测试文件：
+  - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/apps/desktop/src/features/workspace/hooks/__tests__/useWorkspaceNotificationDebugActions.test.ts`
+  - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/apps/desktop/src/features/workspace/hooks/__tests__/useWorkspaceQuickAddActions.test.ts`
+  - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/apps/desktop/src/features/workspace/hooks/__tests__/useWorkspaceRecordActions.test.ts`
+- 当前已经具备的可测前提：
   - `workspace contracts`
   - `workspace test seams`
+  - `workspace service test doubles`
   - `WorkspaceCommandResult`
 
 相关文件：
@@ -29,6 +40,7 @@
 - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/apps/desktop/src/features/workspace/contracts.ts`
 - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/apps/desktop/src/features/workspace/testSeams.ts`
 - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/apps/desktop/src/features/workspace/testing/workspaceTestFixtures.ts`
+- `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/apps/desktop/src/features/workspace/testing/workspaceServiceTestDoubles.ts`
 - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/docs/TimeAura-Workspace-Hook-Test-Scaffold.md`
 
 ## 3. 推荐测试优先级

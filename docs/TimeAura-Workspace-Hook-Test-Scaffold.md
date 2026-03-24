@@ -8,7 +8,13 @@
 - 确定第一个 hook 测试怎么写
 - 让 `testSeams + workspaceTestFixtures` 真正进入可执行的单测路径
 
-本文件默认当前工程还没有正式接入 `Vitest / Testing Library`，因此内容以“可直接复制落地”的脚手架说明为主。
+当前工程已经完成最小测试接入：
+
+- `Vitest`
+- `jsdom`
+- `@testing-library/react`
+
+因此本文件现在既可以作为脚手架说明，也可以作为后续扩展 workspace hook tests 的参考模板。
 
 相关基础文件：
 
@@ -33,28 +39,18 @@ apps/desktop/src/features/workspace/hooks/__tests__/
 - 它们都已经接入 `WorkspaceCommandResult`
 - 它们的副作用都可以通过 seams 或回调进行观察
 
-## 3. 最小 runner 接入建议
+## 3. 当前最小 runner 形态
 
-当下一步准备真正启用单测时，建议只补到以下最小能力：
+当前测试入口已经具备以下结构：
 
-1. 安装 `vitest`
-2. 安装 `jsdom`
-3. 安装 `@testing-library/react`
-4. 在 `apps/desktop/package.json` 增加 `test` 脚本
-
-建议脚本：
-
-```json
-{
-  "scripts": {
-    "test": "vitest run"
-  }
-}
-```
-
-建议测试环境：
-
-- `environment: "jsdom"`
+- `apps/desktop/package.json`
+  - `test`
+  - `test:watch`
+- `apps/desktop/vite.config.ts`
+  - `test.environment = "jsdom"`
+  - `test.include = ["src/**/*.test.ts"]`
+- `apps/desktop/src/test/setup.ts`
+  - 统一执行 `cleanup`
 
 ## 4. 第一份 hook 单测骨架
 
