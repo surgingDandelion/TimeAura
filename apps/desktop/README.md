@@ -13,7 +13,9 @@
 - `mock / sqlite` 双模式装配入口
 - `AIProviderGateway` 注入
 - `NotificationDriver` 注入
+- `StrongholdCredentialVault` 注入
 - 与 `drafts/src` 的核心领域骨架对接
+- 备忘录列表 / 详情面板 / AI 报告页首轮接线
 
 初始化后的建议步骤：
 
@@ -22,3 +24,4 @@
 3. 若需要真实 SQLite 模式，设置：
    - `VITE_TIMEAURA_DATA_MODE=sqlite`
    - `VITE_TIMEAURA_DB_URL=sqlite:timeaura.db`
+   - `VITE_TIMEAURA_STRONGHOLD_PASSWORD=<your-dev-password>`

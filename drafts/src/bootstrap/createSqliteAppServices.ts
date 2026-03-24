@@ -104,6 +104,7 @@ export async function createSqliteAppServices(
     repositories,
     services,
     dispose: async () => {
+      await credentialVault.dispose?.();
       await client.close();
     },
   };

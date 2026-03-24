@@ -60,6 +60,8 @@ TimeAura/
 - `apps/desktop/vite.config.ts`
 - `apps/desktop/src/app/providers/AppServicesProvider.tsx`
 - `apps/desktop/src/app/bootstrap/createDesktopAppServices.ts`
+- `apps/desktop/src/features/workspace/WorkspacePage.tsx`
+- `apps/desktop/src/features/reports/ReportStudioPage.tsx`
 - `apps/desktop/src-tauri/*`
 
 这样做的价值：
@@ -383,6 +385,7 @@ export async function createAppServices(
 - `drafts/src/bootstrap/createSqliteAppServices.ts`
 - `drafts/src/providers/http/*`
 - `drafts/src/providers/tauri/*`
+- `drafts/src/providers/credentialVault.ts`
 
 这意味着真实工程初始化后，只需要：
 
