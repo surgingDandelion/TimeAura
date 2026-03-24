@@ -6,50 +6,23 @@ import { useAppServices } from "./providers/AppServicesProvider";
 import { ChannelStudioPage } from "../features/channels/ChannelStudioPage";
 import { ReportStudioPage } from "../features/reports/ReportStudioPage";
 import { WorkspacePage } from "../features/workspace/WorkspacePage";
+import type {
+  NotificationActionEventPayload,
+  NotificationDebugEntry,
+  NotificationDebugEventDetail,
+  WorkspaceFocusTarget,
+  WorkspaceQuickAddTarget,
+  WorkspaceRuntimeNotice,
+  WorkspaceSystemView,
+} from "../features/workspace/types";
 
 type AppPage = "workspace" | "reports" | "channels";
-type WorkspaceSystemView = "today" | "plan" | "all" | "done";
-
-interface WorkspaceFocusTarget {
-  recordId: string;
-  nonce: number;
-}
-
-interface WorkspaceQuickAddTarget {
-  nonce: number;
-}
-
-interface WorkspaceRuntimeNotice {
-  text: string;
-  tone: "info" | "warning";
-  nonce: number;
-}
 
 interface WorkspaceSidebarCounts {
   today: number;
   plan: number;
   all: number;
   done: number;
-}
-
-interface NotificationDebugEntry {
-  id: string;
-  at: string;
-  source: "driver" | "action";
-  level: "info" | "warning" | "error";
-  title: string;
-  detail: string;
-}
-
-interface NotificationDebugEventDetail {
-  level?: "info" | "warning" | "error";
-  title?: string;
-  detail?: string;
-}
-
-interface NotificationActionEventPayload {
-  actionId?: string;
-  extra?: Record<string, unknown>;
 }
 
 export function AppShell(): JSX.Element {
@@ -79,6 +52,14 @@ export function AppShell(): JSX.Element {
       ...current,
     ].slice(0, 30));
   }, []);
+
+  const clearNotificationDebug = useCallback(() => {
+    setNotificationDebugEntries([]);
+
+    if (runtime) {
+      runtime.notifications = [];
+    }
+  }, [runtime]);
 
   const loadSidebarData = useCallback(async () => {
     const [tagCounts, todayRecords, planRecords, allRecords, doneRecords] = await Promise.all([
@@ -464,6 +445,7 @@ export function AppShell(): JSX.Element {
             quickAddTarget={workspaceQuickAddTarget}
             runtimeNotice={workspaceRuntimeNotice}
             notificationDebugEntries={notificationDebugEntries}
+            onClearNotificationDebug={clearNotificationDebug}
             onTagFilterChange={setWorkspaceTagId}
             onWorkspaceChanged={handleWorkspaceChanged}
           />

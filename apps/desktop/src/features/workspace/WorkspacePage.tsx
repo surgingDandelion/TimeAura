@@ -3,49 +3,33 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RecordEntity, RecordPriority, RecordStatus, ReminderHit, ReminderSummary, TagEntity } from "@timeaura-core";
 
 import { useAppServices } from "../../app/providers/AppServicesProvider";
-
-type WorkspaceStatusFilter = "all" | "todo" | "done";
-type WorkspaceSort = "smart" | "due" | "priority" | "updated";
-type ContentMode = "edit" | "preview";
-
-interface WorkspaceFocusTarget {
-  recordId: string;
-  nonce: number;
-}
+import { NotificationDebugPanel } from "./components/NotificationDebugPanel";
+import { ReminderBanner } from "./components/ReminderBanner";
+import { ShortcutHelpSheet } from "./components/ShortcutHelpSheet";
+import { WORKSPACE_SHORTCUT_ITEMS, useWorkspaceKeyboardShortcuts } from "./hooks/useWorkspaceKeyboardShortcuts";
+import type {
+  ContentMode,
+  NotificationDebugEntry,
+  RecordDraft,
+  TagEditorDraft,
+  WorkspaceFocusTarget,
+  WorkspaceQuickAddTarget,
+  WorkspaceRuntimeNotice,
+  WorkspaceSort,
+  WorkspaceStatusFilter,
+} from "./types";
+import { formatDateLabel, formatDateTime, fromInputValue, renderMarkdownPreview, resolvePresetDate, sameTags, toInputValue } from "./utils";
 
 interface WorkspacePageProps {
   activeTagId: string;
   activeView: "today" | "plan" | "all" | "done";
   focusTarget: WorkspaceFocusTarget | null;
-  quickAddTarget: { nonce: number } | null;
-  runtimeNotice: { text: string; tone: "info" | "warning"; nonce: number } | null;
-  notificationDebugEntries: Array<{
-    id: string;
-    at: string;
-    source: "driver" | "action";
-    level: "info" | "warning" | "error";
-    title: string;
-    detail: string;
-  }>;
+  quickAddTarget: WorkspaceQuickAddTarget | null;
+  runtimeNotice: WorkspaceRuntimeNotice | null;
+  notificationDebugEntries: NotificationDebugEntry[];
+  onClearNotificationDebug?(): void | Promise<void>;
   onTagFilterChange(tagId: string): void;
   onWorkspaceChanged?(): void;
-}
-
-interface RecordDraft {
-  title: string;
-  status: RecordStatus;
-  priority: RecordPriority;
-  dueAt: string;
-  plannedAt: string;
-  contentMarkdown: string;
-  tags: string[];
-  isPinned: boolean;
-}
-
-interface TagEditorDraft {
-  id: string | null;
-  name: string;
-  color: string;
 }
 
 export function WorkspacePage({
@@ -55,6 +39,7 @@ export function WorkspacePage({
   quickAddTarget,
   runtimeNotice,
   notificationDebugEntries,
+  onClearNotificationDebug,
   onTagFilterChange,
   onWorkspaceChanged,
 }: WorkspacePageProps): JSX.Element {
@@ -80,6 +65,7 @@ export function WorkspacePage({
   const [customReminderTimeOpen, setCustomReminderTimeOpen] = useState(false);
   const [customReminderDueAt, setCustomReminderDueAt] = useState("");
   const [notificationDebugOpen, setNotificationDebugOpen] = useState(false);
+  const [shortcutHelpOpen, setShortcutHelpOpen] = useState(false);
   const [contentMode, setContentMode] = useState<ContentMode>("edit");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -287,8 +273,7 @@ export function WorkspacePage({
     setStatus("todo");
     onTagFilterChange("all");
     setSelectedId(null);
-    setQuickAddActive(true);
-    quickAddRef.current?.focus();
+    focusQuickAddInput();
   }, [quickAddTarget, onTagFilterChange]);
 
   useEffect(() => {
@@ -327,88 +312,16 @@ export function WorkspacePage({
     });
   }, [selectedId]);
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      const commandPressed = event.metaKey || event.ctrlKey;
+  function focusQuickAddInput(): void {
+    quickAddRef.current?.focus();
+    quickAddRef.current?.select();
+    setQuickAddActive(true);
+  }
 
-      if (commandPressed && event.key.toLowerCase() === "n") {
-        event.preventDefault();
-        quickAddRef.current?.focus();
-        quickAddRef.current?.select();
-        setQuickAddActive(true);
-        return;
-      }
-
-      if (commandPressed && event.key.toLowerCase() === "f") {
-        event.preventDefault();
-        searchRef.current?.focus();
-        searchRef.current?.select();
-        return;
-      }
-
-      if (commandPressed && event.key.toLowerCase() === "s" && selectedRecord && draftDirty && !saving) {
-        event.preventDefault();
-        void handleSave();
-        return;
-      }
-
-      if (event.key === "Escape") {
-        if (customReminderTimeOpen) {
-          event.preventDefault();
-          setCustomReminderTimeOpen(false);
-          return;
-        }
-
-        if (tagManagerOpen) {
-          event.preventDefault();
-          setTagManagerOpen(false);
-          return;
-        }
-
-        if (selectedId) {
-          event.preventDefault();
-          closeInspector();
-        }
-        return;
-      }
-
-      if (customReminderTimeOpen || tagManagerOpen || isEditableElement(target)) {
-        return;
-      }
-
-      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-        event.preventDefault();
-
-        if (records.length === 0) {
-          return;
-        }
-
-        const currentIndex = selectedId ? records.findIndex((record) => record.id === selectedId) : -1;
-
-        if (event.key === "ArrowDown") {
-          const nextIndex = currentIndex < records.length - 1 ? currentIndex + 1 : 0;
-          setSelectedId(records[nextIndex]?.id ?? null);
-          return;
-        }
-
-        const nextIndex = currentIndex <= 0 ? records.length - 1 : currentIndex - 1;
-        setSelectedId(records[nextIndex]?.id ?? null);
-        return;
-      }
-
-      if (event.key === " " && selectedId) {
-        event.preventDefault();
-        toggleSelection(selectedId);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [customReminderTimeOpen, draftDirty, records, saving, selectedId, selectedRecord, tagManagerOpen]);
+  function focusSearchInput(): void {
+    searchRef.current?.focus();
+    searchRef.current?.select();
+  }
 
   async function syncWorkspace(afterMessage?: string): Promise<void> {
     await loadWorkspace();
@@ -437,6 +350,7 @@ export function WorkspacePage({
     setQuickAdd("");
     setSelectedId(created.id);
     await syncWorkspace("已新增记录");
+    quickAddRef.current?.focus();
   }
 
   async function handleSave(): Promise<void> {
@@ -532,9 +446,7 @@ export function WorkspacePage({
     }
   }
 
-  async function handleReschedule(
-    preset: "plus_1_hour" | "tomorrow_09" | "today_18",
-  ): Promise<void> {
+  async function handleReschedule(preset: "plus_1_hour" | "tomorrow_09" | "today_18"): Promise<void> {
     if (batchTargetIds.length === 0) {
       return;
     }
@@ -552,9 +464,7 @@ export function WorkspacePage({
     return activeReminderTargetIds;
   }
 
-  async function handleReminderReschedule(
-    preset: "plus_1_hour" | "tomorrow_09" | "today_18",
-  ): Promise<void> {
+  async function handleReminderReschedule(preset: "plus_1_hour" | "tomorrow_09" | "today_18"): Promise<void> {
     const targetIds = getReminderActionTargetIds();
 
     if (targetIds.length === 0) {
@@ -750,6 +660,73 @@ export function WorkspacePage({
     setSelectedId(null);
   }
 
+  function openShortcutHelp(): void {
+    setShortcutHelpOpen(true);
+  }
+
+  function closeShortcutHelp(): void {
+    setShortcutHelpOpen(false);
+  }
+
+  function handleExportNotificationDebug(): void {
+    if (notificationDebugFeed.length === 0) {
+      return;
+    }
+
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      entries: notificationDebugFeed,
+    };
+    const fileName = `timeaura-notification-debug-${createExportTimestamp()}.json`;
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(url);
+    setMessage("通知调试记录已导出");
+  }
+
+  async function handleClearNotificationDebugPanel(): Promise<void> {
+    if (notificationDebugFeed.length === 0) {
+      return;
+    }
+
+    const confirmed = globalThis.confirm?.("确认清空当前通知调试记录吗？") ?? true;
+
+    if (!confirmed) {
+      return;
+    }
+
+    await onClearNotificationDebug?.();
+    setMessage("通知调试记录已清空");
+  }
+
+  useWorkspaceKeyboardShortcuts({
+    records,
+    selectedId,
+    selectedRecord,
+    draftDirty,
+    saving,
+    customReminderTimeOpen,
+    tagManagerOpen,
+    shortcutHelpOpen,
+    onFocusQuickAdd: focusQuickAddInput,
+    onFocusSearch: focusSearchInput,
+    onSave: () => {
+      void handleSave();
+    },
+    onCloseCustomReminder: () => setCustomReminderTimeOpen(false),
+    onCloseTagManager: () => setTagManagerOpen(false),
+    onCloseShortcutHelp: closeShortcutHelp,
+    onCloseInspector: closeInspector,
+    onSelectRecord: setSelectedId,
+    onToggleSelection: toggleSelection,
+    onOpenShortcutHelp: openShortcutHelp,
+  });
+
   return (
     <div className="workspace-layout">
       <section className="panel panel-list">
@@ -772,103 +749,28 @@ export function WorkspacePage({
           </button>
         </div>
 
-        {reminder ? (
-          <div className="reminder-banner">
-            <div className="reminder-main">
-              <div className="reminder-title">{reminder.title}</div>
-              <div className="reminder-text">{reminder.description}</div>
-              <div className="reminder-meta">桌面提醒会持续扫描；点击系统通知会直接回到对应记录。</div>
-              <div className="reminder-expand-row">
-                <button className="button-mini" onClick={() => setReminderExpanded((current) => !current)}>
-                  {reminderExpanded ? "收起命中任务" : `展开命中任务（${activeReminderHits.length}）`}
-                </button>
-                <span className="reminder-selection-meta">
-                  已选 {visibleReminderSelectedCount} / 命中 {activeReminderHits.length}
-                </span>
-                <button
-                  className={`button-mini${reminderSelectedOnly ? " button-mini-active" : ""}`}
-                  disabled={visibleReminderSelectedCount === 0}
-                  onClick={() => setReminderSelectedOnly((current) => !current)}
-                >
-                  仅改选中
-                </button>
-              </div>
-            </div>
-            <div className="reminder-actions">
-              <button className="button-ghost" onClick={() => void handleSnoozeReminder(30)}>
-                30 分钟后提醒
-              </button>
-              <button className="button-ghost" onClick={() => void handleReminderReschedule("plus_1_hour")}>
-                顺延 1 小时
-              </button>
-              <button className="button-ghost" onClick={() => void handleReminderReschedule("today_18")}>
-                改到今晚 18:00
-              </button>
-              <button className="button-ghost" onClick={openCustomReminderReschedule}>
-                自定义时间
-              </button>
-              <button className="button-primary" onClick={() => void handleReminderReschedule("tomorrow_09")}>
-                改到明早 09:00
-              </button>
-            </div>
-          </div>
-        ) : null}
-
-        {reminder && reminderExpanded ? (
-          <div className="reminder-hit-panel">
-            <div className="list-toolbar reminder-hit-toolbar">
-              <div className="list-toolbar-meta">
-                <span>当前提醒类型：{formatReminderKind(reminder.kind)}</span>
-                <span>{reminderSelectedOnly ? "当前快捷操作仅作用于已勾选命中项" : "当前快捷操作默认作用于全部命中项"}</span>
-              </div>
-              <div className="list-toolbar-actions">
-                <button className="button-mini" onClick={toggleSelectAllReminderHits}>
-                  {visibleReminderSelectedCount === activeReminderTargetIds.length && activeReminderTargetIds.length > 0
-                    ? "清空命中选择"
-                    : "全选命中任务"}
-                </button>
-              </div>
-            </div>
-
-            <div className="reminder-hit-list">
-              {activeReminderHits.map((hit) => (
-                <button
-                  key={hit.id}
-                  className={`reminder-hit-row${selectedId === hit.id ? " reminder-hit-row-active" : ""}${reminderSelectedIds.includes(hit.id) ? " reminder-hit-row-selected" : ""}`}
-                  onClick={() => focusRecordFromReminder(hit.id)}
-                >
-                  <label
-                    className="record-check"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={reminderSelectedIds.includes(hit.id)}
-                      onChange={() => toggleReminderSelection(hit.id)}
-                    />
-                  </label>
-                  <div className={`priority-pill priority-${hit.priority.toLowerCase()}`}>{hit.priority}</div>
-                  <div className="record-main">
-                    <div className="record-topline">
-                      <div className="record-title-wrap">
-                        <div className="record-title-text">{hit.title}</div>
-                      </div>
-                      <div className="record-meta">{hit.status}</div>
-                    </div>
-                    <div className="record-bottomline">
-                      <div className="record-tags">
-                        <span className="tag-chip tag-chip-accent">{formatReminderKind(hit.reminderKind)}</span>
-                      </div>
-                      <div className="record-due">{formatDateLabel(hit.dueAt)}</div>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : null}
+        <ReminderBanner
+          reminder={reminder}
+          activeReminderHits={activeReminderHits}
+          activeReminderTargetIds={activeReminderTargetIds}
+          reminderExpanded={reminderExpanded}
+          reminderSelectedIds={reminderSelectedIds}
+          reminderSelectedOnly={reminderSelectedOnly}
+          selectedId={selectedId}
+          visibleReminderSelectedCount={visibleReminderSelectedCount}
+          onToggleExpanded={() => setReminderExpanded((current) => !current)}
+          onToggleSelectedOnly={() => setReminderSelectedOnly((current) => !current)}
+          onSnoozeReminder={(minutes) => {
+            void handleSnoozeReminder(minutes);
+          }}
+          onReschedule={(preset) => {
+            void handleReminderReschedule(preset);
+          }}
+          onOpenCustom={openCustomReminderReschedule}
+          onToggleSelectAll={toggleSelectAllReminderHits}
+          onFocusRecord={focusRecordFromReminder}
+          onToggleReminderSelection={toggleReminderSelection}
+        />
 
         <div className="quick-add-row">
           <input
@@ -926,9 +828,12 @@ export function WorkspacePage({
           <div className="list-toolbar-meta">
             <span>{records.length} 条记录</span>
             {selectedCount > 0 ? <span>已选 {selectedCount} 条</span> : null}
-            <span>快捷键：⌘/Ctrl+N 新增 · ⌘/Ctrl+F 搜索 · ⌘/Ctrl+S 保存 · Esc 收起</span>
+            <span>快捷键帮助：⌘/Ctrl+/</span>
           </div>
           <div className="list-toolbar-actions">
+            <button className="button-mini" onClick={openShortcutHelp}>
+              快捷键
+            </button>
             <button className="button-mini" onClick={toggleSelectAllVisible}>
               {visibleSelectedCount === records.length && records.length > 0 ? "清空全选" : "全选当前列表"}
             </button>
@@ -962,39 +867,15 @@ export function WorkspacePage({
 
         {message ? <div className={`inline-message${runtimeNotice?.tone === "warning" ? " inline-message-warning" : ""}`}>{message}</div> : null}
 
-        <div className="debug-panel">
-          <div className="list-toolbar debug-panel-toolbar">
-            <div className="list-toolbar-meta">
-              <span>通知调试面板</span>
-              <span>{notificationDebugFeed.length} 条最近事件</span>
-            </div>
-            <div className="list-toolbar-actions">
-              <button className="button-mini" onClick={() => setNotificationDebugOpen((current) => !current)}>
-                {notificationDebugOpen ? "收起调试" : "展开调试"}
-              </button>
-            </div>
-          </div>
-
-          {notificationDebugOpen ? (
-            <div className="debug-log-list">
-              {notificationDebugFeed.length === 0 ? (
-                <div className="debug-log-empty">当前还没有通知事件，后续发送、回退、点击动作都会显示在这里。</div>
-              ) : (
-                notificationDebugFeed.map((entry) => (
-                  <div key={entry.id} className={`debug-log-row debug-log-row-${entry.level}`}>
-                    <div className="debug-log-head">
-                      <span className="debug-log-title">{entry.title}</span>
-                      <span className="debug-log-meta">
-                        {entry.source === "action" ? "动作" : "驱动"} · {formatDateTime(entry.at)}
-                      </span>
-                    </div>
-                    <div className="debug-log-detail">{entry.detail}</div>
-                  </div>
-                ))
-              )}
-            </div>
-          ) : null}
-        </div>
+        <NotificationDebugPanel
+          entries={notificationDebugFeed}
+          open={notificationDebugOpen}
+          onToggleOpen={() => setNotificationDebugOpen((current) => !current)}
+          onExport={handleExportNotificationDebug}
+          onClear={() => {
+            void handleClearNotificationDebugPanel();
+          }}
+        />
 
         <div className="record-list">
           {loading ? <div className="empty-state">正在加载记录…</div> : null}
@@ -1087,6 +968,9 @@ export function WorkspacePage({
                 </button>
                 <button className="button-ghost" disabled={saving} onClick={() => void handlePolishMarkdown()}>
                   AI 润色
+                </button>
+                <button className="button-ghost" onClick={openTagManager}>
+                  管理标签
                 </button>
                 <button className="button-ghost" onClick={() => void handleArchive(selectedRecord.id)}>
                   归档
@@ -1236,11 +1120,6 @@ export function WorkspacePage({
                 <div className="inspector-row inspector-row-stack">
                   <div className="inspector-row-label">标签</div>
                   <div className="inspector-row-content">
-                    <div className="inspector-inline-actions">
-                      <button className="button-mini" onClick={openTagManager}>
-                        管理标签
-                      </button>
-                    </div>
                     <div className="tag-selector">
                       {tags.map((tag) => (
                         <label key={tag.id} className={`tag-toggle${draft.tags.includes(tag.id) ? " tag-toggle-active" : ""}`}>
@@ -1517,197 +1396,20 @@ export function WorkspacePage({
           </div>
         </div>
       ) : null}
+
+      <ShortcutHelpSheet open={shortcutHelpOpen} shortcuts={WORKSPACE_SHORTCUT_ITEMS} onClose={closeShortcutHelp} />
     </div>
   );
 }
 
-function toInputValue(value: string | null): string {
-  if (!value) {
-    return "";
-  }
-
-  const date = new Date(value);
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 16);
-}
-
-function fromInputValue(value: string): string | null {
-  if (!value) {
-    return null;
-  }
-
-  return new Date(value).toISOString();
-}
-
-function formatDateLabel(value: string | null): string {
-  if (!value) {
-    return "未设置时间";
-  }
-
-  const date = new Date(value);
-  return `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, "0")}:${String(
-    date.getMinutes(),
-  ).padStart(2, "0")}`;
-}
-
-function formatDateTime(value: string | null): string {
-  if (!value) {
-    return "未设置";
-  }
-
-  const date = new Date(value);
-  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, "0")}:${String(
-    date.getMinutes(),
-  ).padStart(2, "0")}`;
-}
-
-function formatReminderKind(kind: ReminderHit["reminderKind"]): string {
-  switch (kind) {
-    case "overdue":
-      return "已逾期";
-
-    case "due_2h":
-      return "2 小时内到期";
-
-    case "due_24h":
-      return "24 小时内到期";
-
-    case "overloaded":
-      return "任务积压";
-
-    default:
-      return "提醒";
-  }
-}
-
-function sameTags(left: string[], right: string[]): boolean {
-  if (left.length !== right.length) {
-    return false;
-  }
-
-  const leftSorted = [...left].sort();
-  const rightSorted = [...right].sort();
-  return leftSorted.every((tag, index) => tag === rightSorted[index]);
-}
-
-function resolvePresetDate(
-  preset: "plus_1_hour" | "today_18" | "tomorrow_09" | "friday_18" | "next_monday_09",
-): string {
+function createExportTimestamp(): string {
   const now = new Date();
-  const target = new Date(now);
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  const seconds = String(now.getSeconds()).padStart(2, "0");
 
-  if (preset === "plus_1_hour") {
-    target.setHours(target.getHours() + 1, target.getMinutes(), 0, 0);
-    return target.toISOString();
-  }
-
-  if (preset === "today_18") {
-    target.setHours(18, 0, 0, 0);
-    return target.toISOString();
-  }
-
-  if (preset === "friday_18") {
-    const distance = ((5 - target.getDay()) % 7 + 7) % 7;
-    target.setDate(target.getDate() + distance);
-    target.setHours(18, 0, 0, 0);
-    return target.toISOString();
-  }
-
-  if (preset === "next_monday_09") {
-    const distance = target.getDay() === 1 ? 7 : ((8 - target.getDay()) % 7 + 7) % 7;
-    target.setDate(target.getDate() + distance);
-    target.setHours(9, 0, 0, 0);
-    return target.toISOString();
-  }
-
-  if (preset === "tomorrow_09") {
-    target.setDate(target.getDate() + 1);
-    target.setHours(9, 0, 0, 0);
-    return target.toISOString();
-  }
-
-  return target.toISOString();
-}
-
-function isEditableElement(target: HTMLElement | null): boolean {
-  if (!target) {
-    return false;
-  }
-
-  const tagName = target.tagName;
-  return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT" || target.isContentEditable;
-}
-
-function renderMarkdownPreview(markdown: string): JSX.Element {
-  const lines = markdown.split("\n");
-  const elements: JSX.Element[] = [];
-  let listBuffer: string[] = [];
-
-  const flushList = (): void => {
-    if (listBuffer.length === 0) {
-      return;
-    }
-
-    elements.push(
-      <ul key={`list-${elements.length}`} className="workspace-preview-list">
-        {listBuffer.map((item, index) => (
-          <li key={`${item}-${index}`}>{item}</li>
-        ))}
-      </ul>,
-    );
-    listBuffer = [];
-  };
-
-  lines.forEach((line, index) => {
-    const trimmed = line.trim();
-
-    if (!trimmed) {
-      flushList();
-      return;
-    }
-
-    if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
-      listBuffer.push(trimmed.slice(2));
-      return;
-    }
-
-    flushList();
-
-    if (trimmed.startsWith("### ")) {
-      elements.push(
-        <h3 key={`h3-${index}`} className="workspace-preview-h3">
-          {trimmed.slice(4)}
-        </h3>,
-      );
-      return;
-    }
-
-    if (trimmed.startsWith("## ")) {
-      elements.push(
-        <h2 key={`h2-${index}`} className="workspace-preview-h2">
-          {trimmed.slice(3)}
-        </h2>,
-      );
-      return;
-    }
-
-    if (trimmed.startsWith("# ")) {
-      elements.push(
-        <h1 key={`h1-${index}`} className="workspace-preview-h1">
-          {trimmed.slice(2)}
-        </h1>,
-      );
-      return;
-    }
-
-    elements.push(
-      <p key={`p-${index}`} className="workspace-preview-p">
-        {trimmed}
-      </p>,
-    );
-  });
-
-  flushList();
-
-  return elements.length > 0 ? <>{elements}</> : <span>还没有内容，先写一点 Markdown 再回来预览。</span>;
+  return `${year}${month}${day}-${hours}${minutes}${seconds}`;
 }

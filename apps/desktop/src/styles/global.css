@@ -1075,6 +1075,10 @@ body {
   width: min(520px, 100%);
 }
 
+.sheet-panel-shortcuts {
+  width: min(640px, 100%);
+}
+
 .debug-panel {
   margin-bottom: 14px;
   border: 1px solid rgba(15, 23, 42, 0.06);
@@ -1174,6 +1178,48 @@ body {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: 18px;
+}
+
+.shortcut-sheet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.shortcut-sheet-row {
+  display: grid;
+  grid-template-columns: minmax(168px, 196px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 16px;
+  background: rgba(248, 249, 252, 0.88);
+}
+
+.shortcut-sheet-keys {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow:
+    inset 0 -1px 0 rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  color: #314150;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.shortcut-sheet-copy {
+  color: #617385;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .sheet-tag-library {
