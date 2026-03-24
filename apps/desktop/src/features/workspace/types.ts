@@ -26,6 +26,18 @@ export interface WorkspaceRuntimeNotice {
   nonce: number;
 }
 
+export interface WorkspacePageProps {
+  activeTagId: string;
+  activeView: WorkspaceSystemView;
+  focusTarget: WorkspaceFocusTarget | null;
+  quickAddTarget: WorkspaceQuickAddTarget | null;
+  runtimeNotice: WorkspaceRuntimeNotice | null;
+  notificationDebugEntries: NotificationDebugEntry[];
+  onClearNotificationDebug?(): void | Promise<void>;
+  onTagFilterChange(tagId: string): void;
+  onWorkspaceChanged?(): void;
+}
+
 export interface NotificationDebugEntry {
   id: string;
   at: string;
