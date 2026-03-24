@@ -7,7 +7,7 @@ import { ReminderBanner } from "./ReminderBanner";
 import type { NotificationDebugEntry, WorkspaceSort, WorkspaceStatusFilter } from "../types";
 import { formatDateLabel } from "../utils";
 
-interface WorkspaceListPanelProps {
+export interface WorkspaceListPanelProps {
   activeTagId: string;
   activeView: "today" | "plan" | "all" | "done";
   currentTagName: string;

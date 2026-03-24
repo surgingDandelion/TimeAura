@@ -3,7 +3,7 @@ import type { RecordEntity, RecordPriority, RecordStatus, TagEntity } from "@tim
 import type { ContentMode, RecordDraft } from "../types";
 import { formatDateTime, renderMarkdownPreview, resolvePresetDate, toInputValue } from "../utils";
 
-interface WorkspaceDetailInspectorProps {
+export interface WorkspaceDetailInspectorProps {
   selectedRecord: RecordEntity | null;
   draft: RecordDraft | null;
   tags: TagEntity[];

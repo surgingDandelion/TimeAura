@@ -1,8 +1,14 @@
 import { useCallback, useState } from "react";
 import type { MutableRefObject, RefObject } from "react";
 
-import type { RecordEntity, TagEntity } from "@timeaura-core";
+import type { RecordEntity, ReminderHit, ReminderSummary, TagEntity } from "@timeaura-core";
 
+import type { CustomReminderSheetProps } from "../components/CustomReminderSheet";
+import type { ShortcutHelpSheetProps } from "../components/ShortcutHelpSheet";
+import type { TagManagerSheetProps } from "../components/TagManagerSheet";
+import type { WorkspaceDetailInspectorProps } from "../components/WorkspaceDetailInspector";
+import type { WorkspaceListPanelProps } from "../components/WorkspaceListPanel";
+import type { ContentMode, NotificationDebugEntry, RecordDraft, TagEditorDraft, WorkspaceSort, WorkspaceStatusFilter } from "../types";
 import { WORKSPACE_SHORTCUT_ITEMS, useWorkspaceKeyboardShortcuts } from "./useWorkspaceKeyboardShortcuts";
 
 interface UseWorkspaceCommandsOptions {
@@ -11,8 +17,8 @@ interface UseWorkspaceCommandsOptions {
   currentTagName: string;
   quickAdd: string;
   keyword: string;
-  status: "all" | "todo" | "done";
-  sortBy: "smart" | "due" | "priority" | "updated";
+  status: WorkspaceStatusFilter;
+  sortBy: WorkspaceSort;
   tags: TagEntity[];
   records: RecordEntity[];
   selectedId: string | null;
@@ -24,26 +30,26 @@ interface UseWorkspaceCommandsOptions {
   quickAddActive: boolean;
   message: string | null;
   runtimeNoticeTone?: "info" | "warning";
-  reminder: any;
-  activeReminderHits: any[];
+  reminder: ReminderSummary | null;
+  activeReminderHits: ReminderHit[];
   activeReminderTargetIds: string[];
   reminderExpanded: boolean;
   reminderSelectedIds: string[];
   reminderSelectedOnly: boolean;
   visibleReminderSelectedCount: number;
-  notificationDebugFeed: any[];
+  notificationDebugFeed: NotificationDebugEntry[];
   notificationDebugOpen: boolean;
   customReminderTimeOpen: boolean;
   tagManagerOpen: boolean;
   draftDirty: boolean;
   saving: boolean;
   selectedRecord: RecordEntity | null;
-  draft: any;
-  contentMode: "edit" | "preview";
+  draft: RecordDraft | null;
+  contentMode: ContentMode;
   customReminderDueAt: string;
   customReminderValidation: string[];
   editingTag: TagEntity | null;
-  tagEditor: any;
+  tagEditor: TagEditorDraft;
   quickAddRef: RefObject<HTMLInputElement>;
   searchRef: RefObject<HTMLInputElement>;
   rowRefs: MutableRefObject<Record<string, HTMLButtonElement | null>>;
@@ -51,9 +57,9 @@ interface UseWorkspaceCommandsOptions {
   onQuickAddChange(value: string): void;
   onQuickAddSubmit(): void;
   onKeywordChange(value: string): void;
-  onStatusChange(value: "all" | "todo" | "done"): void;
+  onStatusChange(value: WorkspaceStatusFilter): void;
   onTagFilterChange(tagId: string): void;
-  onSortByChange(value: "smart" | "due" | "priority" | "updated"): void;
+  onSortByChange(value: WorkspaceSort): void;
   onToggleSelectAllVisible(): void;
   onClearSelection(): void;
   onBatchReschedule(preset: "plus_1_hour" | "today_18" | "tomorrow_09"): void;
@@ -78,13 +84,13 @@ interface UseWorkspaceCommandsOptions {
   onDelete(recordId: string): void;
   onCloseInspector(): void;
   onSave(): void;
-  onDraftChange(nextDraft: any): void;
+  onDraftChange(nextDraft: RecordDraft): void;
   onToggleTag(tagId: string): void;
-  onContentModeChange(mode: "edit" | "preview"): void;
+  onContentModeChange(mode: ContentMode): void;
   onCloseTagManager(): void;
   onResetTagEditor(): void;
   onSelectTag(tag: TagEntity): void;
-  onTagEditorChange(nextEditor: any): void;
+  onTagEditorChange(nextEditor: TagEditorDraft): void;
   onSubmitTagEditor(): void;
   onDeleteTag(tag: TagEntity): void;
   onCloseCustomReminder(): void;
@@ -131,8 +137,7 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
     onOpenShortcutHelp: openShortcutHelp,
   });
 
-  return {
-    listPanelProps: {
+  const listPanelProps: WorkspaceListPanelProps = {
       activeTagId: options.activeTagId,
       activeView: options.activeView,
       currentTagName: options.currentTagName,
@@ -188,8 +193,9 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
       onSelectRecord: (recordId: string) => options.onSelectRecord(recordId),
       onToggleSelection: options.onToggleSelection,
       onCompleteRecord: options.onCompleteRecord,
-    },
-    detailInspectorProps: {
+    };
+
+  const detailInspectorProps: WorkspaceDetailInspectorProps = {
       selectedRecord: options.selectedRecord,
       draft: options.draft,
       tags: options.tags,
@@ -206,8 +212,9 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
       onDraftChange: options.onDraftChange,
       onToggleTag: options.onToggleTag,
       onContentModeChange: options.onContentModeChange,
-    },
-    tagManagerSheetProps: {
+    };
+
+  const tagManagerSheetProps: TagManagerSheetProps = {
       open: options.tagManagerOpen,
       tags: options.tags,
       draft: options.draft,
@@ -220,8 +227,9 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
       onTagEditorChange: options.onTagEditorChange,
       onSubmit: options.onSubmitTagEditor,
       onDelete: options.onDeleteTag,
-    },
-    customReminderSheetProps: {
+    };
+
+  const customReminderSheetProps: CustomReminderSheetProps = {
       open: options.customReminderTimeOpen,
       reminderSelectedOnly: options.reminderSelectedOnly,
       reminderSelectedIds: options.reminderSelectedIds,
@@ -232,11 +240,19 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
       onChangeDueAt: options.onChangeCustomReminderDueAt,
       onApplyPreset: options.onApplyCustomReminderPreset,
       onSubmit: options.onSubmitCustomReminder,
-    },
-    shortcutHelpProps: {
+    };
+
+  const shortcutHelpProps: ShortcutHelpSheetProps = {
       open: shortcutHelpOpen,
       shortcuts: WORKSPACE_SHORTCUT_ITEMS,
       onClose: closeShortcutHelp,
-    },
+  };
+
+  return {
+    listPanelProps,
+    detailInspectorProps,
+    tagManagerSheetProps,
+    customReminderSheetProps,
+    shortcutHelpProps,
   };
 }

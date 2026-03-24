@@ -2,7 +2,7 @@ import type { TagEntity } from "@timeaura-core";
 
 import type { RecordDraft, TagEditorDraft } from "../types";
 
-interface TagManagerSheetProps {
+export interface TagManagerSheetProps {
   open: boolean;
   tags: TagEntity[];
   draft: RecordDraft | null;

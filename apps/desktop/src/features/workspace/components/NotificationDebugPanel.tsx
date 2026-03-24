@@ -1,7 +1,7 @@
 import type { NotificationDebugEntry } from "../types";
 import { formatDateTime } from "../utils";
 
-interface NotificationDebugPanelProps {
+export interface NotificationDebugPanelProps {
   entries: NotificationDebugEntry[];
   open: boolean;
   onToggleOpen(): void;

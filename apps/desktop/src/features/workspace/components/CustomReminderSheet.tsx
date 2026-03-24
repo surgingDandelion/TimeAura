@@ -1,4 +1,4 @@
-interface CustomReminderSheetProps {
+export interface CustomReminderSheetProps {
   open: boolean;
   reminderSelectedOnly: boolean;
   reminderSelectedIds: string[];

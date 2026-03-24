@@ -1,6 +1,6 @@
 import type { WorkspaceShortcutItem } from "../types";
 
-interface ShortcutHelpSheetProps {
+export interface ShortcutHelpSheetProps {
   open: boolean;
   shortcuts: WorkspaceShortcutItem[];
   onClose(): void;

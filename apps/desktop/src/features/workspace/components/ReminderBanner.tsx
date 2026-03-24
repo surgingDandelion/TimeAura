@@ -3,7 +3,7 @@ import type { ReminderHit, ReminderSummary } from "@timeaura-core";
 import type { ReminderPreset } from "../types";
 import { formatDateLabel, formatReminderKind } from "../utils";
 
-interface ReminderBannerProps {
+export interface ReminderBannerProps {
   reminder: ReminderSummary | null;
   activeReminderHits: ReminderHit[];
   activeReminderTargetIds: string[];
