@@ -712,6 +712,7 @@ body {
 
 .list-toolbar-meta {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   color: #66788a;
   font-size: 12px;
@@ -1072,6 +1073,74 @@ body {
 
 .sheet-panel-compact {
   width: min(520px, 100%);
+}
+
+.debug-panel {
+  margin-bottom: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 18px;
+  background: rgba(248, 249, 252, 0.78);
+}
+
+.debug-panel-toolbar {
+  margin: 0;
+  padding: 12px 14px;
+}
+
+.debug-log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 14px 14px;
+}
+
+.debug-log-empty {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.7);
+  color: #68798c;
+  font-size: 12px;
+}
+
+.debug-log-row {
+  padding: 12px 14px;
+  border: 1px solid rgba(15, 23, 42, 0.05);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.debug-log-row-warning {
+  border-color: rgba(236, 151, 31, 0.14);
+  background: rgba(255, 248, 238, 0.94);
+}
+
+.debug-log-row-error {
+  border-color: rgba(211, 77, 64, 0.16);
+  background: rgba(255, 245, 244, 0.94);
+}
+
+.debug-log-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.debug-log-title {
+  color: #223244;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.debug-log-meta,
+.debug-log-detail {
+  color: #66788a;
+  font-size: 12px;
+}
+
+.debug-log-detail {
+  margin-top: 4px;
+  line-height: 1.5;
 }
 
 .sheet-header {

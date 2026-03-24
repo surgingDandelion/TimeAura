@@ -32,6 +32,21 @@ interface WorkspaceSidebarCounts {
   done: number;
 }
 
+interface NotificationDebugEntry {
+  id: string;
+  at: string;
+  source: "driver" | "action";
+  level: "info" | "warning" | "error";
+  title: string;
+  detail: string;
+}
+
+interface NotificationDebugEventDetail {
+  level?: "info" | "warning" | "error";
+  title?: string;
+  detail?: string;
+}
+
 interface NotificationActionEventPayload {
   actionId?: string;
   extra?: Record<string, unknown>;
@@ -52,6 +67,18 @@ export function AppShell(): JSX.Element {
   const [workspaceFocusTarget, setWorkspaceFocusTarget] = useState<WorkspaceFocusTarget | null>(null);
   const [workspaceQuickAddTarget, setWorkspaceQuickAddTarget] = useState<WorkspaceQuickAddTarget | null>(null);
   const [workspaceRuntimeNotice, setWorkspaceRuntimeNotice] = useState<WorkspaceRuntimeNotice | null>(null);
+  const [notificationDebugEntries, setNotificationDebugEntries] = useState<NotificationDebugEntry[]>([]);
+
+  const pushNotificationDebug = useCallback((entry: Omit<NotificationDebugEntry, "id" | "at">) => {
+    setNotificationDebugEntries((current) => [
+      {
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        at: new Date().toISOString(),
+        ...entry,
+      },
+      ...current,
+    ].slice(0, 30));
+  }, []);
 
   const loadSidebarData = useCallback(async () => {
     const [tagCounts, todayRecords, planRecords, allRecords, doneRecords] = await Promise.all([
@@ -101,6 +128,12 @@ export function AppShell(): JSX.Element {
         switch (payload.actionId) {
           case "complete":
             if (primaryRecordId) {
+              pushNotificationDebug({
+                source: "action",
+                level: "info",
+                title: "通知动作：完成",
+                detail: `记录 ${primaryRecordId} 已通过桌面通知标记为完成。`,
+              });
               await services.recordService.completeRecord(primaryRecordId);
               await handleWorkspaceChanged();
               routeToWorkspaceRecord(primaryRecordId);
@@ -114,6 +147,12 @@ export function AppShell(): JSX.Element {
 
           case "snooze_30":
             if (recordIds.length > 0 || primaryRecordId) {
+              pushNotificationDebug({
+                source: "action",
+                level: "info",
+                title: "通知动作：稍后提醒",
+                detail: `已将 ${recordIds.length > 0 ? recordIds.length : 1} 条记录延后 30 分钟提醒。`,
+              });
               await services.reminderService.snoozeReminder(
                 recordIds.length > 0 ? recordIds : [primaryRecordId as string],
                 30,
@@ -134,6 +173,12 @@ export function AppShell(): JSX.Element {
           case "notification_click":
           default:
             if (primaryRecordId) {
+              pushNotificationDebug({
+                source: "action",
+                level: "info",
+                title: payload.actionId === "notification_click" ? "通知点击回跳" : "通知动作：打开详情",
+                detail: `已回到记录 ${primaryRecordId} 的工作台详情。`,
+              });
               routeToWorkspaceRecord(primaryRecordId);
               setWorkspaceRuntimeNotice({
                 text: "已从桌面通知回到对应记录",
@@ -143,6 +188,12 @@ export function AppShell(): JSX.Element {
             }
         }
       } catch (_error) {
+        pushNotificationDebug({
+          source: "action",
+          level: "error",
+          title: "通知动作执行失败",
+          detail: `动作 ${payload.actionId ?? "unknown"} 执行失败，已回退到工作台人工处理。`,
+        });
         if (primaryRecordId) {
           routeToWorkspaceRecord(primaryRecordId);
         } else {
@@ -157,7 +208,7 @@ export function AppShell(): JSX.Element {
         await handleWorkspaceChanged();
       }
     },
-    [handleWorkspaceChanged, routeToWorkspaceRecord, services.recordService, services.reminderService],
+    [handleWorkspaceChanged, pushNotificationDebug, routeToWorkspaceRecord, services.recordService, services.reminderService],
   );
 
   useEffect(() => {
@@ -173,6 +224,29 @@ export function AppShell(): JSX.Element {
 
     return () => window.clearTimeout(timer);
   }, [workspaceRuntimeNotice]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const handleDebugEvent = (event: Event) => {
+      const detail = (event as CustomEvent<NotificationDebugEventDetail>).detail;
+
+      pushNotificationDebug({
+        source: "driver",
+        level: detail?.level ?? "info",
+        title: detail?.title ?? "通知调试事件",
+        detail: detail?.detail ?? "无额外说明",
+      });
+    };
+
+    window.addEventListener("timeaura:notification-debug", handleDebugEvent as EventListener);
+
+    return () => {
+      window.removeEventListener("timeaura:notification-debug", handleDebugEvent as EventListener);
+    };
+  }, [pushNotificationDebug]);
 
   useEffect(() => {
     void loadSidebarData();
@@ -389,6 +463,7 @@ export function AppShell(): JSX.Element {
             focusTarget={workspaceFocusTarget}
             quickAddTarget={workspaceQuickAddTarget}
             runtimeNotice={workspaceRuntimeNotice}
+            notificationDebugEntries={notificationDebugEntries}
             onTagFilterChange={setWorkspaceTagId}
             onWorkspaceChanged={handleWorkspaceChanged}
           />
