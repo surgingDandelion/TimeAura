@@ -18,6 +18,7 @@ interface WorkspacePageProps {
   activeView: "today" | "plan" | "all" | "done";
   focusTarget: WorkspaceFocusTarget | null;
   quickAddTarget: { nonce: number } | null;
+  runtimeNotice: { text: string; tone: "info" | "warning"; nonce: number } | null;
   onTagFilterChange(tagId: string): void;
   onWorkspaceChanged?(): void;
 }
@@ -44,6 +45,7 @@ export function WorkspacePage({
   activeView,
   focusTarget,
   quickAddTarget,
+  runtimeNotice,
   onTagFilterChange,
   onWorkspaceChanged,
 }: WorkspacePageProps): JSX.Element {
@@ -64,6 +66,8 @@ export function WorkspacePage({
   const [reminderExpanded, setReminderExpanded] = useState(false);
   const [reminderSelectedIds, setReminderSelectedIds] = useState<string[]>([]);
   const [reminderSelectedOnly, setReminderSelectedOnly] = useState(false);
+  const [customReminderTimeOpen, setCustomReminderTimeOpen] = useState(false);
+  const [customReminderDueAt, setCustomReminderDueAt] = useState("");
   const [contentMode, setContentMode] = useState<ContentMode>("edit");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -246,6 +250,20 @@ export function WorkspacePage({
     return () => window.clearTimeout(timer);
   }, [quickAddActive]);
 
+  useEffect(() => {
+    if (!runtimeNotice) {
+      return;
+    }
+
+    setMessage(runtimeNotice.text);
+
+    const timer = window.setTimeout(() => {
+      setMessage((current) => (current === runtimeNotice.text ? null : current));
+    }, 3200);
+
+    return () => window.clearTimeout(timer);
+  }, [runtimeNotice]);
+
   async function syncWorkspace(afterMessage?: string): Promise<void> {
     await loadWorkspace();
     await onWorkspaceChanged?.();
@@ -414,6 +432,32 @@ export function WorkspacePage({
     setReminderSelectedIds([]);
     setReminderSelectedOnly(false);
     await syncWorkspace(`已延后提醒 ${minutes} 分钟`);
+  }
+
+  function openCustomReminderReschedule(): void {
+    const nextDefault = activeReminderHits[0]?.dueAt ?? resolvePresetDate("tomorrow_09");
+
+    setCustomReminderDueAt(toInputValue(nextDefault));
+    setCustomReminderTimeOpen(true);
+  }
+
+  async function handleSubmitCustomReminderReschedule(): Promise<void> {
+    const targetIds = getReminderActionTargetIds();
+    const customAt = fromInputValue(customReminderDueAt);
+
+    if (targetIds.length === 0 || !customAt) {
+      setMessage("请先选择命中任务，并设置新的时间");
+      return;
+    }
+
+    await services.recordService.batchReschedule(targetIds, {
+      preset: "custom",
+      customAt,
+    });
+    setCustomReminderTimeOpen(false);
+    setReminderSelectedIds([]);
+    setReminderSelectedOnly(false);
+    await syncWorkspace("已完成自定义改期");
   }
 
   function toggleReminderSelection(recordId: string): void {
@@ -608,6 +652,9 @@ export function WorkspacePage({
               <button className="button-ghost" onClick={() => void handleReminderReschedule("today_18")}>
                 改到今晚 18:00
               </button>
+              <button className="button-ghost" onClick={openCustomReminderReschedule}>
+                自定义时间
+              </button>
               <button className="button-primary" onClick={() => void handleReminderReschedule("tomorrow_09")}>
                 改到明早 09:00
               </button>
@@ -759,7 +806,7 @@ export function WorkspacePage({
           </div>
         ) : null}
 
-        {message ? <div className="inline-message">{message}</div> : null}
+        {message ? <div className={`inline-message${runtimeNotice?.tone === "warning" ? " inline-message-warning" : ""}`}>{message}</div> : null}
 
         <div className="record-list">
           {loading ? <div className="empty-state">正在加载记录…</div> : null}
@@ -1194,6 +1241,62 @@ export function WorkspacePage({
                       </>
                     ) : null}
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {customReminderTimeOpen ? (
+        <div className="sheet-backdrop" onClick={() => setCustomReminderTimeOpen(false)}>
+          <div
+            className="sheet-panel sheet-panel-compact"
+            onClick={(event) => {
+              event.stopPropagation();
+            }}
+          >
+            <div className="sheet-header">
+              <div>
+                <div className="panel-kicker">自定义改期</div>
+                <h3 className="panel-title panel-title-small">提醒命中时间调整</h3>
+                <div className="channel-panel-subtitle">
+                  {reminderSelectedOnly && reminderSelectedIds.length > 0
+                    ? `仅调整已勾选的 ${reminderSelectedIds.length} 条命中任务`
+                    : `默认调整当前提醒命中的 ${activeReminderTargetIds.length} 条任务`}
+                </div>
+              </div>
+              <button className="button-ghost" onClick={() => setCustomReminderTimeOpen(false)}>
+                关闭
+              </button>
+            </div>
+
+            <div className="sheet-section">
+              <div className="sheet-form">
+                <label className="field">
+                  <span className="field-label">新的截止时间</span>
+                  <input
+                    className="input"
+                    type="datetime-local"
+                    value={customReminderDueAt}
+                    onChange={(event) => setCustomReminderDueAt(event.target.value)}
+                  />
+                </label>
+                <div className="quick-chip-row">
+                  <button className="button-mini" onClick={() => setCustomReminderDueAt(toInputValue(resolvePresetDate("today_18")))}>
+                    今晚 18:00
+                  </button>
+                  <button className="button-mini" onClick={() => setCustomReminderDueAt(toInputValue(resolvePresetDate("tomorrow_09")))}>
+                    明早 09:00
+                  </button>
+                </div>
+                <div className="sheet-actions">
+                  <button className="button-primary" onClick={() => void handleSubmitCustomReminderReschedule()}>
+                    保存改期
+                  </button>
+                  <button className="button-ghost" onClick={() => setCustomReminderTimeOpen(false)}>
+                    取消
+                  </button>
                 </div>
               </div>
             </div>

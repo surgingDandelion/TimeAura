@@ -19,6 +19,12 @@ interface WorkspaceQuickAddTarget {
   nonce: number;
 }
 
+interface WorkspaceRuntimeNotice {
+  text: string;
+  tone: "info" | "warning";
+  nonce: number;
+}
+
 interface WorkspaceSidebarCounts {
   today: number;
   plan: number;
@@ -45,6 +51,7 @@ export function AppShell(): JSX.Element {
   const [workspaceTagId, setWorkspaceTagId] = useState<string>("all");
   const [workspaceFocusTarget, setWorkspaceFocusTarget] = useState<WorkspaceFocusTarget | null>(null);
   const [workspaceQuickAddTarget, setWorkspaceQuickAddTarget] = useState<WorkspaceQuickAddTarget | null>(null);
+  const [workspaceRuntimeNotice, setWorkspaceRuntimeNotice] = useState<WorkspaceRuntimeNotice | null>(null);
 
   const loadSidebarData = useCallback(async () => {
     const [tagCounts, todayRecords, planRecords, allRecords, doneRecords] = await Promise.all([
@@ -90,38 +97,82 @@ export function AppShell(): JSX.Element {
       const primaryRecordId =
         typeof extra.recordId === "string" ? extra.recordId : recordIds[0] ?? null;
 
-      switch (payload.actionId) {
-        case "complete":
-          if (primaryRecordId) {
-            await services.recordService.completeRecord(primaryRecordId);
-            await handleWorkspaceChanged();
-            routeToWorkspaceRecord(primaryRecordId);
-          }
-          return;
+      try {
+        switch (payload.actionId) {
+          case "complete":
+            if (primaryRecordId) {
+              await services.recordService.completeRecord(primaryRecordId);
+              await handleWorkspaceChanged();
+              routeToWorkspaceRecord(primaryRecordId);
+              setWorkspaceRuntimeNotice({
+                text: "已通过桌面通知完成任务",
+                tone: "info",
+                nonce: Date.now(),
+              });
+            }
+            return;
 
-        case "snooze_30":
-          if (recordIds.length > 0 || primaryRecordId) {
-            await services.reminderService.snoozeReminder(
-              recordIds.length > 0 ? recordIds : [primaryRecordId as string],
-              30,
-            );
-            await handleWorkspaceChanged();
+          case "snooze_30":
+            if (recordIds.length > 0 || primaryRecordId) {
+              await services.reminderService.snoozeReminder(
+                recordIds.length > 0 ? recordIds : [primaryRecordId as string],
+                30,
+              );
+              await handleWorkspaceChanged();
+              if (primaryRecordId) {
+                routeToWorkspaceRecord(primaryRecordId);
+              }
+              setWorkspaceRuntimeNotice({
+                text: "已通过桌面通知延后 30 分钟提醒",
+                tone: "info",
+                nonce: Date.now(),
+              });
+            }
+            return;
+
+          case "open_detail":
+          case "notification_click":
+          default:
             if (primaryRecordId) {
               routeToWorkspaceRecord(primaryRecordId);
+              setWorkspaceRuntimeNotice({
+                text: "已从桌面通知回到对应记录",
+                tone: "info",
+                nonce: Date.now(),
+              });
             }
-          }
-          return;
+        }
+      } catch (_error) {
+        if (primaryRecordId) {
+          routeToWorkspaceRecord(primaryRecordId);
+        } else {
+          setPage("workspace");
+        }
 
-        case "open_detail":
-        case "notification_click":
-        default:
-          if (primaryRecordId) {
-            routeToWorkspaceRecord(primaryRecordId);
-          }
+        setWorkspaceRuntimeNotice({
+          text: "通知动作处理失败，请在工作台中手动继续操作",
+          tone: "warning",
+          nonce: Date.now(),
+        });
+        await handleWorkspaceChanged();
       }
     },
     [handleWorkspaceChanged, routeToWorkspaceRecord, services.recordService, services.reminderService],
   );
+
+  useEffect(() => {
+    if (!workspaceRuntimeNotice) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setWorkspaceRuntimeNotice((current) =>
+        current?.nonce === workspaceRuntimeNotice.nonce ? null : current,
+      );
+    }, 3200);
+
+    return () => window.clearTimeout(timer);
+  }, [workspaceRuntimeNotice]);
 
   useEffect(() => {
     void loadSidebarData();
@@ -337,6 +388,7 @@ export function AppShell(): JSX.Element {
             activeView={workspaceView}
             focusTarget={workspaceFocusTarget}
             quickAddTarget={workspaceQuickAddTarget}
+            runtimeNotice={workspaceRuntimeNotice}
             onTagFilterChange={setWorkspaceTagId}
             onWorkspaceChanged={handleWorkspaceChanged}
           />

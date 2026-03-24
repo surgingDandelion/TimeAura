@@ -5,20 +5,24 @@ import type { AppNotificationInput } from "../../services/index";
 export class TauriNotificationDriver implements NotificationDriver {
   async notify(input: AppNotificationInput): Promise<void> {
     if (isMacOS() && input.actions && input.actions.length > 0) {
-      const core = await import("@tauri-apps/api/core");
-      await core.invoke("show_actionable_notification", {
-        input: {
-          id: input.id,
-          title: input.title,
-          body: input.body,
-          actions: input.actions.map((action) => ({
-            id: action.key,
-            label: action.label,
-          })),
-          extra: input.extra ?? {},
-        },
-      });
-      return;
+      try {
+        const core = await import("@tauri-apps/api/core");
+        await core.invoke("show_actionable_notification", {
+          input: {
+            id: input.id,
+            title: input.title,
+            body: input.body,
+            actions: input.actions.map((action) => ({
+              id: action.key,
+              label: action.label,
+            })),
+            extra: input.extra ?? {},
+          },
+        });
+        return;
+      } catch (error) {
+        console.warn("Failed to show actionable desktop notification, falling back to standard notification.", error);
+      }
     }
 
     const notification = await import("@tauri-apps/plugin-notification");
