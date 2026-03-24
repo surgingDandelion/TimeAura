@@ -1,3 +1,4 @@
+import type { AppContainer, AppRepositories, AppServices } from "./appContainer";
 import type { MockRuntime } from "../mock/index";
 
 import { createMockRuntime } from "../mock/index";
@@ -22,7 +23,7 @@ import {
   MockTemplateService,
 } from "../services/mock/index";
 
-export interface MockAppRepositories {
+export interface MockAppRepositories extends AppRepositories {
   channelRepository: MockChannelRepository;
   recordRepository: MockRecordRepository;
   recordTagRepository: MockRecordTagRepository;
@@ -32,7 +33,7 @@ export interface MockAppRepositories {
   tagRepository: MockTagRepository;
 }
 
-export interface MockAppServices {
+export interface MockAppServices extends AppServices {
   aiService: MockAIService;
   channelService: MockChannelService;
   notificationService: MockNotificationService;
@@ -44,7 +45,7 @@ export interface MockAppServices {
   templateService: MockTemplateService;
 }
 
-export interface MockAppContainer {
+export interface MockAppContainer extends AppContainer {
   runtime: MockRuntime;
   repositories: MockAppRepositories;
   services: MockAppServices;

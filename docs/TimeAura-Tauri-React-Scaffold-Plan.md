@@ -600,9 +600,12 @@ src/stores/
 - `drafts/db/migrations/*`
 - `drafts/src/types/*`
 - `drafts/src/repositories/*`
+- `drafts/src/repositories/sqlite/*`
 - `drafts/src/services/*`
+- `drafts/src/services/impl/*`
 - `drafts/src/repositories/mock/*`
 - `drafts/src/services/mock/*`
+- `drafts/src/providers/*`
 - `drafts/src/bootstrap/*`
 
 这意味着：

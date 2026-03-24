@@ -1,17 +1,20 @@
-import type { MockAppContainer } from "./createMockAppServices";
+import type { AppContainer } from "./appContainer";
+import type { CreateSqliteAppServicesOptions } from "./createSqliteAppServices";
 
+import { createSqliteAppServices } from "./createSqliteAppServices";
 import { createMockAppServices } from "./createMockAppServices";
 
 export type AppDataMode = "mock" | "sqlite";
 
 export interface CreateAppServicesOptions {
   mode?: AppDataMode;
-  sqliteFactory?: () => Promise<MockAppContainer> | MockAppContainer;
+  sqliteFactory?: () => Promise<AppContainer> | AppContainer;
+  sqliteOptions?: CreateSqliteAppServicesOptions;
 }
 
 export async function createAppServices(
   options: CreateAppServicesOptions = {},
-): Promise<MockAppContainer> {
+): Promise<AppContainer> {
   const mode = options.mode ?? "mock";
 
   if (mode === "mock") {
@@ -22,7 +25,5 @@ export async function createAppServices(
     return Promise.resolve(options.sqliteFactory());
   }
 
-  throw new Error(
-    "SQLite app services are not wired yet. Provide sqliteFactory after the real Tauri scaffold is initialized.",
-  );
+  return createSqliteAppServices(options.sqliteOptions);
 }
