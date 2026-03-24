@@ -4,10 +4,11 @@ import type { TagEntity } from "@timeaura-core";
 
 import { useAppServices } from "../../../app/providers/AppServicesProvider";
 import { useWorkspaceNotificationDebugActions } from "./useWorkspaceNotificationDebugActions";
-import { WORKSPACE_SHORTCUT_ITEMS, useWorkspaceKeyboardShortcuts } from "./useWorkspaceKeyboardShortcuts";
+import { useWorkspaceCommands } from "./useWorkspaceCommands";
 import { useWorkspaceData } from "./useWorkspaceData";
 import { useWorkspaceQuickAddActions } from "./useWorkspaceQuickAddActions";
 import { useWorkspaceRecordDraft } from "./useWorkspaceRecordDraft";
+import { useWorkspaceRecordActions } from "./useWorkspaceRecordActions";
 import { useWorkspaceReminderActions } from "./useWorkspaceReminderActions";
 import { useWorkspaceSelection } from "./useWorkspaceSelection";
 import { useWorkspaceTagManagerActions } from "./useWorkspaceTagManagerActions";
@@ -29,7 +30,6 @@ export function useWorkspaceViewModel({
   const searchRef = useRef<HTMLInputElement | null>(null);
   const rowRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
-  const [shortcutHelpOpen, setShortcutHelpOpen] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   const {
@@ -220,210 +220,138 @@ export function useWorkspaceViewModel({
     searchRef.current?.select();
   }, []);
 
-  const handleComplete = useCallback(async (recordId: string): Promise<void> => {
-    await services.recordService.completeRecord(recordId);
-    await syncWorkspace("已完成该任务");
-  }, [services.recordService, syncWorkspace]);
+  const {
+    handleComplete,
+    handleDelete,
+    handleArchive,
+    handleReschedule,
+  } = useWorkspaceRecordActions({
+    batchTargetIds,
+    selectedId,
+    selectedIds,
+    services,
+    clearSelection,
+    setSelectedId,
+    setSelectedIds,
+    syncWorkspace,
+  });
 
-  const handleDelete = useCallback(async (recordId: string): Promise<void> => {
-    const confirmed = globalThis.confirm?.("确认删除这条记录吗？") ?? true;
-
-    if (!confirmed) {
-      return;
-    }
-
-    await services.recordService.deleteRecord(recordId);
-
-    if (selectedId === recordId) {
-      setSelectedId(null);
-    }
-
-    setSelectedIds((current) => current.filter((id) => id !== recordId));
-    await syncWorkspace("记录已删除");
-  }, [selectedId, services.recordService, setSelectedId, setSelectedIds, syncWorkspace]);
-
-  const handleArchive = useCallback(async (recordId: string): Promise<void> => {
-    await services.recordService.archiveRecord(recordId);
-    await syncWorkspace("记录已归档");
-  }, [services.recordService, syncWorkspace]);
-
-  const handleReschedule = useCallback(async (preset: "plus_1_hour" | "tomorrow_09" | "today_18"): Promise<void> => {
-    if (batchTargetIds.length === 0) {
-      return;
-    }
-
-    await services.recordService.batchReschedule(batchTargetIds, { preset });
-    clearSelection();
-    await syncWorkspace(selectedIds.length > 0 ? "已完成批量改期" : "已完成一键改期");
-  }, [batchTargetIds, clearSelection, selectedIds.length, services.recordService, syncWorkspace]);
-
-  const openShortcutHelp = useCallback(() => {
-    setShortcutHelpOpen(true);
-  }, []);
-
-  const closeShortcutHelp = useCallback(() => {
-    setShortcutHelpOpen(false);
-  }, []);
-
-  useWorkspaceKeyboardShortcuts({
+  return useWorkspaceCommands({
+    activeTagId,
+    activeView,
+    currentTagName,
+    quickAdd,
+    keyword,
+    status,
+    sortBy,
+    tags,
     records,
     selectedId,
-    selectedRecord,
-    draftDirty,
-    saving,
+    selectedIds,
+    selectedCount,
+    visibleSelectedCount,
+    highlightedRecordId,
+    loading,
+    quickAddActive,
+    message,
+    runtimeNoticeTone: runtimeNotice?.tone,
+    reminder,
+    activeReminderHits,
+    activeReminderTargetIds,
+    reminderExpanded,
+    reminderSelectedIds,
+    reminderSelectedOnly,
+    visibleReminderSelectedCount,
+    notificationDebugFeed,
+    notificationDebugOpen,
     customReminderTimeOpen,
     tagManagerOpen,
-    shortcutHelpOpen,
-    onFocusQuickAdd: triggerQuickAddSpotlight,
-    onFocusSearch: focusSearchInput,
+    draftDirty,
+    saving,
+    selectedRecord,
+    draft,
+    contentMode,
+    customReminderDueAt,
+    customReminderValidation,
+    editingTag,
+    tagEditor,
+    quickAddRef,
+    searchRef,
+    rowRefs,
+    onRefresh: () => {
+      void loadWorkspace();
+    },
+    onQuickAddChange: setQuickAdd,
+    onQuickAddSubmit: () => {
+      void handleQuickAdd();
+    },
+    onKeywordChange: setKeyword,
+    onStatusChange: setStatus,
+    onTagFilterChange,
+    onSortByChange: setSortBy,
+    onToggleSelectAllVisible: toggleSelectAllVisible,
+    onClearSelection: clearSelection,
+    onBatchReschedule: (preset) => {
+      void handleReschedule(preset);
+    },
+    onToggleNotificationDebug: () => setNotificationDebugOpen((current) => !current),
+    onExportNotificationDebug: handleExportNotificationDebug,
+    onClearNotificationDebug: () => {
+      void handleClearNotificationDebugPanel();
+    },
+    onToggleReminderExpanded: () => setReminderExpanded((current) => !current),
+    onToggleReminderSelectedOnly: () => setReminderSelectedOnly((current) => !current),
+    onSnoozeReminder: (minutes) => {
+      void handleSnoozeReminder(minutes);
+    },
+    onReminderReschedule: (preset) => {
+      void handleReminderReschedule(preset);
+    },
+    onOpenCustomReminderReschedule: openCustomReminderReschedule,
+    onToggleSelectAllReminderHits: toggleSelectAllReminderHits,
+    onFocusRecordFromReminder: focusRecord,
+    onToggleReminderSelection: toggleReminderSelection,
+    onSelectRecord: setSelectedId,
+    onToggleSelection: toggleSelection,
+    onCompleteRecord: (recordId) => {
+      void handleComplete(recordId);
+    },
+    onGenerateSummary: () => {
+      void generateSummary();
+    },
+    onPolishMarkdown: () => {
+      void polishMarkdown();
+    },
+    onOpenTagManager: openTagManager,
+    onArchive: (recordId) => {
+      void handleArchive(recordId);
+    },
+    onDelete: (recordId) => {
+      void handleDelete(recordId);
+    },
+    onCloseInspector: closeInspector,
     onSave: () => {
       void saveDraft();
     },
-    onCloseCustomReminder: () => setCustomReminderTimeOpen(false),
+    onDraftChange: setDraft,
+    onToggleTag: toggleTag,
+    onContentModeChange: setContentMode,
     onCloseTagManager: () => setTagManagerOpen(false),
-    onCloseShortcutHelp: closeShortcutHelp,
-    onCloseInspector: closeInspector,
-    onSelectRecord: setSelectedId,
-    onToggleSelection: toggleSelection,
-    onOpenShortcutHelp: openShortcutHelp,
+    onResetTagEditor: resetTagEditor,
+    onSelectTag: startEditTag,
+    onTagEditorChange: setTagEditor,
+    onSubmitTagEditor: () => {
+      void handleCreateOrUpdateTag();
+    },
+    onDeleteTag: (tag: TagEntity) => {
+      void handleDeleteTag(tag);
+    },
+    onCloseCustomReminder: () => setCustomReminderTimeOpen(false),
+    onChangeCustomReminderDueAt: setCustomReminderDueAt,
+    onApplyCustomReminderPreset: applyCustomReminderPreset,
+    onSubmitCustomReminder: () => {
+      void submitCustomReminderReschedule();
+    },
+    onFocusQuickAdd: triggerQuickAddSpotlight,
   });
-
-  return {
-    listPanelProps: {
-      activeTagId,
-      activeView,
-      currentTagName,
-      quickAdd,
-      keyword,
-      status,
-      sortBy,
-      tags,
-      records,
-      selectedId,
-      selectedIds,
-      selectedCount,
-      visibleSelectedCount,
-      highlightedRecordId,
-      loading,
-      quickAddActive,
-      message,
-      runtimeNoticeTone: runtimeNotice?.tone,
-      reminder,
-      activeReminderHits,
-      activeReminderTargetIds,
-      reminderExpanded,
-      reminderSelectedIds,
-      reminderSelectedOnly,
-      visibleReminderSelectedCount,
-      notificationDebugFeed,
-      notificationDebugOpen,
-      quickAddRef,
-      searchRef,
-      rowRefs,
-      onRefresh: () => {
-        void loadWorkspace();
-      },
-      onQuickAddChange: setQuickAdd,
-      onQuickAddSubmit: () => {
-        void handleQuickAdd();
-      },
-      onKeywordChange: setKeyword,
-      onStatusChange: setStatus,
-      onTagFilterChange,
-      onSortByChange: setSortBy,
-      onOpenShortcutHelp: openShortcutHelp,
-      onToggleSelectAllVisible: toggleSelectAllVisible,
-      onClearSelection: clearSelection,
-      onBatchReschedule: (preset: "plus_1_hour" | "today_18" | "tomorrow_09") => {
-        void handleReschedule(preset);
-      },
-      onToggleNotificationDebug: () => setNotificationDebugOpen((current) => !current),
-      onExportNotificationDebug: handleExportNotificationDebug,
-      onClearNotificationDebug: () => {
-        void handleClearNotificationDebugPanel();
-      },
-      onToggleReminderExpanded: () => setReminderExpanded((current) => !current),
-      onToggleReminderSelectedOnly: () => setReminderSelectedOnly((current) => !current),
-      onSnoozeReminder: (minutes: number) => {
-        void handleSnoozeReminder(minutes);
-      },
-      onReminderReschedule: (preset: "plus_1_hour" | "today_18" | "tomorrow_09") => {
-        void handleReminderReschedule(preset);
-      },
-      onOpenCustomReminderReschedule: openCustomReminderReschedule,
-      onToggleSelectAllReminderHits: toggleSelectAllReminderHits,
-      onFocusRecordFromReminder: focusRecord,
-      onToggleReminderSelection: toggleReminderSelection,
-      onSelectRecord: setSelectedId,
-      onToggleSelection: toggleSelection,
-      onCompleteRecord: (recordId: string) => {
-        void handleComplete(recordId);
-      },
-    },
-    detailInspectorProps: {
-      selectedRecord,
-      draft,
-      tags,
-      contentMode,
-      saving,
-      draftDirty,
-      onGenerateSummary: () => {
-        void generateSummary();
-      },
-      onPolishMarkdown: () => {
-        void polishMarkdown();
-      },
-      onOpenTagManager: openTagManager,
-      onArchive: (recordId: string) => {
-        void handleArchive(recordId);
-      },
-      onDelete: (recordId: string) => {
-        void handleDelete(recordId);
-      },
-      onClose: closeInspector,
-      onSave: () => {
-        void saveDraft();
-      },
-      onDraftChange: setDraft,
-      onToggleTag: toggleTag,
-      onContentModeChange: setContentMode,
-    },
-    tagManagerSheetProps: {
-      open: tagManagerOpen,
-      tags,
-      draft,
-      tagEditor,
-      editingTag,
-      onClose: () => setTagManagerOpen(false),
-      onResetEditor: resetTagEditor,
-      onToggleTag: toggleTag,
-      onSelectTag: startEditTag,
-      onTagEditorChange: setTagEditor,
-      onSubmit: () => {
-        void handleCreateOrUpdateTag();
-      },
-      onDelete: (tag: TagEntity) => {
-        void handleDeleteTag(tag);
-      },
-    },
-    customReminderSheetProps: {
-      open: customReminderTimeOpen,
-      reminderSelectedOnly,
-      reminderSelectedIds,
-      activeReminderTargetIds,
-      customReminderDueAt,
-      customReminderValidation,
-      onClose: () => setCustomReminderTimeOpen(false),
-      onChangeDueAt: setCustomReminderDueAt,
-      onApplyPreset: applyCustomReminderPreset,
-      onSubmit: () => {
-        void submitCustomReminderReschedule();
-      },
-    },
-    shortcutHelpProps: {
-      open: shortcutHelpOpen,
-      shortcuts: WORKSPACE_SHORTCUT_ITEMS,
-      onClose: closeShortcutHelp,
-    },
-  };
 }
