@@ -1,4 +1,4 @@
-import type { ReportDraftResult, ReportHistoryEntity, GenerateReportInput, RecordEntity } from "../types";
+import type { ReportDraftResult, ReportHistoryEntity, GenerateReportInput, RecordEntity } from "../types/index";
 
 export interface SaveReportHistoryInput {
   title: string;

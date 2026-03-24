@@ -1,4 +1,4 @@
-import type { ReportTemplateEntity, ReportTemplateType } from "../types";
+import type { ReportTemplateEntity, ReportTemplateType } from "../types/index";
 
 export interface CreateTemplateInput {
   templateType: ReportTemplateType;

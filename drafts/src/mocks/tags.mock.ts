@@ -1,4 +1,4 @@
-import type { TagEntity } from "../types";
+import type { TagEntity } from "../types/index";
 
 export const tagsMock: TagEntity[] = [
   {

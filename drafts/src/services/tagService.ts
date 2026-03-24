@@ -1,4 +1,4 @@
-import type { CreateTagInput, TagCountItem, TagEntity, UpdateTagPatch } from "../types";
+import type { CreateTagInput, TagCountItem, TagEntity, UpdateTagPatch } from "../types/index";
 
 export interface TagService {
   listTags(): Promise<TagEntity[]>;

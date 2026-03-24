@@ -1,4 +1,4 @@
-import type { TagCountItem, TagEntity } from "../types";
+import type { TagCountItem, TagEntity } from "../types/index";
 
 export interface TagRepository {
   insert(tag: TagEntity): Promise<void>;

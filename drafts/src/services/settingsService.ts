@@ -1,4 +1,4 @@
-import type { AppSettings, ThemeMode } from "../types";
+import type { AppSettings, ThemeMode } from "../types/index";
 
 export interface SettingsService {
   getSetting<T = string>(key: string): Promise<T | null>;

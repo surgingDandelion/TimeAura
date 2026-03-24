@@ -1,4 +1,4 @@
-import type { AppSettings } from "../types";
+import type { AppSettings } from "../types/index";
 
 export const appSettingsMock: AppSettings = {
   theme: "light",

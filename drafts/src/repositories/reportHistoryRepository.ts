@@ -1,4 +1,4 @@
-import type { ReportHistoryEntity } from "../types";
+import type { ReportHistoryEntity } from "../types/index";
 
 export interface ReportHistoryRepository {
   insert(history: ReportHistoryEntity): Promise<void>;

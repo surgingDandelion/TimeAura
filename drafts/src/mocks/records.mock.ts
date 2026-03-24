@@ -1,4 +1,4 @@
-import type { RecordEntity } from "../types";
+import type { RecordEntity } from "../types/index";
 
 export const recordsMock: RecordEntity[] = [
   {

@@ -1,4 +1,4 @@
-import type { AbilityMappingEntity, AIChannelEntity } from "../types";
+import type { AbilityMappingEntity, AIChannelEntity } from "../types/index";
 
 export const channelsMock: AIChannelEntity[] = [
   {

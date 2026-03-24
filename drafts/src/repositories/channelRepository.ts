@@ -1,4 +1,4 @@
-import type { AIChannelEntity, AbilityMappingEntity, AIAbilityKey } from "../types";
+import type { AIChannelEntity, AbilityMappingEntity, AIAbilityKey } from "../types/index";
 
 export interface ChannelRepository {
   insert(channel: AIChannelEntity): Promise<void>;

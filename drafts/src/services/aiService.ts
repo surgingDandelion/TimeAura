@@ -1,4 +1,4 @@
-import type { AIAbilityKey } from "../types";
+import type { AIAbilityKey } from "../types/index";
 
 export interface AIResult {
   content: string;

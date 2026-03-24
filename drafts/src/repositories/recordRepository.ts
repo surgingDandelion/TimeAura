@@ -1,4 +1,4 @@
-import type { PageResult, RecordEntity, RecordListQuery, RescheduleStrategy, UpdateRecordPatch } from "../types";
+import type { PageResult, RecordEntity, RecordListQuery, RescheduleStrategy, UpdateRecordPatch } from "../types/index";
 
 export interface RecordRepository {
   insert(record: RecordEntity): Promise<void>;

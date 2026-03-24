@@ -1,4 +1,4 @@
-import type { ReportTemplateEntity } from "../types";
+import type { ReportTemplateEntity } from "../types/index";
 
 export const reportTemplatesMock: ReportTemplateEntity[] = [
   {

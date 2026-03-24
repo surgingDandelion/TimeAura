@@ -1,4 +1,4 @@
-import type { CreateRecordInput, PageResult, RecordEntity, RecordListQuery, RescheduleStrategy, UpdateRecordPatch } from "../types";
+import type { CreateRecordInput, PageResult, RecordEntity, RecordListQuery, RescheduleStrategy, UpdateRecordPatch } from "../types/index";
 
 export interface RecordService {
   createRecord(input: CreateRecordInput): Promise<RecordEntity>;

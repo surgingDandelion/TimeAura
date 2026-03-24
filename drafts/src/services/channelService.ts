@@ -1,4 +1,4 @@
-import type { AbilityMappingEntity, AIAbilityKey, AIChannelEntity, ChannelTestResult, CreateChannelInput, UpdateChannelPatch } from "../types";
+import type { AbilityMappingEntity, AIAbilityKey, AIChannelEntity, ChannelTestResult, CreateChannelInput, UpdateChannelPatch } from "../types/index";
 
 export interface ChannelService {
   listChannels(): Promise<AIChannelEntity[]>;
