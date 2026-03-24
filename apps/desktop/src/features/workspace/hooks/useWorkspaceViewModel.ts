@@ -3,12 +3,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { TagEntity } from "@timeaura-core";
 
 import { useAppServices } from "../../../app/providers/AppServicesProvider";
+import { useWorkspaceNotificationDebugActions } from "./useWorkspaceNotificationDebugActions";
 import { WORKSPACE_SHORTCUT_ITEMS, useWorkspaceKeyboardShortcuts } from "./useWorkspaceKeyboardShortcuts";
 import { useWorkspaceData } from "./useWorkspaceData";
+import { useWorkspaceQuickAddActions } from "./useWorkspaceQuickAddActions";
 import { useWorkspaceRecordDraft } from "./useWorkspaceRecordDraft";
 import { useWorkspaceReminderActions } from "./useWorkspaceReminderActions";
 import { useWorkspaceSelection } from "./useWorkspaceSelection";
-import type { TagEditorDraft, WorkspacePageProps } from "../types";
+import { useWorkspaceTagManagerActions } from "./useWorkspaceTagManagerActions";
+import type { WorkspacePageProps } from "../types";
 
 export function useWorkspaceViewModel({
   activeTagId,
@@ -26,16 +29,8 @@ export function useWorkspaceViewModel({
   const searchRef = useRef<HTMLInputElement | null>(null);
   const rowRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
-  const [quickAdd, setQuickAdd] = useState("");
-  const [notificationDebugOpen, setNotificationDebugOpen] = useState(false);
   const [shortcutHelpOpen, setShortcutHelpOpen] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [tagManagerOpen, setTagManagerOpen] = useState(false);
-  const [tagEditor, setTagEditor] = useState<TagEditorDraft>({
-    id: null,
-    name: "",
-    color: "#5f89ff",
-  });
 
   const {
     records,
@@ -92,25 +87,6 @@ export function useWorkspaceViewModel({
     [records, selectedId],
   );
   const batchTargetIds = selectedIds.length > 0 ? selectedIds : reminder?.recordIds ?? [];
-  const notificationDebugFeed = useMemo(() => {
-    const runtimeEntries =
-      runtime?.notifications.map((item) => ({
-        id: `runtime-${item.id}-${item.createdAt}`,
-        at: item.createdAt,
-        source: "driver" as const,
-        level: item.cancelledAt ? ("warning" as const) : ("info" as const),
-        title: item.title,
-        detail: `${item.body}${item.cancelledAt ? "（已取消）" : ""}`,
-      })) ?? [];
-
-    return [...notificationDebugEntries, ...runtimeEntries]
-      .sort((left, right) => new Date(right.at).getTime() - new Date(left.at).getTime())
-      .slice(0, 24);
-  }, [notificationDebugEntries, runtime?.notifications]);
-  const editingTag = useMemo(
-    () => (tagEditor.id ? tags.find((tag) => tag.id === tagEditor.id) ?? null : null),
-    [tagEditor.id, tags],
-  );
 
   const syncWorkspace = useCallback(async (afterMessage?: string): Promise<void> => {
     await loadWorkspace();
@@ -137,6 +113,18 @@ export function useWorkspaceViewModel({
     services,
     syncWorkspace,
     onMessage: setMessage,
+  });
+
+  const {
+    quickAdd,
+    setQuickAdd,
+    handleQuickAdd,
+  } = useWorkspaceQuickAddActions({
+    activeTagId,
+    quickAddRef,
+    services,
+    onSelectCreatedRecord: setSelectedId,
+    syncWorkspace,
   });
 
   const {
@@ -168,6 +156,41 @@ export function useWorkspaceViewModel({
     onMessage: setMessage,
   });
 
+  const {
+    tagManagerOpen,
+    setTagManagerOpen,
+    tagEditor,
+    setTagEditor,
+    editingTag,
+    resetTagEditor,
+    openTagManager,
+    startEditTag,
+    handleCreateOrUpdateTag,
+    handleDeleteTag,
+  } = useWorkspaceTagManagerActions({
+    activeTagId,
+    draft,
+    services,
+    tags,
+    onDraftChange: setDraft,
+    onMessage: setMessage,
+    onTagFilterChange,
+    syncWorkspace,
+  });
+
+  const {
+    notificationDebugOpen,
+    setNotificationDebugOpen,
+    notificationDebugFeed,
+    handleExportNotificationDebug,
+    handleClearNotificationDebugPanel,
+  } = useWorkspaceNotificationDebugActions({
+    notificationDebugEntries,
+    runtimeNotifications: runtime?.notifications,
+    onClearNotificationDebug,
+    onMessage: setMessage,
+  });
+
   useEffect(() => {
     if (!runtimeNotice) {
       return;
@@ -196,27 +219,6 @@ export function useWorkspaceViewModel({
     searchRef.current?.focus();
     searchRef.current?.select();
   }, []);
-
-  const handleQuickAdd = useCallback(async (): Promise<void> => {
-    const title = quickAdd.trim();
-
-    if (!title) {
-      return;
-    }
-
-    const created = await services.recordService.createRecord({
-      title,
-      tags: activeTagId !== "all" ? [activeTagId] : undefined,
-      priority: "P3",
-      status: "未开始",
-      plannedAt: null,
-    });
-
-    setQuickAdd("");
-    setSelectedId(created.id);
-    await syncWorkspace("已新增记录");
-    quickAddRef.current?.focus();
-  }, [activeTagId, quickAdd, services.recordService, setSelectedId, syncWorkspace]);
 
   const handleComplete = useCallback(async (recordId: string): Promise<void> => {
     await services.recordService.completeRecord(recordId);
@@ -255,92 +257,6 @@ export function useWorkspaceViewModel({
     await syncWorkspace(selectedIds.length > 0 ? "已完成批量改期" : "已完成一键改期");
   }, [batchTargetIds, clearSelection, selectedIds.length, services.recordService, syncWorkspace]);
 
-  const openTagManager = useCallback(() => {
-    setTagManagerOpen(true);
-    setTagEditor({
-      id: null,
-      name: "",
-      color: "#5f89ff",
-    });
-  }, []);
-
-  const startEditTag = useCallback((tag: TagEntity): void => {
-    setTagEditor({
-      id: tag.id,
-      name: tag.name,
-      color: tag.color,
-    });
-  }, []);
-
-  const resetTagEditor = useCallback(() => {
-    setTagEditor({
-      id: null,
-      name: "",
-      color: "#5f89ff",
-    });
-  }, []);
-
-  const handleCreateOrUpdateTag = useCallback(async (): Promise<void> => {
-    const name = tagEditor.name.trim();
-
-    if (!name) {
-      setMessage("标签名称不能为空");
-      return;
-    }
-
-    if (tagEditor.id) {
-      await services.tagService.updateTag(tagEditor.id, {
-        name,
-        color: tagEditor.color,
-      });
-      await syncWorkspace("标签已更新");
-      return;
-    }
-
-    const created = await services.tagService.createTag({
-      name,
-      color: tagEditor.color,
-    });
-
-    if (draft) {
-      setDraft({
-        ...draft,
-        tags: [...draft.tags.filter((item) => item !== "tag_uncategorized"), created.id],
-      });
-    }
-
-    setTagEditor({
-      id: created.id,
-      name: created.name,
-      color: created.color,
-    });
-    await syncWorkspace("已创建新标签");
-  }, [draft, services.tagService, setDraft, syncWorkspace, tagEditor]);
-
-  const handleDeleteTag = useCallback(async (tag: TagEntity): Promise<void> => {
-    const confirmed = globalThis.confirm?.(`确认删除标签“${tag.name}”吗？`) ?? true;
-
-    if (!confirmed) {
-      return;
-    }
-
-    await services.tagService.deleteTag(tag.id);
-
-    if (activeTagId === tag.id) {
-      onTagFilterChange("all");
-    }
-
-    if (draft?.tags.includes(tag.id)) {
-      setDraft({
-        ...draft,
-        tags: draft.tags.filter((item) => item !== tag.id),
-      });
-    }
-
-    resetTagEditor();
-    await syncWorkspace("标签已删除");
-  }, [activeTagId, draft, onTagFilterChange, resetTagEditor, services.tagService, setDraft, syncWorkspace]);
-
   const openShortcutHelp = useCallback(() => {
     setShortcutHelpOpen(true);
   }, []);
@@ -348,42 +264,6 @@ export function useWorkspaceViewModel({
   const closeShortcutHelp = useCallback(() => {
     setShortcutHelpOpen(false);
   }, []);
-
-  const handleExportNotificationDebug = useCallback(() => {
-    if (notificationDebugFeed.length === 0) {
-      return;
-    }
-
-    const payload = {
-      exportedAt: new Date().toISOString(),
-      entries: notificationDebugFeed,
-    };
-    const fileName = `timeaura-notification-debug-${createExportTimestamp()}.json`;
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = fileName;
-    link.click();
-    URL.revokeObjectURL(url);
-    setMessage("通知调试记录已导出");
-  }, [notificationDebugFeed]);
-
-  const handleClearNotificationDebugPanel = useCallback(async (): Promise<void> => {
-    if (notificationDebugFeed.length === 0) {
-      return;
-    }
-
-    const confirmed = globalThis.confirm?.("确认清空当前通知调试记录吗？") ?? true;
-
-    if (!confirmed) {
-      return;
-    }
-
-    await onClearNotificationDebug?.();
-    setMessage("通知调试记录已清空");
-  }, [notificationDebugFeed.length, onClearNotificationDebug]);
 
   useWorkspaceKeyboardShortcuts({
     records,
@@ -546,16 +426,4 @@ export function useWorkspaceViewModel({
       onClose: closeShortcutHelp,
     },
   };
-}
-
-function createExportTimestamp(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  const hours = String(now.getHours()).padStart(2, "0");
-  const minutes = String(now.getMinutes()).padStart(2, "0");
-  const seconds = String(now.getSeconds()).padStart(2, "0");
-
-  return `${year}${month}${day}-${hours}${minutes}${seconds}`;
 }
