@@ -26,6 +26,11 @@ interface WorkspaceSidebarCounts {
   done: number;
 }
 
+interface NotificationActionEventPayload {
+  actionId?: string;
+  extra?: Record<string, unknown>;
+}
+
 export function AppShell(): JSX.Element {
   const { runtime, services } = useAppServices();
   const [page, setPage] = useState<AppPage>("workspace");
@@ -66,6 +71,58 @@ export function AppShell(): JSX.Element {
     ]);
   }, [loadSidebarData, services.notificationService]);
 
+  const routeToWorkspaceRecord = useCallback((recordId: string) => {
+    setPage("workspace");
+    setWorkspaceView("all");
+    setWorkspaceTagId("all");
+    setWorkspaceFocusTarget({
+      recordId,
+      nonce: Date.now(),
+    });
+  }, []);
+
+  const handleNotificationAction = useCallback(
+    async (payload: NotificationActionEventPayload) => {
+      const extra = payload.extra ?? {};
+      const recordIds = Array.isArray(extra.recordIds)
+        ? extra.recordIds.filter((value): value is string => typeof value === "string")
+        : [];
+      const primaryRecordId =
+        typeof extra.recordId === "string" ? extra.recordId : recordIds[0] ?? null;
+
+      switch (payload.actionId) {
+        case "complete":
+          if (primaryRecordId) {
+            await services.recordService.completeRecord(primaryRecordId);
+            await handleWorkspaceChanged();
+            routeToWorkspaceRecord(primaryRecordId);
+          }
+          return;
+
+        case "snooze_30":
+          if (recordIds.length > 0 || primaryRecordId) {
+            await services.reminderService.snoozeReminder(
+              recordIds.length > 0 ? recordIds : [primaryRecordId as string],
+              30,
+            );
+            await handleWorkspaceChanged();
+            if (primaryRecordId) {
+              routeToWorkspaceRecord(primaryRecordId);
+            }
+          }
+          return;
+
+        case "open_detail":
+        case "notification_click":
+        default:
+          if (primaryRecordId) {
+            routeToWorkspaceRecord(primaryRecordId);
+          }
+      }
+    },
+    [handleWorkspaceChanged, routeToWorkspaceRecord, services.recordService, services.reminderService],
+  );
+
   useEffect(() => {
     void loadSidebarData();
   }, [loadSidebarData]);
@@ -87,43 +144,43 @@ export function AppShell(): JSX.Element {
 
     let disposed = false;
     let unsubscribeAction: (() => void) | undefined;
+    let unsubscribeDesktopAction: (() => void) | undefined;
 
-    void import("@tauri-apps/plugin-notification").then(async (notification) => {
+    void Promise.all([
+      import("@tauri-apps/plugin-notification"),
+      import("@tauri-apps/api/event"),
+    ]).then(async ([notification, event]) => {
       if (disposed) {
         return;
       }
 
       const listener = await notification.onAction((payload) => {
-        const extra = payload.extra ?? {};
-        const pageTarget = typeof extra.page === "string" ? extra.page : null;
-        const recordId =
-          typeof extra.recordId === "string"
-            ? extra.recordId
-            : Array.isArray(extra.recordIds) && typeof extra.recordIds[0] === "string"
-              ? extra.recordIds[0]
-              : null;
-
-        if (pageTarget === "workspace" && recordId) {
-          setPage("workspace");
-          setWorkspaceView("all");
-          setWorkspaceTagId("all");
-          setWorkspaceFocusTarget({
-            recordId,
-            nonce: Date.now(),
-          });
-        }
+        void handleNotificationAction({
+          actionId: "notification_click",
+          extra: payload.extra ?? {},
+        });
       });
+      const desktopListener = await event.listen<NotificationActionEventPayload>(
+        "timeaura://notification-action",
+        (payload) => {
+          void handleNotificationAction(payload.payload);
+        },
+      );
 
       unsubscribeAction = () => {
         void listener.unregister();
+      };
+      unsubscribeDesktopAction = () => {
+        void desktopListener();
       };
     });
 
     return () => {
       disposed = true;
       unsubscribeAction?.();
+      unsubscribeDesktopAction?.();
     };
-  }, []);
+  }, [handleNotificationAction]);
 
   const sidebarSummary = useMemo(
     () => ({

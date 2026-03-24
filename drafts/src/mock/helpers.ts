@@ -126,6 +126,51 @@ export function isSameDay(left: string | null, right: string | null): boolean {
   return left.slice(0, 10) === right.slice(0, 10);
 }
 
+export function matchesSystemView(
+  record: RecordEntity,
+  view: RecordListQuery["view"],
+  nowIso: string,
+): boolean {
+  switch (view) {
+    case "today":
+      return matchesTodayView(record, nowIso);
+
+    case "plan":
+      return matchesPlanView(record, nowIso);
+
+    case "done":
+      return isDoneRecord(record);
+
+    case "all":
+    default:
+      return true;
+  }
+}
+
+export function matchesTodayView(record: RecordEntity, nowIso: string): boolean {
+  if (isDoneRecord(record)) {
+    return false;
+  }
+
+  if (isOverdue(record, nowIso)) {
+    return true;
+  }
+
+  return isSameDay(record.dueAt, nowIso) || isSameDay(record.plannedAt, nowIso);
+}
+
+export function matchesPlanView(record: RecordEntity, nowIso: string): boolean {
+  if (isDoneRecord(record)) {
+    return false;
+  }
+
+  const today = nowIso.slice(0, 10);
+  const dueDay = record.dueAt?.slice(0, 10) ?? null;
+  const plannedDay = record.plannedAt?.slice(0, 10) ?? null;
+
+  return (dueDay !== null && dueDay > today) || (plannedDay !== null && plannedDay > today);
+}
+
 export function sortRecords(
   records: RecordEntity[],
   query: RecordListQuery,

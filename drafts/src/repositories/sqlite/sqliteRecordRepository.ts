@@ -2,7 +2,7 @@ import type { RecordRepository } from "../recordRepository";
 
 import type { PageResult, RecordEntity, RecordListQuery, RescheduleStrategy, UpdateRecordPatch } from "../../types/index";
 
-import { ensureUnique, resolveRescheduleAt, sortRecords, stripMarkdown } from "../../mock/index";
+import { ensureUnique, matchesSystemView, resolveRescheduleAt, sortRecords, stripMarkdown } from "../../mock/index";
 
 import { SqliteClient } from "./sqliteClient";
 import { createPlaceholders, mapRecordRow, serializeBoolean, type SqliteRecordRow } from "./sqliteMappers";
@@ -152,15 +152,6 @@ export class SqliteRecordRepository implements RecordRepository {
       where.push("status IN ('已完成', '已归档')");
     }
 
-    if (query.view === "today") {
-      where.push("due_at IS NOT NULL AND substr(due_at, 1, 10) = substr(?, 1, 10)");
-      bindValues.push(nowIso);
-    }
-
-    if (query.view === "plan") {
-      where.push("(planned_at IS NOT NULL OR due_at IS NOT NULL)");
-    }
-
     if (query.status === "todo") {
       where.push("status NOT IN ('已完成', '已归档')");
     }
@@ -190,7 +181,9 @@ export class SqliteRecordRepository implements RecordRepository {
     const sql = `SELECT * FROM records${where.length > 0 ? ` WHERE ${where.join(" AND ")}` : ""}`;
     const rows = await this.client.select<SqliteRecordRow>(sql, bindValues);
     const tagMap = await this.loadTagMap(rows.map((row) => row.id));
-    const records = rows.map((row) => mapRecordRow(row, tagMap.get(row.id) ?? []));
+    const records = rows
+      .map((row) => mapRecordRow(row, tagMap.get(row.id) ?? []))
+      .filter((record) => matchesSystemView(record, query.view, nowIso));
     const items = sortRecords(records, query, nowIso);
 
     return {

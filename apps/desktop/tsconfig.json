@@ -19,6 +19,8 @@
     "paths": {
       "@timeaura-core": ["../../drafts/src/index.ts"],
       "@timeaura-core/*": ["../../drafts/src/*"],
+      "@tauri-apps/api": ["./node_modules/@tauri-apps/api"],
+      "@tauri-apps/api/*": ["./node_modules/@tauri-apps/api/*"],
       "@tauri-apps/plugin-notification": ["./node_modules/@tauri-apps/plugin-notification"],
       "@tauri-apps/plugin-sql": ["./node_modules/@tauri-apps/plugin-sql"],
       "@tauri-apps/plugin-stronghold": ["./node_modules/@tauri-apps/plugin-stronghold"]

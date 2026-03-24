@@ -35,10 +35,23 @@ export class DefaultNotificationService implements NotificationService {
 
     this.lastReminderSignature = signature;
 
+    const actions =
+      reminder.recordIds.length === 1
+        ? [
+            { key: "complete", label: "完成" },
+            { key: "snooze_30", label: "30 分钟后提醒" },
+            { key: "open_detail", label: "打开详情" },
+          ]
+        : [
+            { key: "snooze_30", label: "30 分钟后提醒" },
+            { key: "open_detail", label: "打开详情" },
+          ];
+
     await this.notificationDriver.notify({
       id: `reminder:${reminder.kind}:${reminder.recordIds[0] ?? "none"}`,
       title: reminder.title,
       body: reminder.description,
+      actions,
       extra: {
         type: "reminder",
         page: "workspace",

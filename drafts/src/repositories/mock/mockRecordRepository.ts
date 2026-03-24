@@ -3,7 +3,7 @@ import type { RecordRepository } from "../recordRepository";
 import type { MockRuntime } from "../../mock/index";
 import type { PageResult, RecordEntity, RecordListQuery, RescheduleStrategy, UpdateRecordPatch } from "../../types/index";
 
-import { cloneValue, normalizeText, resolveRescheduleAt, sortRecords, stripMarkdown } from "../../mock/index";
+import { cloneValue, matchesSystemView, normalizeText, resolveRescheduleAt, sortRecords, stripMarkdown } from "../../mock/index";
 
 export class MockRecordRepository implements RecordRepository {
   constructor(private readonly runtime: MockRuntime) {}
@@ -61,17 +61,7 @@ export class MockRecordRepository implements RecordRepository {
 
     let items = this.runtime.records.filter((record) => query.includeDeleted || !record.deletedAt);
 
-    if (query.view === "done") {
-      items = items.filter((record) => record.status === "已完成" || record.status === "已归档");
-    }
-
-    if (query.view === "today") {
-      items = items.filter((record) => record.dueAt?.slice(0, 10) === nowIso.slice(0, 10));
-    }
-
-    if (query.view === "plan") {
-      items = items.filter((record) => Boolean(record.plannedAt || record.dueAt));
-    }
+    items = items.filter((record) => matchesSystemView(record, query.view, nowIso));
 
     if (query.status === "todo") {
       items = items.filter((record) => record.status !== "已完成" && record.status !== "已归档");

@@ -372,6 +372,11 @@ body {
   font-size: 12px;
 }
 
+.button-mini-active {
+  background: rgba(34, 139, 230, 0.12);
+  color: #145892;
+}
+
 .button-primary:disabled,
 .button-secondary:disabled,
 .button-ghost:disabled,
@@ -431,6 +436,10 @@ body {
   border: 1px solid rgba(34, 139, 230, 0.12);
 }
 
+.reminder-main {
+  min-width: 0;
+}
+
 .reminder-title {
   font-size: 14px;
   font-weight: 700;
@@ -446,6 +455,66 @@ body {
   margin-top: 8px;
   color: #6a7d90;
   font-size: 12px;
+}
+
+.reminder-expand-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.reminder-selection-meta {
+  color: #6a7d90;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.reminder-hit-panel {
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 18px;
+  background: rgba(248, 249, 252, 0.84);
+}
+
+.reminder-hit-toolbar {
+  margin-bottom: 12px;
+}
+
+.reminder-hit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reminder-hit-row {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  text-align: left;
+  cursor: pointer;
+}
+
+.reminder-hit-row:hover {
+  border-color: rgba(34, 139, 230, 0.14);
+}
+
+.reminder-hit-row-selected {
+  border-color: rgba(34, 139, 230, 0.18);
+  background: rgba(34, 139, 230, 0.06);
+}
+
+.reminder-hit-row-active {
+  border-color: rgba(34, 139, 230, 0.22);
+  background: rgba(34, 139, 230, 0.08);
 }
 
 .record-list,

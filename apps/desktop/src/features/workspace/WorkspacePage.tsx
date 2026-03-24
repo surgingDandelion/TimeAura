@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import type { RecordEntity, RecordPriority, RecordStatus, ReminderSummary, TagEntity } from "@timeaura-core";
+import type { RecordEntity, RecordPriority, RecordStatus, ReminderHit, ReminderSummary, TagEntity } from "@timeaura-core";
 
 import { useAppServices } from "../../app/providers/AppServicesProvider";
 
@@ -60,6 +60,10 @@ export function WorkspacePage({
   const [status, setStatus] = useState<WorkspaceStatusFilter>("todo");
   const [sortBy, setSortBy] = useState<WorkspaceSort>("smart");
   const [reminder, setReminder] = useState<ReminderSummary | null>(null);
+  const [reminderHits, setReminderHits] = useState<ReminderHit[]>([]);
+  const [reminderExpanded, setReminderExpanded] = useState(false);
+  const [reminderSelectedIds, setReminderSelectedIds] = useState<string[]>([]);
+  const [reminderSelectedOnly, setReminderSelectedOnly] = useState(false);
   const [contentMode, setContentMode] = useState<ContentMode>("edit");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -78,6 +82,18 @@ export function WorkspacePage({
   );
   const selectedCount = selectedIds.length;
   const batchTargetIds = selectedIds.length > 0 ? selectedIds : reminder?.recordIds ?? [];
+  const activeReminderHits = useMemo(
+    () => (reminder ? reminderHits.filter((hit) => hit.reminderKind === reminder.kind) : []),
+    [reminder, reminderHits],
+  );
+  const activeReminderTargetIds = useMemo(
+    () => activeReminderHits.map((hit) => hit.id),
+    [activeReminderHits],
+  );
+  const visibleReminderSelectedCount = useMemo(
+    () => activeReminderTargetIds.filter((id) => reminderSelectedIds.includes(id)).length,
+    [activeReminderTargetIds, reminderSelectedIds],
+  );
   const visibleSelectedCount = useMemo(
     () => records.filter((record) => selectedIds.includes(record.id)).length,
     [records, selectedIds],
@@ -111,7 +127,7 @@ export function WorkspacePage({
     setLoading(true);
 
     try {
-      const [recordResult, tagResult, reminderResult] = await Promise.all([
+      const [recordResult, tagResult, reminderResult, reminderHitsResult] = await Promise.all([
         services.recordService.listRecords({
           view: activeView,
           keyword: keyword.trim() || undefined,
@@ -121,11 +137,13 @@ export function WorkspacePage({
         }),
         services.tagService.listTags(),
         services.reminderService.getReminderSummary(new Date().toISOString()),
+        services.reminderService.listReminderHits(new Date().toISOString()),
       ]);
 
       setRecords(recordResult.items);
       setTags(tagResult);
       setReminder(reminderResult);
+      setReminderHits(reminderHitsResult);
 
       if (recordResult.items.length === 0) {
         setSelectedId(null);
@@ -147,6 +165,18 @@ export function WorkspacePage({
   useEffect(() => {
     setSelectedIds((current) => current.filter((id) => records.some((record) => record.id === id)));
   }, [records]);
+
+  useEffect(() => {
+    setReminderSelectedIds((current) => current.filter((id) => activeReminderTargetIds.includes(id)));
+  }, [activeReminderTargetIds]);
+
+  useEffect(() => {
+    if (reminderSelectedIds.length > 0) {
+      return;
+    }
+
+    setReminderSelectedOnly(false);
+  }, [reminderSelectedIds]);
 
   useEffect(() => {
     if (!selectedRecord) {
@@ -350,13 +380,61 @@ export function WorkspacePage({
     await syncWorkspace(selectedIds.length > 0 ? "已完成批量改期" : "已完成一键改期");
   }
 
-  async function handleSnoozeReminder(minutes: number): Promise<void> {
-    if (!reminder || reminder.recordIds.length === 0) {
+  function getReminderActionTargetIds(): string[] {
+    if (reminderSelectedOnly && reminderSelectedIds.length > 0) {
+      return reminderSelectedIds;
+    }
+
+    return activeReminderTargetIds;
+  }
+
+  async function handleReminderReschedule(
+    preset: "plus_1_hour" | "tomorrow_09" | "today_18",
+  ): Promise<void> {
+    const targetIds = getReminderActionTargetIds();
+
+    if (targetIds.length === 0) {
       return;
     }
 
-    await services.reminderService.snoozeReminder(reminder.recordIds, minutes);
+    await services.recordService.batchReschedule(targetIds, { preset });
+    setReminderSelectedIds([]);
+    setReminderSelectedOnly(false);
+    await syncWorkspace(reminderSelectedOnly ? "已完成仅改选中改期" : "已完成提醒命中改期");
+  }
+
+  async function handleSnoozeReminder(minutes: number): Promise<void> {
+    const targetIds = getReminderActionTargetIds();
+
+    if (targetIds.length === 0) {
+      return;
+    }
+
+    await services.reminderService.snoozeReminder(targetIds, minutes);
+    setReminderSelectedIds([]);
+    setReminderSelectedOnly(false);
     await syncWorkspace(`已延后提醒 ${minutes} 分钟`);
+  }
+
+  function toggleReminderSelection(recordId: string): void {
+    setReminderSelectedIds((current) =>
+      current.includes(recordId) ? current.filter((id) => id !== recordId) : [...current, recordId],
+    );
+  }
+
+  function toggleSelectAllReminderHits(): void {
+    if (visibleReminderSelectedCount === activeReminderTargetIds.length && activeReminderTargetIds.length > 0) {
+      setReminderSelectedIds([]);
+      setReminderSelectedOnly(false);
+      return;
+    }
+
+    setReminderSelectedIds(activeReminderTargetIds);
+  }
+
+  function focusRecordFromReminder(recordId: string): void {
+    setSelectedId(recordId);
+    setHighlightedRecordId(recordId);
   }
 
   function toggleTag(tagValue: string): void {
@@ -500,24 +578,95 @@ export function WorkspacePage({
 
         {reminder ? (
           <div className="reminder-banner">
-            <div>
+            <div className="reminder-main">
               <div className="reminder-title">{reminder.title}</div>
               <div className="reminder-text">{reminder.description}</div>
               <div className="reminder-meta">桌面提醒会持续扫描；点击系统通知会直接回到对应记录。</div>
+              <div className="reminder-expand-row">
+                <button className="button-mini" onClick={() => setReminderExpanded((current) => !current)}>
+                  {reminderExpanded ? "收起命中任务" : `展开命中任务（${activeReminderHits.length}）`}
+                </button>
+                <span className="reminder-selection-meta">
+                  已选 {visibleReminderSelectedCount} / 命中 {activeReminderHits.length}
+                </span>
+                <button
+                  className={`button-mini${reminderSelectedOnly ? " button-mini-active" : ""}`}
+                  disabled={visibleReminderSelectedCount === 0}
+                  onClick={() => setReminderSelectedOnly((current) => !current)}
+                >
+                  仅改选中
+                </button>
+              </div>
             </div>
             <div className="reminder-actions">
               <button className="button-ghost" onClick={() => void handleSnoozeReminder(30)}>
                 30 分钟后提醒
               </button>
-              <button className="button-ghost" onClick={() => void handleReschedule("plus_1_hour")}>
+              <button className="button-ghost" onClick={() => void handleReminderReschedule("plus_1_hour")}>
                 顺延 1 小时
               </button>
-              <button className="button-ghost" onClick={() => void handleReschedule("today_18")}>
+              <button className="button-ghost" onClick={() => void handleReminderReschedule("today_18")}>
                 改到今晚 18:00
               </button>
-              <button className="button-primary" onClick={() => void handleReschedule("tomorrow_09")}>
+              <button className="button-primary" onClick={() => void handleReminderReschedule("tomorrow_09")}>
                 改到明早 09:00
               </button>
+            </div>
+          </div>
+        ) : null}
+
+        {reminder && reminderExpanded ? (
+          <div className="reminder-hit-panel">
+            <div className="list-toolbar reminder-hit-toolbar">
+              <div className="list-toolbar-meta">
+                <span>当前提醒类型：{formatReminderKind(reminder.kind)}</span>
+                <span>{reminderSelectedOnly ? "当前快捷操作仅作用于已勾选命中项" : "当前快捷操作默认作用于全部命中项"}</span>
+              </div>
+              <div className="list-toolbar-actions">
+                <button className="button-mini" onClick={toggleSelectAllReminderHits}>
+                  {visibleReminderSelectedCount === activeReminderTargetIds.length && activeReminderTargetIds.length > 0
+                    ? "清空命中选择"
+                    : "全选命中任务"}
+                </button>
+              </div>
+            </div>
+
+            <div className="reminder-hit-list">
+              {activeReminderHits.map((hit) => (
+                <button
+                  key={hit.id}
+                  className={`reminder-hit-row${selectedId === hit.id ? " reminder-hit-row-active" : ""}${reminderSelectedIds.includes(hit.id) ? " reminder-hit-row-selected" : ""}`}
+                  onClick={() => focusRecordFromReminder(hit.id)}
+                >
+                  <label
+                    className="record-check"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={reminderSelectedIds.includes(hit.id)}
+                      onChange={() => toggleReminderSelection(hit.id)}
+                    />
+                  </label>
+                  <div className={`priority-pill priority-${hit.priority.toLowerCase()}`}>{hit.priority}</div>
+                  <div className="record-main">
+                    <div className="record-topline">
+                      <div className="record-title-wrap">
+                        <div className="record-title-text">{hit.title}</div>
+                      </div>
+                      <div className="record-meta">{hit.status}</div>
+                    </div>
+                    <div className="record-bottomline">
+                      <div className="record-tags">
+                        <span className="tag-chip tag-chip-accent">{formatReminderKind(hit.reminderKind)}</span>
+                      </div>
+                      <div className="record-due">{formatDateLabel(hit.dueAt)}</div>
+                    </div>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
         ) : null}
@@ -549,9 +698,9 @@ export function WorkspacePage({
           />
           <select
             className="select"
-            value={activeView === "done" ? "done" : status}
+            value={activeView === "done" ? "done" : activeView === "today" || activeView === "plan" ? "todo" : status}
             onChange={(event) => setStatus(event.target.value as WorkspaceStatusFilter)}
-            disabled={activeView === "done"}
+            disabled={activeView === "done" || activeView === "today" || activeView === "plan"}
           >
             <option value="todo">待处理</option>
             <option value="all">全部</option>
@@ -1093,6 +1242,25 @@ function formatDateTime(value: string | null): string {
   return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, "0")}:${String(
     date.getMinutes(),
   ).padStart(2, "0")}`;
+}
+
+function formatReminderKind(kind: ReminderHit["reminderKind"]): string {
+  switch (kind) {
+    case "overdue":
+      return "已逾期";
+
+    case "due_2h":
+      return "2 小时内到期";
+
+    case "due_24h":
+      return "24 小时内到期";
+
+    case "overloaded":
+      return "任务积压";
+
+    default:
+      return "提醒";
+  }
 }
 
 function sameTags(left: string[], right: string[]): boolean {

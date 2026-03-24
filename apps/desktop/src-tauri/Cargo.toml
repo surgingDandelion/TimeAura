@@ -19,3 +19,6 @@ tauri = { version = "2.0.0", features = [] }
 tauri-plugin-notification = "2.0.0"
 tauri-plugin-sql = { version = "2.0.0", features = ["sqlite"] }
 tauri-plugin-stronghold = "2.0.0"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+mac-notification-sys = "0.6.12"
