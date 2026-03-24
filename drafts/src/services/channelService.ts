@@ -4,10 +4,13 @@ export interface ChannelService {
   listChannels(): Promise<AIChannelEntity[]>;
   listEnabledChannels(): Promise<AIChannelEntity[]>;
   getChannelById(id: string): Promise<AIChannelEntity | null>;
+  getDefaultChannelId(): Promise<string | null>;
   hasChannelSecret(id: string): Promise<boolean>;
   createChannel(input: CreateChannelInput): Promise<AIChannelEntity>;
   updateChannel(id: string, patch: UpdateChannelPatch): Promise<AIChannelEntity>;
+  duplicateChannel(id: string): Promise<AIChannelEntity>;
   deleteChannel(id: string): Promise<void>;
+  setDefaultChannel(id: string | null): Promise<void>;
   toggleChannel(id: string, enabled: boolean): Promise<AIChannelEntity>;
   setChannelApiKey(id: string, apiKey: string): Promise<AIChannelEntity>;
   clearChannelApiKey(id: string): Promise<AIChannelEntity>;

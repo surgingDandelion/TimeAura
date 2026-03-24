@@ -68,6 +68,7 @@ export async function createSqliteAppServices(
   const aiService = new DefaultAIService(
     repositories.recordRepository,
     repositories.channelRepository,
+    repositories.settingsRepository,
     aiGateway,
     credentialVault,
   );
@@ -76,6 +77,7 @@ export async function createSqliteAppServices(
     aiService,
     channelService: new DefaultChannelService(
       repositories.channelRepository,
+      repositories.settingsRepository,
       aiGateway,
       credentialVault,
       now,

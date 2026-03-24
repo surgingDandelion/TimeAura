@@ -271,6 +271,11 @@ body {
   cursor: not-allowed;
 }
 
+.button-danger-soft {
+  color: #a33d37;
+  background: rgba(211, 77, 64, 0.08);
+}
+
 .inline-message {
   margin-bottom: 12px;
   padding: 10px 12px;
@@ -429,6 +434,11 @@ body {
   font-size: 12px;
 }
 
+.tag-chip-accent {
+  background: rgba(34, 139, 230, 0.12);
+  color: #145892;
+}
+
 .tag-selector {
   display: flex;
   flex-wrap: wrap;
@@ -509,6 +519,59 @@ body {
   margin-top: 8px;
   color: #66788a;
   font-size: 13px;
+}
+
+.channel-test-panel {
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 18px;
+  background: rgba(247, 248, 251, 0.92);
+}
+
+.channel-test-panel-success {
+  border-color: rgba(52, 168, 83, 0.18);
+  background: rgba(52, 168, 83, 0.08);
+}
+
+.channel-test-panel-warning {
+  border-color: rgba(236, 151, 31, 0.18);
+  background: rgba(236, 151, 31, 0.09);
+}
+
+.channel-test-panel-error {
+  border-color: rgba(211, 77, 64, 0.18);
+  background: rgba(211, 77, 64, 0.08);
+}
+
+.channel-test-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.channel-test-title {
+  color: #223244;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.channel-test-detail {
+  margin-top: 4px;
+  color: #596a7c;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.channel-test-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  color: #6a7888;
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .channel-inspector {

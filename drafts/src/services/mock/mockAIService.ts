@@ -1,12 +1,13 @@
 import type { AIService, AIResult, GenerateReportAIInput, GenerateSummaryInput, PolishMarkdownInput } from "../aiService";
 
-import type { ChannelRepository, RecordRepository } from "../../repositories/index";
+import type { ChannelRepository, RecordRepository, SettingsRepository } from "../../repositories/index";
 import type { AIAbilityKey, AIChannelEntity, RecordEntity } from "../../types/index";
 
 export class MockAIService implements AIService {
   constructor(
     private readonly recordRepository: RecordRepository,
     private readonly channelRepository: ChannelRepository,
+    private readonly settingsRepository: SettingsRepository,
   ) {}
 
   async generateSummary(input: GenerateSummaryInput): Promise<AIResult> {
@@ -80,8 +81,17 @@ export class MockAIService implements AIService {
 
     if (channelId) {
       const mappedChannel = await this.channelRepository.findById(channelId);
-      if (mappedChannel) {
+      if (mappedChannel?.enabled) {
         return mappedChannel;
+      }
+    }
+
+    const defaultChannelId = await this.settingsRepository.get<string>("defaultChannelId");
+
+    if (defaultChannelId) {
+      const defaultChannel = await this.channelRepository.findById(defaultChannelId);
+      if (defaultChannel?.enabled) {
+        return defaultChannel;
       }
     }
 

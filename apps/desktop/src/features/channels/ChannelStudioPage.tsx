@@ -77,9 +77,18 @@ interface DraftParseResult {
   input: CreateChannelInput | null;
 }
 
+interface ChannelTestPanelState {
+  level: "idle" | "success" | "warning" | "error";
+  title: string;
+  detail: string;
+  latencyMs?: number;
+  checkedAt?: string;
+}
+
 export function ChannelStudioPage(): JSX.Element {
   const { services } = useAppServices();
   const [channels, setChannels] = useState<AIChannelEntity[]>([]);
+  const [defaultChannelId, setDefaultChannelId] = useState<string | null>(null);
   const [mappings, setMappings] = useState<Record<AIAbilityKey, string>>({
     summary: "",
     polish: "",
@@ -92,6 +101,11 @@ export function ChannelStudioPage(): JSX.Element {
   const [hasSecret, setHasSecret] = useState(false);
   const [testing, setTesting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [testPanel, setTestPanel] = useState<ChannelTestPanelState>({
+    level: "idle",
+    title: "尚未执行连通性测试",
+    detail: "保存配置后点击“测试连接”，可以查看当前通道的握手结果、时延和错误反馈。",
+  });
 
   const selectedChannel = useMemo(
     () => channels.find((item) => item.id === selectedId) ?? null,
@@ -111,12 +125,14 @@ export function ChannelStudioPage(): JSX.Element {
   );
 
   const loadChannels = useCallback(async () => {
-    const [channelResult, mappingResult] = await Promise.all([
+    const [channelResult, mappingResult, nextDefaultChannelId] = await Promise.all([
       services.channelService.listChannels(),
       services.channelService.listAbilityMappings(),
+      services.channelService.getDefaultChannelId(),
     ]);
 
     setChannels(channelResult);
+    setDefaultChannelId(nextDefaultChannelId);
     setMappings(
       mappingResult.reduce<Record<AIAbilityKey, string>>(
         (result, item) => {
@@ -150,6 +166,11 @@ export function ChannelStudioPage(): JSX.Element {
 
     setDraft(createDraftFromChannel(selectedChannel));
     setApiKeyInput("");
+    setTestPanel({
+      level: "idle",
+      title: "尚未执行连通性测试",
+      detail: "当前通道配置已载入。你可以在保存后发起一次真实连接测试。",
+    });
     void services.channelService
       .hasChannelSecret(selectedChannel.id)
       .then(setHasSecret)
@@ -228,11 +249,79 @@ export function ChannelStudioPage(): JSX.Element {
 
     try {
       const result = await services.channelService.testChannel(selectedChannel.id);
+      const panelLevel = result.ok
+        ? result.latencyMs && result.latencyMs > 4000
+          ? "warning"
+          : "success"
+        : "error";
+      setTestPanel({
+        level: panelLevel,
+        title: result.ok ? "通道连接成功" : "通道连接失败",
+        detail: result.message,
+        latencyMs: result.latencyMs,
+        checkedAt: new Date().toLocaleString("zh-CN"),
+      });
       setMessage(result.ok ? `${result.message}${result.latencyMs ? `（${result.latencyMs} ms）` : ""}` : result.message);
     } catch (error) {
+      setTestPanel({
+        level: "error",
+        title: "通道连接失败",
+        detail: toErrorMessage(error, "测试通道失败"),
+        checkedAt: new Date().toLocaleString("zh-CN"),
+      });
       setMessage(toErrorMessage(error, "测试通道失败"));
     } finally {
       setTesting(false);
+    }
+  }
+
+  async function handleDuplicateChannel(): Promise<void> {
+    if (!selectedChannel) {
+      return;
+    }
+
+    try {
+      const duplicated = await services.channelService.duplicateChannel(selectedChannel.id);
+      setSelectedId(duplicated.id);
+      setMessage("已复制当前通道，凭证不会一并复制");
+      await loadChannels();
+    } catch (error) {
+      setMessage(toErrorMessage(error, "复制通道失败"));
+    }
+  }
+
+  async function handleDeleteChannel(): Promise<void> {
+    if (!selectedChannel) {
+      return;
+    }
+
+    const confirmed = globalThis.confirm?.(`确认删除通道“${selectedChannel.name}”吗？已绑定的能力映射会一并清除。`) ?? true;
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await services.channelService.deleteChannel(selectedChannel.id);
+      setSelectedId(null);
+      setMessage("通道已删除");
+      await loadChannels();
+    } catch (error) {
+      setMessage(toErrorMessage(error, "删除通道失败"));
+    }
+  }
+
+  async function handleSetDefaultChannel(): Promise<void> {
+    if (!selectedChannel) {
+      return;
+    }
+
+    try {
+      await services.channelService.setDefaultChannel(selectedChannel.id);
+      setDefaultChannelId(selectedChannel.id);
+      setMessage("已设为默认通道");
+    } catch (error) {
+      setMessage(toErrorMessage(error, "设置默认通道失败"));
     }
   }
 
@@ -310,6 +399,7 @@ export function ChannelStudioPage(): JSX.Element {
                   </div>
                   <div className="record-bottomline">
                     <div className="record-tags">
+                      {channel.id === defaultChannelId ? <span className="tag-chip tag-chip-accent">默认</span> : null}
                       <span className="tag-chip">{channel.model}</span>
                       {channel.apiKeyRef ? <span className="tag-chip">已绑定凭证</span> : <span className="tag-chip">未绑定凭证</span>}
                     </div>
@@ -334,6 +424,16 @@ export function ChannelStudioPage(): JSX.Element {
                 <div className="channel-panel-subtitle">{currentProviderOption.description}</div>
               </div>
               <div className="detail-header-actions">
+                <button className="button-ghost" onClick={() => void handleDuplicateChannel()}>
+                  复制
+                </button>
+                <button
+                  className="button-ghost"
+                  onClick={() => void handleSetDefaultChannel()}
+                  disabled={!draft.enabled || selectedChannel.id === defaultChannelId}
+                >
+                  {selectedChannel.id === defaultChannelId ? "默认通道" : "设为默认"}
+                </button>
                 <button className="button-ghost" onClick={() => void handleTestChannel()} disabled={testing}>
                   {testing ? "测试中…" : "测试连接"}
                 </button>
@@ -343,6 +443,9 @@ export function ChannelStudioPage(): JSX.Element {
                   disabled={draftParseResult.errors.length > 0}
                 >
                   保存配置
+                </button>
+                <button className="button-ghost button-danger-soft" onClick={() => void handleDeleteChannel()}>
+                  删除
                 </button>
               </div>
             </div>
@@ -358,6 +461,19 @@ export function ChannelStudioPage(): JSX.Element {
                 </ul>
               </div>
             ) : null}
+
+            <div className={`channel-test-panel channel-test-panel-${testPanel.level}`}>
+              <div className="channel-test-header">
+                <div>
+                  <div className="channel-test-title">{testPanel.title}</div>
+                  <div className="channel-test-detail">{testPanel.detail}</div>
+                </div>
+                <div className="channel-test-meta">
+                  {testPanel.latencyMs ? <span>{testPanel.latencyMs} ms</span> : null}
+                  {testPanel.checkedAt ? <span>{testPanel.checkedAt}</span> : null}
+                </div>
+              </div>
+            </div>
 
             <div className="channel-inspector">
               <section className="inspector-section">

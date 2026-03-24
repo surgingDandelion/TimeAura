@@ -1,13 +1,14 @@
 import type { AIService, AIResult, GenerateReportAIInput, GenerateSummaryInput, PolishMarkdownInput } from "../aiService";
 
 import type { AIProviderGateway, CredentialVault } from "../../providers/index";
-import type { ChannelRepository, RecordRepository } from "../../repositories/index";
+import type { ChannelRepository, RecordRepository, SettingsRepository } from "../../repositories/index";
 import type { AIAbilityKey, AIChannelEntity, RecordEntity } from "../../types/index";
 
 export class DefaultAIService implements AIService {
   constructor(
     private readonly recordRepository: RecordRepository,
     private readonly channelRepository: ChannelRepository,
+    private readonly settingsRepository: SettingsRepository,
     private readonly aiGateway: AIProviderGateway,
     private readonly credentialVault: CredentialVault,
   ) {}
@@ -105,6 +106,15 @@ export class DefaultAIService implements AIService {
       const mappedChannel = await this.channelRepository.findById(channelId);
       if (mappedChannel?.enabled) {
         return mappedChannel;
+      }
+    }
+
+    const defaultChannelId = await this.settingsRepository.get<string>("defaultChannelId");
+
+    if (defaultChannelId) {
+      const defaultChannel = await this.channelRepository.findById(defaultChannelId);
+      if (defaultChannel?.enabled) {
+        return defaultChannel;
       }
     }
 

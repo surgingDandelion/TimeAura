@@ -1,7 +1,7 @@
 import type { ChannelService } from "../channelService";
 
 import type { AIProviderGateway, CredentialVault } from "../../providers/index";
-import type { ChannelRepository } from "../../repositories/index";
+import type { ChannelRepository, SettingsRepository } from "../../repositories/index";
 import type {
   AbilityMappingEntity,
   AIAbilityKey,
@@ -18,6 +18,7 @@ import { createMockId } from "../../mock/index";
 export class DefaultChannelService implements ChannelService {
   constructor(
     private readonly channelRepository: ChannelRepository,
+    private readonly settingsRepository: SettingsRepository,
     private readonly aiGateway: AIProviderGateway,
     private readonly credentialVault: CredentialVault,
     private readonly now: () => string,
@@ -33,6 +34,10 @@ export class DefaultChannelService implements ChannelService {
 
   async getChannelById(id: string): Promise<AIChannelEntity | null> {
     return this.channelRepository.findById(id);
+  }
+
+  async getDefaultChannelId(): Promise<string | null> {
+    return this.settingsRepository.get<string>("defaultChannelId");
   }
 
   async hasChannelSecret(id: string): Promise<boolean> {
@@ -59,6 +64,12 @@ export class DefaultChannelService implements ChannelService {
     };
 
     await this.channelRepository.insert(channel);
+
+    const currentDefault = await this.getDefaultChannelId();
+    if (!currentDefault && channel.enabled) {
+      await this.settingsRepository.set("defaultChannelId", channel.id, this.now());
+    }
+
     return channel;
   }
 
@@ -93,14 +104,70 @@ export class DefaultChannelService implements ChannelService {
   }
 
   async deleteChannel(id: string): Promise<void> {
+    const currentDefault = await this.getDefaultChannelId();
     await this.channelRepository.delete(id);
+
+    if (currentDefault === id) {
+      const fallbackChannel = (await this.channelRepository.listEnabled())[0] ?? null;
+      await this.settingsRepository.set("defaultChannelId", fallbackChannel?.id ?? null, this.now());
+    }
+  }
+
+  async duplicateChannel(id: string): Promise<AIChannelEntity> {
+    const source = await this.channelRepository.findById(id);
+
+    if (!source) {
+      throw new Error(`Channel not found: ${id}`);
+    }
+
+    const timestamp = this.now();
+    const channel: AIChannelEntity = {
+      ...source,
+      id: createMockId("channel"),
+      name: createDuplicateChannelName(source.name),
+      apiKeyRef: null,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+
+    await this.channelRepository.insert(channel);
+    return channel;
+  }
+
+  async setDefaultChannel(id: string | null): Promise<void> {
+    if (id) {
+      const channel = await this.channelRepository.findById(id);
+
+      if (!channel) {
+        throw new Error(`Channel not found: ${id}`);
+      }
+
+      if (!channel.enabled) {
+        throw new Error("默认通道必须处于启用状态");
+      }
+    }
+
+    await this.settingsRepository.set("defaultChannelId", id, this.now());
   }
 
   async toggleChannel(id: string, enabled: boolean): Promise<AIChannelEntity> {
-    return this.channelRepository.update(id, {
+    const updated = await this.channelRepository.update(id, {
       enabled,
       updatedAt: this.now(),
     });
+
+    const currentDefault = await this.getDefaultChannelId();
+
+    if (!enabled && currentDefault === id) {
+      const fallbackChannel = (await this.channelRepository.listEnabled()).find((channel) => channel.id !== id) ?? null;
+      await this.settingsRepository.set("defaultChannelId", fallbackChannel?.id ?? null, this.now());
+    }
+
+    if (enabled && !currentDefault) {
+      await this.settingsRepository.set("defaultChannelId", id, this.now());
+    }
+
+    return updated;
   }
 
   async setChannelApiKey(id: string, apiKey: string): Promise<AIChannelEntity> {
@@ -178,6 +245,11 @@ export class DefaultChannelService implements ChannelService {
   async clearAbilityChannel(abilityKey: AIAbilityKey): Promise<void> {
     await this.channelRepository.clearAbilityMapping(abilityKey);
   }
+}
+
+function createDuplicateChannelName(name: string): string {
+  const trimmed = name.trim();
+  return trimmed.endsWith("副本") ? `${trimmed} 2` : `${trimmed} 副本`;
 }
 
 function normalizeChannelInput(input: CreateChannelInput): Omit<AIChannelEntity, "id" | "apiKeyRef" | "createdAt" | "updatedAt"> {
