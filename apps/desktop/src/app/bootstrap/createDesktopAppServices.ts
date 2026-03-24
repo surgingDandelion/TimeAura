@@ -8,7 +8,8 @@ import {
 } from "@timeaura-core";
 
 export async function createDesktopAppServices(): Promise<AppContainer> {
-  const mode = (import.meta.env.VITE_TIMEAURA_DATA_MODE ?? "mock") as AppDataMode;
+  const mode = (import.meta.env.VITE_TIMEAURA_DATA_MODE ??
+    (isTauriRuntime() ? "sqlite" : "mock")) as AppDataMode;
   const strongholdPassword =
     import.meta.env.VITE_TIMEAURA_STRONGHOLD_PASSWORD ?? "timeaura-dev-password";
 
@@ -25,4 +26,8 @@ export async function createDesktopAppServices(): Promise<AppContainer> {
       notificationDriver: new TauriNotificationDriver(),
     },
   });
+}
+
+function isTauriRuntime(): boolean {
+  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }

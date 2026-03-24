@@ -76,7 +76,7 @@ TimeAura/
 
 建议使用：
 
-- `pnpm`
+- `npm`
 - `Tauri 2`
 - `React`
 - `TypeScript`
@@ -97,7 +97,7 @@ TimeAura/
 ```bash
 mkdir -p apps
 cd apps
-pnpm create tauri-app
+npm create tauri-app@latest
 ```
 
 建议在交互式初始化中填入：
@@ -105,13 +105,15 @@ pnpm create tauri-app
 - 项目目录：`desktop`
 - UI 模板：`React`
 - 语言：`TypeScript`
-- 包管理器：`pnpm`
+- 包管理器：`npm`
 - 前端构建工具：`Vite`
 
 补充约束：
 
 - `Tauri 2` 相关插件文档当前要求 Rust 版本至少为 `1.77.2`
 - 初始化完成后再进入 `apps/desktop` 增加插件和迁移文件
+- `Vite` 开发端口建议固定为 `1420`，与 `tauri.conf.json` 的 `devUrl` 保持一致
+- `beforeDevCommand / beforeBuildCommand` 要与实际包管理器统一，避免脚手架初始化后出现命令不匹配
 
 ---
 
@@ -196,6 +198,64 @@ src-tauri/
 - 如果 V1 先采用 Tauri 插件直接访问 SQLite，可以先不写复杂 Rust 命令层
 - `src-tauri/commands` 初期只保留通知、系统能力、窗口能力等少量命令
 - 数据层优先放在前端 TypeScript + Tauri 插件一侧完成
+- `src-tauri/icons/icon.png` 需要保留一个有效 RGBA PNG，避免 `tauri::generate_context!()` 在编译期直接失败
+
+---
+
+## 4.4 当前已落地的真实运行约束
+
+目前 `apps/desktop` 已经不是纯占位 scaffold，而是可以实际编译与启动的桌面壳。当前落地约束如下：
+
+- 前端构建：`npm run build`
+- Rust 检查：`cargo check`
+- 桌面启动：`npm run tauri:dev`
+- Tauri 运行时默认使用 `sqlite` 模式
+- 非 Tauri 浏览器环境自动回退到 `mock` 模式
+- 凭证存储走 `StrongholdCredentialVault`
+- 通知能力走 `TauriNotificationDriver`
+- AI Provider 路由层支持：
+  - `OpenAI Compatible`
+  - `Anthropic`
+  - `Azure OpenAI`
+  - `Local Gateway`
+  - `Aggregator`
+
+能力权限补充要求：
+
+- `sql:default` 不足以支撑迁移与写操作，需要额外开启 `sql:allow-execute`
+- Stronghold 默认权限不包含删除记录，若通道页支持清除 API Key，需要增加：
+  - `stronghold:allow-remove-store-record`
+  - `stronghold:allow-remove-secret`
+
+这部分如果没有在 capability 中补齐，应用虽然能编译，但在真实桌面环境里进行通道保存、能力映射或凭证清除时会直接报权限错误。
+
+---
+
+## 4.5 AI 通道页当前工程落点
+
+当前 `apps/desktop/src/features/channels/ChannelStudioPage.tsx` 已经不是静态原型页，而是接入真实 `AppServicesProvider` 的桌面配置页，重点包括：
+
+- 左侧通道列表
+- 中间 inspector 化配置面板
+- 右侧 AI 能力映射面板
+- Stronghold API Key 保存 / 清除流程
+- 通道测试连接
+- 能力映射清空
+
+当前通道模型已补出 `providerOptions` 结构，可持久化：
+
+- `endpointPath`
+- `apiVersion`
+- `deployment`
+- `customHeaders`
+
+这意味着后续如果继续扩展：
+
+- Azure OpenAI 的 Embeddings / Responses
+- Local Gateway 的自定义路由
+- Aggregator 的特定来源头
+
+可以沿用同一套数据模型，而不需要再次重构 `repository / service / sqlite migration / UI form` 四层结构。
 
 ---
 

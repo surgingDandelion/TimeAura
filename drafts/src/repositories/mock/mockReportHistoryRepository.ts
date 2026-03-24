@@ -17,7 +17,7 @@ export class MockReportHistoryRepository implements ReportHistoryRepository {
 
     Object.entries(patch).forEach(([key, value]) => {
       if (value !== undefined) {
-        (history as Record<string, unknown>)[key] = value;
+        (history as unknown as Record<string, unknown>)[key] = value;
       }
     });
 

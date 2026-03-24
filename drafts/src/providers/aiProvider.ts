@@ -1,4 +1,4 @@
-import type { AIProviderType, ChannelTestResult } from "../types/index";
+import type { AIChannelProviderOptions, AIProviderType, ChannelTestResult } from "../types/index";
 
 export interface AIProviderGenerateInput {
   providerType: AIProviderType;
@@ -10,6 +10,7 @@ export interface AIProviderGenerateInput {
   temperature: number;
   maxTokens: number | null;
   timeoutMs: number;
+  providerOptions: AIChannelProviderOptions;
 }
 
 export interface AIProviderGenerateResult {

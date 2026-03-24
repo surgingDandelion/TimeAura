@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 
 import { useAppServices } from "./providers/AppServicesProvider";
+import { ChannelStudioPage } from "../features/channels/ChannelStudioPage";
 import { ReportStudioPage } from "../features/reports/ReportStudioPage";
 import { WorkspacePage } from "../features/workspace/WorkspacePage";
 
 export function AppShell(): JSX.Element {
   const { runtime, services } = useAppServices();
-  const [page, setPage] = useState<"workspace" | "reports">("workspace");
+  const [page, setPage] = useState<"workspace" | "reports" | "channels">("workspace");
 
   const navStats = useMemo(
     () => ({
@@ -38,6 +39,13 @@ export function AppShell(): JSX.Element {
             <span>AI 报告</span>
             <span className="nav-badge">AI</span>
           </button>
+          <button
+            className={`nav-item${page === "channels" ? " nav-item-active" : ""}`}
+            onClick={() => setPage("channels")}
+          >
+            <span>通道配置</span>
+            <span className="nav-badge">LLM</span>
+          </button>
         </nav>
 
         <div className="desktop-sidebar-footer">
@@ -49,7 +57,9 @@ export function AppShell(): JSX.Element {
       </aside>
 
       <main className="desktop-main">
-        {page === "workspace" ? <WorkspacePage /> : <ReportStudioPage />}
+        {page === "workspace" ? <WorkspacePage /> : null}
+        {page === "reports" ? <ReportStudioPage /> : null}
+        {page === "channels" ? <ChannelStudioPage /> : null}
       </main>
     </div>
   );

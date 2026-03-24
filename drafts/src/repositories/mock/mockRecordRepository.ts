@@ -18,7 +18,7 @@ export class MockRecordRepository implements RecordRepository {
 
     Object.entries(patch).forEach(([key, value]) => {
       if (value !== undefined) {
-        (record as Record<string, unknown>)[key] = value;
+        (record as unknown as Record<string, unknown>)[key] = value;
       }
     });
 

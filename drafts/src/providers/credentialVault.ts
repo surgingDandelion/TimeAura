@@ -45,12 +45,12 @@ export class StrongholdCredentialVault implements CredentialVault {
       return null;
     }
 
-    return new TextDecoder().decode(value);
+    return new TextDecoder().decode(value instanceof Uint8Array ? value : Uint8Array.from(value));
   }
 
   async setSecret(ref: string, value: string): Promise<void> {
     const runtime = await this.getRuntime();
-    await runtime.store.insert(ref, new TextEncoder().encode(value));
+    await runtime.store.insert(ref, Array.from(new TextEncoder().encode(value)));
     await runtime.stronghold.save();
   }
 
@@ -61,7 +61,11 @@ export class StrongholdCredentialVault implements CredentialVault {
   }
 
   async dispose(): Promise<void> {
-    const runtime = await this.getRuntime();
+    if (!this.strongholdPromise) {
+      return;
+    }
+
+    const runtime = await this.strongholdPromise;
     await runtime.stronghold.unload();
     this.strongholdPromise = null;
   }
@@ -85,9 +89,9 @@ interface StrongholdRuntime {
     unload(): Promise<void>;
   };
   store: {
-    get(key: string): Promise<Uint8Array | null>;
-    insert(key: string, value: Uint8Array): Promise<void>;
-    remove(key: string): Promise<Uint8Array | null>;
+    get(key: string): Promise<number[] | Uint8Array | null>;
+    insert(key: string, value: number[]): Promise<void>;
+    remove(key: string): Promise<number[] | Uint8Array | null>;
   };
 }
 

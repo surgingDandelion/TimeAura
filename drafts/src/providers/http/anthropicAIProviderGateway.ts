@@ -19,11 +19,13 @@ export class AnthropicAIProviderGateway implements AIProviderGateway {
   async generateText(input: AIProviderGenerateInput): Promise<AIProviderGenerateResult> {
     const apiKey = requireApiKey(input);
     const endpoint = withDefaultPath(input.baseUrl, "/v1/messages");
+    const anthropicVersion = input.providerOptions.apiVersion ?? this.anthropicVersion;
     const { data, latencyMs } = await postJson<AnthropicResponse>(endpoint, {
       headers: {
         "x-api-key": apiKey,
-        "anthropic-version": this.anthropicVersion,
+        "anthropic-version": anthropicVersion,
         "Content-Type": "application/json",
+        ...(input.providerOptions.customHeaders ?? {}),
       },
       body: {
         model: input.model,

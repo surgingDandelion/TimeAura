@@ -17,7 +17,7 @@ export class MockChannelRepository implements ChannelRepository {
 
     Object.entries(patch).forEach(([key, value]) => {
       if (value !== undefined) {
-        (channel as Record<string, unknown>)[key] = value;
+        (channel as unknown as Record<string, unknown>)[key] = value;
       }
     });
 
@@ -47,6 +47,12 @@ export class MockChannelRepository implements ChannelRepository {
       (item) => item.abilityKey !== mapping.abilityKey,
     );
     this.runtime.abilityMappings.push(cloneValue(mapping));
+  }
+
+  async clearAbilityMapping(abilityKey: AIAbilityKey): Promise<void> {
+    this.runtime.abilityMappings = this.runtime.abilityMappings.filter(
+      (item) => item.abilityKey !== abilityKey,
+    );
   }
 
   async listAbilityMappings(): Promise<AbilityMappingEntity[]> {

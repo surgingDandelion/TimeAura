@@ -51,6 +51,7 @@ export interface SqliteChannelRow {
   enabled: number;
   allow_fallback: number;
   api_key_ref: string | null;
+  provider_options_json: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -140,6 +141,7 @@ export function mapChannelRow(row: SqliteChannelRow): AIChannelEntity {
     enabled: row.enabled === 1,
     allowFallback: row.allow_fallback === 1,
     apiKeyRef: row.api_key_ref,
+    providerOptions: parseJsonObject(row.provider_options_json),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -244,5 +246,20 @@ function parseJsonArray<T>(value: string): T[] {
     return Array.isArray(parsed) ? (parsed as T[]) : [];
   } catch {
     return [];
+  }
+}
+
+function parseJsonObject(value: string | null): Record<string, unknown> {
+  if (!value) {
+    return {};
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : {};
+  } catch {
+    return {};
   }
 }

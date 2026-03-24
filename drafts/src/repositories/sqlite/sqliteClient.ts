@@ -6,7 +6,7 @@ export interface SqliteExecuteResult {
 export interface SqliteDatabaseDriver {
   execute(query: string, bindValues?: unknown[]): Promise<SqliteExecuteResult>;
   select<T = Record<string, unknown>>(query: string, bindValues?: unknown[]): Promise<T[]>;
-  close(): Promise<void>;
+  close(): Promise<unknown>;
 }
 
 export interface SqliteMigration {
@@ -97,7 +97,7 @@ export class SqliteClient {
 
 async function loadTauriSqliteDatabase(databaseUrl: string): Promise<SqliteDatabaseDriver> {
   const plugin = await import("@tauri-apps/plugin-sql");
-  const Database = (plugin as { default: { load: SqliteDriverLoader } }).default;
+  const Database = (plugin as unknown as { default: { load: SqliteDriverLoader } }).default;
   return Database.load(databaseUrl);
 }
 

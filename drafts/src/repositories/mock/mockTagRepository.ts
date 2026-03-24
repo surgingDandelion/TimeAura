@@ -17,7 +17,7 @@ export class MockTagRepository implements TagRepository {
 
     Object.entries(patch).forEach(([key, value]) => {
       if (value !== undefined) {
-        (tag as Record<string, unknown>)[key] = value;
+        (tag as unknown as Record<string, unknown>)[key] = value;
       }
     });
 

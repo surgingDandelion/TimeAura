@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "identifier": "com.timeaura.desktop",
   "build": {
-    "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "pnpm build",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420"
   },
@@ -22,7 +22,7 @@
     ]
   },
   "bundle": {
-    "active": true,
+    "active": false,
     "targets": "all",
     "icon": []
   }

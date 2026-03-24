@@ -8,6 +8,7 @@ export interface ChannelRepository {
   list(): Promise<AIChannelEntity[]>;
   listEnabled(): Promise<AIChannelEntity[]>;
   setAbilityMapping(mapping: AbilityMappingEntity): Promise<void>;
+  clearAbilityMapping(abilityKey: AIAbilityKey): Promise<void>;
   listAbilityMappings(): Promise<AbilityMappingEntity[]>;
   findChannelIdForAbility(abilityKey: AIAbilityKey): Promise<string | null>;
 }

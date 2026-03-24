@@ -16,12 +16,48 @@
 - `StrongholdCredentialVault` 注入
 - 与 `drafts/src` 的核心领域骨架对接
 - 备忘录列表 / 详情面板 / AI 报告页首轮接线
+- AI 通道配置页 / 能力映射 / API Key 保存与清除流程
 
-初始化后的建议步骤：
+当前已打通的桌面运行链路：
 
-1. 进入目录执行 `pnpm install`
-2. 执行 `pnpm tauri:dev`
-3. 若需要真实 SQLite 模式，设置：
-   - `VITE_TIMEAURA_DATA_MODE=sqlite`
-   - `VITE_TIMEAURA_DB_URL=sqlite:timeaura.db`
-   - `VITE_TIMEAURA_STRONGHOLD_PASSWORD=<your-dev-password>`
+- `npm install`
+- `npm run build`
+- `cargo check`（`apps/desktop/src-tauri`）
+- `npm run tauri:dev`
+
+运行说明：
+
+1. 进入目录执行 `npm install`
+2. 执行 `npm run tauri:dev`
+3. Tauri 桌面运行时默认使用 `sqlite` 模式，并自动接入：
+   - `sqlite:timeaura.db`
+   - `StrongholdCredentialVault`
+   - `TauriNotificationDriver`
+4. 如果只是用浏览器跑前端页面，默认会自动回退到 `mock` 模式，避免在非 Tauri 环境下直接调用桌面插件
+
+推荐环境变量：
+
+- `VITE_TIMEAURA_DATA_MODE=sqlite | mock`
+- `VITE_TIMEAURA_DB_URL=sqlite:timeaura.db`
+- `VITE_TIMEAURA_STRONGHOLD_PASSWORD=<your-dev-password>`
+- `VITE_TIMEAURA_STRONGHOLD_PATH=timeaura.stronghold`
+
+AI 通道页当前支持：
+
+- 新增 / 编辑 / 启停 AI 通道
+- `OpenAI Compatible` 与 `Anthropic` 协议配置
+- `Azure OpenAI / Local Gateway / Aggregator` 差异化字段
+- API Key 写入 Stronghold
+- API Key 清除
+- 通道连通性测试
+- 周报 / 月报 / 摘要 / 润色能力映射
+- 能力映射清空回退
+- mac inspector 风格的分组配置布局
+
+当前 provider 差异化字段：
+
+- `OpenAI Compatible`：可配置 `Base URL / Model / Endpoint Path`
+- `Anthropic`：可配置 `Base URL / Model / API Version`
+- `Azure OpenAI`：可配置 `资源根地址 / Deployment / API Version / 展示模型名`
+- `Local Gateway`：可配置 `Base URL / Model / Endpoint Path`，API Key 可选
+- `Aggregator`：可配置 `Base URL / Model / Endpoint Path / 附加请求头 JSON`

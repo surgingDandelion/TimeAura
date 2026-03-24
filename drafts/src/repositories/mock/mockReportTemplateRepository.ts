@@ -17,7 +17,7 @@ export class MockReportTemplateRepository implements ReportTemplateRepository {
 
     Object.entries(patch).forEach(([key, value]) => {
       if (value !== undefined) {
-        (template as Record<string, unknown>)[key] = value;
+        (template as unknown as Record<string, unknown>)[key] = value;
       }
     });
 

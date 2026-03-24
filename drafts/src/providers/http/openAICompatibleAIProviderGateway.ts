@@ -16,24 +16,10 @@ interface OpenAICompatibleResponse {
 
 export class OpenAICompatibleAIProviderGateway implements AIProviderGateway {
   async generateText(input: AIProviderGenerateInput): Promise<AIProviderGenerateResult> {
-    const apiKey = requireApiKey(input);
-    const endpoint = withDefaultPath(input.baseUrl, "/chat/completions");
-    const { data, latencyMs } = await postJson<OpenAICompatibleResponse>(endpoint, {
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: {
-        model: input.model,
-        temperature: input.temperature,
-        max_tokens: input.maxTokens ?? 1024,
-        messages: [
-          ...(input.systemPrompt
-            ? [{ role: "system", content: input.systemPrompt }]
-            : []),
-          { role: "user", content: input.prompt },
-        ],
-      },
+    const request = buildRequest(input);
+    const { data, latencyMs } = await postJson<OpenAICompatibleResponse>(request.endpoint, {
+      headers: request.headers,
+      body: request.body,
       timeoutMs: input.timeoutMs,
     });
 
@@ -57,16 +43,82 @@ export class OpenAICompatibleAIProviderGateway implements AIProviderGateway {
 
       return {
         ok: true,
-        message: "OpenAI Compatible 通道连接成功",
+        message: `${getProviderLabel(input.providerType)}通道连接成功`,
         latencyMs: result.latencyMs,
       };
     } catch (error) {
       return {
         ok: false,
-        message: error instanceof Error ? error.message : "OpenAI Compatible 通道连接失败",
+        message: error instanceof Error ? error.message : `${getProviderLabel(input.providerType)}通道连接失败`,
       };
     }
   }
+}
+
+function buildRequest(input: AIProviderGenerateInput): {
+  headers: Record<string, string>;
+  body: Record<string, unknown>;
+  endpoint: string;
+} {
+  const messages = [
+    ...(input.systemPrompt ? [{ role: "system", content: input.systemPrompt }] : []),
+    { role: "user", content: input.prompt },
+  ];
+  const endpointPath = input.providerOptions.endpointPath ?? "/chat/completions";
+  const customHeaders = input.providerOptions.customHeaders ?? {};
+
+  if (input.providerType === "azure_openai") {
+    const apiKey = requireApiKey(input);
+    const deployment = input.providerOptions.deployment;
+    const apiVersion = input.providerOptions.apiVersion;
+
+    if (!deployment || !apiVersion) {
+      throw new AIProviderHttpError("Azure OpenAI channel is missing deployment or api version");
+    }
+
+    const baseUrl = input.baseUrl.replace(/\/+$/, "");
+    const endpoint = new URL(
+      `${baseUrl}/openai/deployments/${encodeURIComponent(deployment)}/chat/completions`,
+    );
+    endpoint.searchParams.set("api-version", apiVersion);
+
+    return {
+      endpoint: endpoint.toString(),
+      headers: {
+        ...customHeaders,
+        "Content-Type": "application/json",
+        "api-key": apiKey,
+      },
+      body: {
+        temperature: input.temperature,
+        max_tokens: input.maxTokens ?? 1024,
+        messages,
+      },
+    };
+  }
+
+  const endpoint = withDefaultPath(input.baseUrl, endpointPath);
+  const headers: Record<string, string> = {
+    ...customHeaders,
+    "Content-Type": "application/json",
+  };
+
+  if (input.providerType !== "local_gateway") {
+    headers.Authorization = `Bearer ${requireApiKey(input)}`;
+  } else if (input.apiKey) {
+    headers.Authorization = `Bearer ${input.apiKey}`;
+  }
+
+  return {
+    endpoint,
+    headers,
+    body: {
+      model: input.model,
+      temperature: input.temperature,
+      max_tokens: input.maxTokens ?? 1024,
+      messages,
+    },
+  };
 }
 
 function extractOpenAICompatibleText(response: OpenAICompatibleResponse): string {
@@ -84,4 +136,20 @@ function extractOpenAICompatibleText(response: OpenAICompatibleResponse): string
   }
 
   return "";
+}
+
+function getProviderLabel(providerType: AIProviderGenerateInput["providerType"]): string {
+  if (providerType === "azure_openai") {
+    return "Azure OpenAI ";
+  }
+
+  if (providerType === "local_gateway") {
+    return "Local Gateway ";
+  }
+
+  if (providerType === "aggregator") {
+    return "Aggregator ";
+  }
+
+  return "OpenAI Compatible ";
 }

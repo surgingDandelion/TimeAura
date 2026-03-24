@@ -12,9 +12,14 @@ export default defineConfig({
   resolve: {
     alias: {
       "@timeaura-core": path.resolve(repoRoot, "drafts/src/index.ts"),
+      "@tauri-apps/plugin-notification": path.resolve(currentDir, "node_modules/@tauri-apps/plugin-notification"),
+      "@tauri-apps/plugin-sql": path.resolve(currentDir, "node_modules/@tauri-apps/plugin-sql"),
+      "@tauri-apps/plugin-stronghold": path.resolve(currentDir, "node_modules/@tauri-apps/plugin-stronghold"),
     },
   },
   server: {
+    port: 1420,
+    strictPort: true,
     fs: {
       allow: [repoRoot],
     },

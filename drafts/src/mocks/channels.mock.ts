@@ -15,6 +15,7 @@ export const channelsMock: AIChannelEntity[] = [
     enabled: true,
     allowFallback: true,
     apiKeyRef: "cred://channel_default",
+    providerOptions: {},
     createdAt: "2026-03-24T09:00:00+08:00",
     updatedAt: "2026-03-24T09:00:00+08:00",
   },
@@ -32,6 +33,9 @@ export const channelsMock: AIChannelEntity[] = [
     enabled: true,
     allowFallback: true,
     apiKeyRef: "cred://channel_reports",
+    providerOptions: {
+      apiVersion: "2023-06-01",
+    },
     createdAt: "2026-03-24T09:00:00+08:00",
     updatedAt: "2026-03-24T09:00:00+08:00",
   },
@@ -49,6 +53,9 @@ export const channelsMock: AIChannelEntity[] = [
     enabled: false,
     allowFallback: true,
     apiKeyRef: null,
+    providerOptions: {
+      endpointPath: "/chat/completions",
+    },
     createdAt: "2026-03-24T09:00:00+08:00",
     updatedAt: "2026-03-24T09:00:00+08:00",
   },

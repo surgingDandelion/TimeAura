@@ -7,6 +7,9 @@
     "core:default",
     "notification:default",
     "sql:default",
-    "stronghold:default"
+    "sql:allow-execute",
+    "stronghold:default",
+    "stronghold:allow-remove-store-record",
+    "stronghold:allow-remove-secret"
   ]
 }

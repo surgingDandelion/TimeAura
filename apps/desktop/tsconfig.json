@@ -18,7 +18,10 @@
     "baseUrl": ".",
     "paths": {
       "@timeaura-core": ["../../drafts/src/index.ts"],
-      "@timeaura-core/*": ["../../drafts/src/*"]
+      "@timeaura-core/*": ["../../drafts/src/*"],
+      "@tauri-apps/plugin-notification": ["./node_modules/@tauri-apps/plugin-notification"],
+      "@tauri-apps/plugin-sql": ["./node_modules/@tauri-apps/plugin-sql"],
+      "@tauri-apps/plugin-stronghold": ["./node_modules/@tauri-apps/plugin-stronghold"]
     }
   },
   "include": ["src"]

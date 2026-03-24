@@ -17,6 +17,13 @@ export const AI_ABILITY_KEYS = [
 
 export type AIAbilityKey = (typeof AI_ABILITY_KEYS)[number];
 
+export interface AIChannelProviderOptions {
+  endpointPath?: string | null;
+  apiVersion?: string | null;
+  deployment?: string | null;
+  customHeaders?: Record<string, string>;
+}
+
 export interface AIChannelEntity {
   id: string;
   name: string;
@@ -31,6 +38,7 @@ export interface AIChannelEntity {
   enabled: boolean;
   allowFallback: boolean;
   apiKeyRef: string | null;
+  providerOptions: AIChannelProviderOptions;
   createdAt: string;
   updatedAt: string;
 }
@@ -59,6 +67,7 @@ export interface CreateChannelInput {
   defaultLanguage?: string;
   enabled?: boolean;
   allowFallback?: boolean;
+  providerOptions?: AIChannelProviderOptions;
 }
 
 export interface UpdateChannelPatch extends Partial<CreateChannelInput> {

@@ -30,6 +30,7 @@ export class DefaultAIService implements AIService {
       temperature: channel.temperature,
       maxTokens: channel.maxTokens,
       timeoutMs: channel.timeoutMs,
+      providerOptions: channel.providerOptions,
     });
 
     return {
@@ -61,6 +62,7 @@ export class DefaultAIService implements AIService {
       temperature: channel.temperature,
       maxTokens: channel.maxTokens,
       timeoutMs: channel.timeoutMs,
+      providerOptions: channel.providerOptions,
     });
 
     return {
@@ -84,6 +86,7 @@ export class DefaultAIService implements AIService {
       temperature: channel.temperature,
       maxTokens: channel.maxTokens,
       timeoutMs: channel.timeoutMs,
+      providerOptions: channel.providerOptions,
     });
 
     return {

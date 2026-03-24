@@ -199,4 +199,12 @@ export const DEFAULT_SQLITE_MIGRATIONS: SqliteMigration[] = [
     description: "Seed default tags, templates, and settings",
     sql: seedDefaultsSql,
   },
+  {
+    version: "0003_add_channel_provider_options",
+    description: "Add provider options json to AI channels",
+    sql: `
+      ALTER TABLE ai_channels
+      ADD COLUMN provider_options_json TEXT NOT NULL DEFAULT '{}';
+    `,
+  },
 ];

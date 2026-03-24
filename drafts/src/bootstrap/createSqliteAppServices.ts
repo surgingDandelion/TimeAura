@@ -63,7 +63,7 @@ export async function createSqliteAppServices(
   };
 
   const aiGateway = options.aiGateway ?? new UnavailableAIProviderGateway();
-  const credentialVault = options.credentialVault ?? new MemoryCredentialVault();
+  const credentialVault: CredentialVault = options.credentialVault ?? new MemoryCredentialVault();
   const notificationDriver = options.notificationDriver ?? new NoopNotificationDriver();
   const aiService = new DefaultAIService(
     repositories.recordRepository,

@@ -3,7 +3,14 @@ import type { ChannelRepository } from "../channelRepository";
 import type { AIAbilityKey, AbilityMappingEntity, AIChannelEntity } from "../../types/index";
 
 import { SqliteClient } from "./sqliteClient";
-import { mapAbilityMappingRow, mapChannelRow, serializeBoolean, type SqliteAbilityMappingRow, type SqliteChannelRow } from "./sqliteMappers";
+import {
+  mapAbilityMappingRow,
+  mapChannelRow,
+  serializeBoolean,
+  serializeJson,
+  type SqliteAbilityMappingRow,
+  type SqliteChannelRow,
+} from "./sqliteMappers";
 
 export class SqliteChannelRepository implements ChannelRepository {
   constructor(private readonly client: SqliteClient) {}
@@ -14,8 +21,8 @@ export class SqliteChannelRepository implements ChannelRepository {
         INSERT INTO ai_channels (
           id, name, provider_type, base_url, model, temperature, max_tokens,
           timeout_ms, system_prompt, default_language, enabled, allow_fallback,
-          api_key_ref, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          api_key_ref, provider_options_json, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         channel.id,
@@ -31,6 +38,7 @@ export class SqliteChannelRepository implements ChannelRepository {
         serializeBoolean(channel.enabled),
         serializeBoolean(channel.allowFallback),
         channel.apiKeyRef,
+        serializeJson(channel.providerOptions),
         channel.createdAt,
         channel.updatedAt,
       ],
@@ -65,6 +73,7 @@ export class SqliteChannelRepository implements ChannelRepository {
           enabled = ?,
           allow_fallback = ?,
           api_key_ref = ?,
+          provider_options_json = ?,
           updated_at = ?
         WHERE id = ?
       `,
@@ -81,6 +90,7 @@ export class SqliteChannelRepository implements ChannelRepository {
         serializeBoolean(next.enabled),
         serializeBoolean(next.allowFallback),
         next.apiKeyRef,
+        serializeJson(next.providerOptions),
         next.updatedAt,
         id,
       ],
@@ -122,6 +132,10 @@ export class SqliteChannelRepository implements ChannelRepository {
       `,
       [mapping.abilityKey, mapping.channelId, mapping.updatedAt],
     );
+  }
+
+  async clearAbilityMapping(abilityKey: AIAbilityKey): Promise<void> {
+    await this.client.execute("DELETE FROM ai_ability_mappings WHERE ability_key = ?", [abilityKey]);
   }
 
   async listAbilityMappings(): Promise<AbilityMappingEntity[]> {
