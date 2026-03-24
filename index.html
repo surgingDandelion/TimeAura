@@ -1,0 +1,5213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TimeAura - AI备忘录桌面应用原型</title>
+  <style>
+    :root {
+      --bg: #eef3f9;
+      --shell: #f7fafc;
+      --panel: rgba(255, 255, 255, 0.82);
+      --panel-strong: rgba(255, 255, 255, 0.96);
+      --sidebar: #edf2f7;
+      --line: rgba(69, 92, 122, 0.14);
+      --line-strong: rgba(69, 92, 122, 0.24);
+      --text: #1b2430;
+      --muted: #6f7c8d;
+      --subtle: #9aa7b6;
+      --blue: #4f8cff;
+      --blue-soft: #dbe9ff;
+      --cyan: #77d7ed;
+      --orange: #ff9f43;
+      --orange-soft: #fff0df;
+      --red: #ff5a5f;
+      --red-soft: #ffe6e8;
+      --green: #20b26b;
+      --green-soft: #def7ea;
+      --purple: #5e6ad2;
+      --shadow: 0 24px 54px rgba(91, 107, 128, 0.16);
+      --shadow-soft: 0 14px 28px rgba(107, 122, 141, 0.11);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --font-ui: "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --font-body: "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    *::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    *::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    *::-webkit-scrollbar-thumb {
+      background: rgba(109, 126, 148, 0.22);
+      border: 2px solid transparent;
+      border-radius: 999px;
+      background-clip: padding-box;
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+      background: rgba(109, 126, 148, 0.34);
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
+    body[data-theme="dark"] *::-webkit-scrollbar-thumb {
+      background: rgba(191, 207, 228, 0.16);
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
+    body[data-theme="dark"] *::-webkit-scrollbar-thumb:hover {
+      background: rgba(191, 207, 228, 0.26);
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: var(--font-body);
+      color: var(--text);
+      background:
+        radial-gradient(circle at 14% 18%, rgba(145, 186, 235, 0.2), transparent 24%),
+        radial-gradient(circle at 88% 12%, rgba(255, 198, 140, 0.14), transparent 22%),
+        linear-gradient(180deg, #f4f7fb 0%, #edf2f7 42%, #e8eef4 100%);
+      overflow: hidden;
+    }
+
+    body[data-theme="light"] {
+      color-scheme: light;
+    }
+
+    body[data-theme="dark"] {
+      --bg: #0d1420;
+      --shell: #131c2b;
+      --panel: rgba(19, 28, 43, 0.84);
+      --panel-strong: rgba(20, 29, 45, 0.95);
+      --sidebar: #111827;
+      --line: rgba(196, 209, 228, 0.12);
+      --line-strong: rgba(196, 209, 228, 0.24);
+      --text: #e8eef8;
+      --muted: #9fb0c8;
+      --subtle: #7e90aa;
+      --shadow: 0 24px 56px rgba(1, 6, 13, 0.5);
+      --shadow-soft: 0 16px 30px rgba(2, 7, 14, 0.32);
+      background:
+        radial-gradient(circle at 14% 18%, rgba(56, 104, 173, 0.18), transparent 24%),
+        radial-gradient(circle at 88% 12%, rgba(195, 113, 48, 0.12), transparent 22%),
+        linear-gradient(180deg, #091019 0%, #0b131e 48%, #101926 100%);
+      color-scheme: dark;
+    }
+
+    ::selection {
+      background: rgba(79, 140, 255, 0.18);
+      color: var(--text);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(117, 134, 158, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(117, 134, 158, 0.035) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+      mask-image: radial-gradient(circle at center, black 54%, transparent 100%);
+    }
+
+    body[data-theme="dark"]::before {
+      background-image:
+        linear-gradient(rgba(186, 201, 224, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(186, 201, 224, 0.03) 1px, transparent 1px);
+    }
+
+    .app-shell {
+      width: min(1680px, calc(100vw - 28px));
+      height: calc(100vh - 28px);
+      margin: 14px auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(246,249,253,0.95));
+      border: 1px solid rgba(255,255,255,0.7);
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(22px);
+    }
+
+    body[data-theme="dark"] .app-shell {
+      background: linear-gradient(180deg, rgba(17,24,36,0.94), rgba(12,19,30,0.98));
+      border-color: rgba(173, 192, 219, 0.07);
+    }
+
+    .window-bar {
+      height: 70px;
+      padding: 0 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(76, 96, 122, 0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.58), rgba(255,255,255,0.26));
+    }
+
+    body[data-theme="dark"] .window-bar {
+      border-bottom-color: rgba(173, 192, 219, 0.08);
+      background: linear-gradient(180deg, rgba(18,26,39,0.92), rgba(14,21,33,0.74));
+    }
+
+    .traffic {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .traffic span {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+    }
+
+    .traffic .red { background: #ff5f57; }
+    .traffic .yellow { background: #febc2e; }
+    .traffic .green { background: #28c840; }
+
+    .window-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background:
+        linear-gradient(135deg, rgba(79, 140, 255, 0.96), rgba(119, 215, 237, 0.72));
+      color: white;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: 0.04em;
+      box-shadow: 0 12px 24px rgba(79, 140, 255, 0.2);
+    }
+
+    .brand-copy h1 {
+      margin: 0;
+      font-size: 22px;
+      font-family: var(--font-ui);
+      letter-spacing: 0.01em;
+    }
+
+    .brand-copy p {
+      margin: 3px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ghost-btn,
+    .icon-btn,
+    .primary-btn,
+    .soft-btn,
+    .text-btn {
+      border: 0;
+      cursor: pointer;
+      font: inherit;
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease, opacity .18s ease, border-color .18s ease, color .18s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0) scale(0.995);
+    }
+
+    button:disabled:hover,
+    button:disabled:active {
+      transform: none;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible {
+      outline: none;
+      box-shadow:
+        0 0 0 1px rgba(79, 140, 255, 0.24),
+        0 0 0 4px rgba(79, 140, 255, 0.12);
+    }
+
+    body[data-theme="dark"] button:focus-visible,
+    body[data-theme="dark"] input:focus-visible,
+    body[data-theme="dark"] textarea:focus-visible,
+    body[data-theme="dark"] select:focus-visible {
+      box-shadow:
+        0 0 0 1px rgba(124, 174, 255, 0.32),
+        0 0 0 4px rgba(124, 174, 255, 0.12);
+    }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.74);
+      box-shadow: var(--shadow-soft);
+      display: grid;
+      place-items: center;
+      color: #425265;
+    }
+
+    .icon-btn:hover {
+      background: rgba(255,255,255,0.94);
+      box-shadow: 0 12px 24px rgba(101, 119, 142, 0.16);
+    }
+
+    body[data-theme="dark"] .icon-btn {
+      background: rgba(255,255,255,0.055);
+      color: #d9e4f4;
+      box-shadow: none;
+    }
+
+    body[data-theme="dark"] .icon-btn:hover {
+      background: rgba(255,255,255,0.09);
+    }
+
+    .icon-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, #4f8cff, #5eb8ff);
+      color: white;
+      border-radius: 14px;
+      padding: 11px 18px;
+      box-shadow: 0 14px 24px rgba(79, 140, 255, 0.28);
+      font-weight: 700;
+    }
+
+    .primary-btn:hover {
+      box-shadow: 0 16px 28px rgba(79, 140, 255, 0.32);
+      filter: saturate(1.04);
+    }
+
+    .soft-btn {
+      background: rgba(79, 140, 255, 0.12);
+      color: #3152a8;
+      border-radius: 14px;
+      padding: 10px 14px;
+      font-weight: 700;
+    }
+
+    .ghost-btn {
+      background: rgba(255,255,255,0.78);
+      color: #44556a;
+      border: 1px solid rgba(67, 90, 121, 0.09);
+      border-radius: 14px;
+      padding: 10px 14px;
+      font-weight: 600;
+    }
+
+    .ghost-btn:hover {
+      background: rgba(255,255,255,0.94);
+      border-color: rgba(67, 90, 121, 0.14);
+    }
+
+    body[data-theme="dark"] .ghost-btn {
+      background: rgba(255,255,255,0.05);
+      color: #d6e1f0;
+      border-color: rgba(173, 192, 219, 0.12);
+    }
+
+    body[data-theme="dark"] .soft-btn {
+      background: rgba(79, 140, 255, 0.18);
+      color: #cfe1ff;
+    }
+
+    body[data-theme="dark"] .text-btn {
+      color: #9fb0c8;
+    }
+
+    .text-btn {
+      background: transparent;
+      color: var(--muted);
+      padding: 6px 8px;
+      border-radius: 12px;
+      font-weight: 700;
+    }
+
+    .text-btn:hover {
+      background: rgba(66, 88, 117, 0.08);
+      color: #44556a;
+    }
+
+    body[data-theme="dark"] .text-btn:hover {
+      background: rgba(255,255,255,0.07);
+      color: #d9e4f4;
+    }
+
+    .main-body {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+    }
+
+    .sidebar {
+      width: 248px;
+      background:
+        linear-gradient(180deg, rgba(244,248,252,0.95), rgba(236,242,248,0.92));
+      border-right: 1px solid rgba(67, 90, 121, 0.08);
+      padding: 22px 18px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    body[data-theme="dark"] .sidebar {
+      background: linear-gradient(180deg, rgba(15,22,35,0.98), rgba(11,18,29,0.95));
+      border-right-color: rgba(173, 192, 219, 0.08);
+    }
+
+    .sidebar-brand {
+      padding: 10px 8px 0;
+    }
+
+    .sidebar-brand .title {
+      margin: 0;
+      font-size: 24px;
+      font-family: var(--font-ui);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-brand .tagline {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      max-width: 160px;
+    }
+
+    .nav-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav-label {
+      padding: 0 10px;
+      font-size: 12px;
+      color: var(--subtle);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-weight: 700;
+    }
+
+    .nav-item,
+    .tag-item,
+    .history-item,
+    .channel-item {
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      border-radius: 18px;
+      padding: 14px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--text);
+      cursor: pointer;
+      transition: background .18s ease, box-shadow .18s ease, transform .18s ease, border-color .18s ease;
+    }
+
+    .tag-item-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tag-item-wrap .tag-item {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .tag-item-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      opacity: 0;
+      transform: translateX(-4px);
+      transition: opacity .18s ease, transform .18s ease;
+    }
+
+    .tag-item-wrap:hover .tag-item-actions,
+    .tag-item-wrap:focus-within .tag-item-actions {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .tag-action-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      border: 1px solid rgba(67, 90, 121, 0.08);
+      background: rgba(255,255,255,0.7);
+      color: #55657b;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+      padding: 0;
+    }
+
+    .tag-action-btn:hover {
+      background: rgba(255,255,255,0.96);
+      border-color: rgba(79, 140, 255, 0.16);
+      color: #2d57b5;
+    }
+
+    .tag-action-btn.delete:hover {
+      color: #c9494f;
+      border-color: rgba(255, 90, 95, 0.18);
+    }
+
+    .tag-action-btn svg {
+      width: 15px;
+      height: 15px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .nav-item.active,
+    .tag-item.active,
+    .history-item.active,
+    .channel-item.active {
+      background: linear-gradient(180deg, rgba(255,255,255,0.97), rgba(246,249,253,0.97));
+      box-shadow: var(--shadow-soft);
+      border-color: rgba(79, 140, 255, 0.12);
+    }
+
+    .nav-item:hover,
+    .tag-item:hover,
+    .history-item:hover,
+    .channel-item:hover {
+      background: rgba(255,255,255,0.64);
+      border-color: rgba(67, 90, 121, 0.08);
+      transform: translateX(2px);
+    }
+
+    body[data-theme="dark"] .nav-item.active,
+    body[data-theme="dark"] .tag-item.active,
+    body[data-theme="dark"] .history-item.active,
+    body[data-theme="dark"] .channel-item.active {
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+      box-shadow: none;
+      border-color: rgba(124, 174, 255, 0.18);
+    }
+
+    body[data-theme="dark"] .nav-item:hover,
+    body[data-theme="dark"] .tag-item:hover,
+    body[data-theme="dark"] .history-item:hover,
+    body[data-theme="dark"] .channel-item:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(173, 192, 219, 0.08);
+    }
+
+    body[data-theme="dark"] .tag-action-btn {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(173, 192, 219, 0.08);
+      color: #9fb0c8;
+    }
+
+    body[data-theme="dark"] .tag-action-btn:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(124, 174, 255, 0.18);
+      color: #d9e6ff;
+    }
+
+    body[data-theme="dark"] .tag-action-btn.delete:hover {
+      color: #ffb3b6;
+      border-color: rgba(255, 112, 118, 0.18);
+    }
+
+    .nav-item-left,
+    .tag-item-left,
+    .history-item-left,
+    .channel-item-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .nav-item-title,
+    .tag-item-title,
+    .history-title,
+    .channel-name {
+      font-weight: 700;
+      font-size: 15px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .badge-count {
+      min-width: 28px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(57, 72, 94, 0.08);
+      color: #506076;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    body[data-theme="dark"] .badge-count {
+      background: rgba(255,255,255,0.08);
+      color: #c4d1e4;
+    }
+
+    .nav-icon,
+    .tag-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex: 0 0 auto;
+    }
+
+    .nav-item[data-view="today"] .nav-icon { background: linear-gradient(135deg, #5eb8ff, #4f8cff); }
+    .nav-item[data-view="plan"] .nav-icon { background: linear-gradient(135deg, #ff9f43, #ff7b61); }
+    .nav-item[data-view="all"] .nav-icon { background: linear-gradient(135deg, #7d8796, #5c6678); }
+    .nav-item[data-view="done"] .nav-icon { background: linear-gradient(135deg, #7cd9b2, #31ba7c); }
+
+    .sidebar-footer {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(66, 88, 117, 0.08);
+      justify-content: space-between;
+    }
+
+    .sidebar-footer .icon-btn {
+      width: 52px;
+      height: 52px;
+      border-radius: 18px;
+      padding: 0;
+      justify-content: center;
+      align-items: center;
+      flex: 0 0 auto;
+    }
+
+    .page-stack {
+      flex: 1;
+      min-width: 0;
+      position: relative;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .page {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .22s ease;
+    }
+
+    .page.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .workspace-page {
+      display: flex;
+      min-width: 0;
+      min-height: 100%;
+      --detail-width: 540px;
+    }
+
+    .list-pane {
+      padding: 22px 20px 24px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 0;
+      flex: 1 1 auto;
+      background: linear-gradient(180deg, rgba(250,252,255,0.66), rgba(248,251,255,0.36));
+    }
+
+    body[data-theme="dark"] .list-pane {
+      background: linear-gradient(180deg, rgba(18,26,41,0.7), rgba(13,20,32,0.38));
+    }
+
+    .pane-splitter {
+      width: 14px;
+      flex: 0 0 14px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: col-resize;
+      position: relative;
+      user-select: none;
+      transition: background .18s ease;
+    }
+
+    .workspace-page.show-detail .pane-splitter {
+      display: flex;
+    }
+
+    .pane-splitter::before {
+      content: "";
+      width: 4px;
+      height: 86px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(137, 156, 179, 0.18), rgba(137, 156, 179, 0.38), rgba(137, 156, 179, 0.18));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5);
+      transition: background .18s ease, box-shadow .18s ease, transform .18s ease, opacity .18s ease;
+      opacity: 0.84;
+    }
+
+    .pane-splitter:hover::before,
+    .workspace-page.dragging .pane-splitter::before {
+      background: linear-gradient(180deg, rgba(79, 140, 255, 0.22), rgba(79, 140, 255, 0.72), rgba(79, 140, 255, 0.22));
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.5),
+        0 8px 18px rgba(79, 140, 255, 0.18);
+      transform: scaleX(1.15);
+      opacity: 1;
+    }
+
+    .workspace-page.dragging,
+    .workspace-page.dragging * {
+      cursor: col-resize !important;
+      user-select: none;
+    }
+
+    .detail-pane {
+      width: 0;
+      min-width: 0;
+      padding: 0;
+      border-left: 0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.92), rgba(249,252,255,0.86));
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: width .22s ease, opacity .18s ease, padding .22s ease, border .18s ease;
+    }
+
+    body[data-theme="dark"] .detail-pane {
+      background: linear-gradient(180deg, rgba(17,24,39,0.96), rgba(14,22,35,0.92));
+    }
+
+    .workspace-page.show-detail .detail-pane {
+      width: var(--detail-width);
+      min-width: 460px;
+      padding: 20px 22px 22px 18px;
+      border-left: 1px solid rgba(66, 88, 117, 0.08);
+      opacity: 1;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .page-header h2 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      font-family: var(--font-ui);
+    }
+
+    .page-header p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .summary-pills {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .summary-pill {
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(66,88,117,0.08);
+      border-radius: 16px;
+      padding: 10px 12px;
+      min-width: 128px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    body[data-theme="dark"] .summary-pill {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(173, 192, 219, 0.08);
+      box-shadow: none;
+    }
+
+    .summary-pill strong {
+      display: block;
+      font-size: 20px;
+      line-height: 1.1;
+      font-family: var(--font-ui);
+      letter-spacing: -0.04em;
+    }
+
+    .summary-pill span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(250,252,255,0.8));
+      border: 1px solid rgba(255,255,255,0.62);
+      border-radius: 22px;
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(14px);
+    }
+
+    body[data-theme="dark"] .card,
+    body[data-theme="dark"] .stack-card,
+    body[data-theme="dark"] .detail-card {
+      background: linear-gradient(180deg, rgba(18, 26, 39, 0.94), rgba(15, 22, 34, 0.94));
+      border-color: rgba(173, 192, 219, 0.08);
+      box-shadow: none;
+    }
+
+    .quick-add-card {
+      padding: 18px 18px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.94), rgba(245,249,255,0.94));
+      transition: box-shadow .18s ease, border-color .18s ease, background .18s ease;
+    }
+
+    .quick-add-card:hover {
+      box-shadow: 0 18px 32px rgba(101, 119, 142, 0.12);
+    }
+
+    .quick-add-card:focus-within {
+      border-color: rgba(79, 140, 255, 0.18);
+      box-shadow:
+        0 18px 32px rgba(101, 119, 142, 0.14),
+        0 0 0 1px rgba(79, 140, 255, 0.12);
+    }
+
+    .quick-add-card.spotlight {
+      border-color: rgba(79, 140, 255, 0.22);
+      box-shadow:
+        0 20px 36px rgba(79, 140, 255, 0.12),
+        0 0 0 1px rgba(79, 140, 255, 0.18),
+        0 0 0 6px rgba(79, 140, 255, 0.08);
+    }
+
+    .quick-add-input {
+      width: 100%;
+      border: 0;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(244,248,252,0.96), rgba(255,255,255,0.98));
+      padding: 16px 18px;
+      font-size: 15px;
+      color: var(--text);
+      outline: none;
+      box-shadow: inset 0 0 0 1px rgba(71, 96, 127, 0.12);
+    }
+
+    .quick-add-input::placeholder,
+    .search-box input::placeholder,
+    .field-input::placeholder,
+    .field-textarea::placeholder,
+    .editor-surface textarea::placeholder {
+      color: #98a6b8;
+    }
+
+    body[data-theme="dark"] .quick-add-input::placeholder,
+    body[data-theme="dark"] .search-box input::placeholder,
+    body[data-theme="dark"] .field-input::placeholder,
+    body[data-theme="dark"] .field-textarea::placeholder,
+    body[data-theme="dark"] .editor-surface textarea::placeholder {
+      color: #7f91aa;
+    }
+
+    body[data-theme="dark"] .quick-add-input {
+      background: linear-gradient(180deg, rgba(17,26,40,0.96), rgba(14,22,34,0.97));
+      color: #e8eef8;
+      box-shadow: inset 0 0 0 1px rgba(173, 192, 219, 0.12);
+    }
+
+    .quick-add-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .hint-inline {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .hint-chip,
+    .filter-chip,
+    .field-chip,
+    .mini-chip {
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid rgba(68, 90, 120, 0.1);
+      background: rgba(255,255,255,0.78);
+      color: #526176;
+    }
+
+    .toolbar-row {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .search-box {
+      position: relative;
+    }
+
+    .search-box input,
+    .field-input,
+    .field-select,
+    .field-textarea,
+    .field-date {
+      width: 100%;
+      border: 1px solid rgba(67,90,121,0.12);
+      border-radius: 14px;
+      padding: 11px 13px;
+      background: rgba(255,255,255,0.94);
+      font: inherit;
+      color: var(--text);
+      outline: none;
+      font-size: 14px;
+      transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, color .18s ease;
+    }
+
+    .search-box input:hover,
+    .field-input:hover,
+    .field-select:hover,
+    .field-textarea:hover,
+    .field-date:hover {
+      border-color: rgba(79, 140, 255, 0.18);
+      background: rgba(255,255,255,0.98);
+    }
+
+    body[data-theme="dark"] .search-box input,
+    body[data-theme="dark"] .field-input,
+    body[data-theme="dark"] .field-select,
+    body[data-theme="dark"] .field-textarea,
+    body[data-theme="dark"] .field-date {
+      background: rgba(255,255,255,0.045);
+      border-color: rgba(173, 192, 219, 0.12);
+      color: #e8eef8;
+    }
+
+    body[data-theme="dark"] .search-box input:hover,
+    body[data-theme="dark"] .field-input:hover,
+    body[data-theme="dark"] .field-select:hover,
+    body[data-theme="dark"] .field-textarea:hover,
+    body[data-theme="dark"] .field-date:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(124, 174, 255, 0.18);
+    }
+
+    .detail-pane .field-date {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 8px 10px;
+      letter-spacing: 0.01em;
+      color: #506076;
+    }
+
+    body[data-theme="dark"] .detail-pane .field-date {
+      color: #b7c7da;
+    }
+
+    .detail-pane .field-input,
+    .detail-pane .field-select,
+    .detail-pane .field-textarea {
+      font-size: 12.5px;
+      padding: 9px 11px;
+    }
+
+    .field-textarea {
+      min-height: 72px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      stroke: #8c98aa;
+      fill: none;
+      stroke-width: 1.8;
+    }
+
+    .search-box input {
+      padding-left: 42px;
+    }
+
+    .filter-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-group label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .filter-chip {
+      cursor: pointer;
+      transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+    }
+
+    .filter-chip:hover {
+      background: rgba(255,255,255,0.95);
+      border-color: rgba(79,140,255,0.12);
+      transform: translateY(-1px);
+    }
+
+    .filter-chip.active {
+      background: linear-gradient(135deg, rgba(79,140,255,0.18), rgba(94,184,255,0.15));
+      color: #2d57b5;
+      border-color: rgba(79,140,255,0.22);
+    }
+
+    body[data-theme="dark"] .filter-chip,
+    body[data-theme="dark"] .hint-chip,
+    body[data-theme="dark"] .field-chip,
+    body[data-theme="dark"] .mini-chip {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(173, 192, 219, 0.08);
+      color: #b8c7dc;
+    }
+
+    .reminder-card {
+      padding: 16px 18px;
+      border-radius: 22px;
+      background:
+        linear-gradient(135deg, rgba(255,245,235,0.98), rgba(255,251,245,0.98));
+      border: 1px solid rgba(255, 176, 92, 0.22);
+      box-shadow: 0 18px 32px rgba(255, 174, 102, 0.16);
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    body[data-theme="dark"] .reminder-card {
+      background: linear-gradient(135deg, rgba(71, 43, 14, 0.92), rgba(54, 35, 14, 0.9));
+      border-color: rgba(255, 176, 92, 0.16);
+      box-shadow: none;
+    }
+
+    .reminder-card.show {
+      display: flex;
+    }
+
+    .reminder-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .reminder-title {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .reminder-title strong {
+      font-size: 18px;
+      font-family: var(--font-ui);
+      letter-spacing: -0.03em;
+    }
+
+    .reminder-title span {
+      color: #86613b;
+      line-height: 1.55;
+      font-size: 13px;
+    }
+
+    .reminder-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .reminder-actions .ghost-btn {
+      background: rgba(255,255,255,0.88);
+    }
+
+    .warning-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.72);
+      color: #9a5c17;
+      font-size: 12px;
+      font-weight: 800;
+      width: fit-content;
+    }
+
+    .reminder-expand {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      border-top: 1px dashed rgba(164, 111, 39, 0.18);
+      padding-top: 14px;
+    }
+
+    .reminder-expand.show {
+      display: flex;
+    }
+
+    .reminder-expand-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 13px;
+      color: #7f6145;
+    }
+
+    .reminder-hit-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .reminder-hit {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(164, 111, 39, 0.1);
+      transition: background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+
+    .reminder-hit:hover {
+      background: rgba(255,255,255,0.92);
+      border-color: rgba(255, 176, 92, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .reminder-hit:focus-within {
+      border-color: rgba(79, 140, 255, 0.22);
+      box-shadow: 0 0 0 4px rgba(79, 140, 255, 0.08);
+    }
+
+    .reminder-hit.checked {
+      background: linear-gradient(135deg, rgba(236, 244, 255, 0.98), rgba(250, 252, 255, 0.98));
+      border-color: rgba(79, 140, 255, 0.18);
+    }
+
+    .reminder-hit input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--blue);
+    }
+
+    body[data-theme="dark"] .reminder-hit {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255, 176, 92, 0.14);
+    }
+
+    body[data-theme="dark"] .reminder-hit:hover {
+      background: rgba(255,255,255,0.06);
+    }
+
+    body[data-theme="dark"] .reminder-hit.checked {
+      background: rgba(79, 140, 255, 0.14);
+      border-color: rgba(124, 174, 255, 0.2);
+    }
+
+    .reminder-hit-title {
+      min-width: 0;
+    }
+
+    .reminder-hit-title strong {
+      display: block;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .reminder-hit-title span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .priority-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      color: white;
+    }
+
+    .priority-P1 { background: linear-gradient(135deg, #ff5a5f, #ff6d74); }
+    .priority-P2 { background: linear-gradient(135deg, #ff9f43, #ffb157); }
+    .priority-P3 { background: linear-gradient(135deg, #4f8cff, #6aa4ff); }
+    .priority-P4 { background: linear-gradient(135deg, #97a6b8, #aebac7); }
+
+    .task-list-card {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+      padding: 8px;
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+      overflow: auto;
+      padding-right: 2px;
+      scrollbar-gutter: stable;
+    }
+
+    .task-row {
+      border-radius: 18px;
+      padding: 13px 14px;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid transparent;
+      background: rgba(255,255,255,0.58);
+      transition: background .18s ease, transform .18s ease, border .18s ease, box-shadow .18s ease;
+      cursor: pointer;
+      position: relative;
+    }
+
+    body[data-theme="dark"] .task-row {
+      background: rgba(255,255,255,0.03);
+    }
+
+    body[data-theme="dark"] .task-row:hover,
+    body[data-theme="dark"] .task-row.active,
+    body[data-theme="dark"] .task-row:focus-within {
+      background: rgba(255,255,255,0.06);
+      box-shadow: none;
+      border-color: rgba(79,140,255,0.16);
+    }
+
+    .task-row:hover {
+      background: rgba(255,255,255,0.9);
+      box-shadow: var(--shadow-soft);
+      border-color: rgba(79, 140, 255, 0.09);
+      transform: translateY(-1px);
+    }
+
+    .task-row:focus-within {
+      background: rgba(255,255,255,0.96);
+      box-shadow: var(--shadow-soft);
+      border-color: rgba(79, 140, 255, 0.16);
+    }
+
+    .task-row.active {
+      background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(244,248,255,0.96));
+      border-color: rgba(79,140,255,0.22);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .task-row.selected {
+      border-color: rgba(79,140,255,0.24);
+      background: linear-gradient(135deg, rgba(234,243,255,0.98), rgba(246,250,255,0.96));
+    }
+
+    .task-row.done .task-title {
+      color: var(--subtle);
+      text-decoration: line-through;
+    }
+
+    .task-check {
+      width: 20px;
+      height: 20px;
+      border-radius: 7px;
+      border: 2px solid rgba(79,140,255,0.35);
+      display: grid;
+      place-items: center;
+      color: transparent;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .task-check:hover {
+      border-color: rgba(79,140,255,0.6);
+      background: rgba(79,140,255,0.06);
+    }
+
+    .task-row.done .task-check {
+      background: linear-gradient(135deg, #4f8cff, #66c1ff);
+      color: white;
+      border-color: transparent;
+    }
+
+    .task-main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .task-title {
+      font-size: 15px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .task-meta {
+      min-width: 148px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      text-align: right;
+    }
+
+    .task-sub {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex-wrap: wrap;
+    }
+
+    .tag-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      background: rgba(61, 86, 118, 0.08);
+      color: #4c5f79;
+    }
+
+    .tag-inline i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .task-time {
+      font-size: 13px;
+      font-weight: 800;
+      color: #53657b;
+    }
+
+    .task-time.overdue { color: var(--red); }
+    .task-time.soon { color: var(--orange); }
+    .task-time.done { color: var(--green); }
+
+    .task-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      transition: opacity .18s ease;
+    }
+
+    .task-row:hover .task-actions,
+    .task-row.active .task-actions,
+    .task-row.selected .task-actions,
+    .task-row:focus-within .task-actions {
+      opacity: 1;
+    }
+
+    .task-actions .ghost-btn {
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      background: rgba(255,255,255,0.86);
+    }
+
+    .task-actions .ghost-btn.active-toggle {
+      background: rgba(79, 140, 255, 0.14);
+      border-color: rgba(79, 140, 255, 0.2);
+      color: #2d57b5;
+    }
+
+    .task-actions .ghost-btn:hover {
+      background: rgba(255,255,255,0.98);
+    }
+
+    body[data-theme="dark"] .task-row.selected {
+      background: rgba(79,140,255,0.12);
+      border-color: rgba(124,174,255,0.26);
+    }
+
+    body[data-theme="dark"] .task-actions .ghost-btn.active-toggle {
+      background: rgba(79, 140, 255, 0.2);
+      border-color: rgba(124, 174, 255, 0.22);
+      color: #dce8ff;
+    }
+
+    .selection-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(79,140,255,0.12), rgba(94,184,255,0.11));
+      border: 1px solid rgba(79,140,255,0.12);
+      margin-top: 8px;
+    }
+
+    .selection-bar.show {
+      display: flex;
+    }
+
+    .selection-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .detail-card {
+      background: var(--panel-strong);
+      border: 1px solid rgba(255,255,255,0.7);
+      border-radius: 24px;
+      box-shadow: var(--shadow-soft);
+      padding: 14px 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .detail-card h3 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.22;
+      letter-spacing: -0.03em;
+      font-family: var(--font-ui);
+    }
+
+    .detail-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 6px 6px 10px;
+      border-bottom: 1px solid rgba(67, 90, 121, 0.08);
+    }
+
+    .detail-header .icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      box-shadow: none;
+      background: rgba(66, 88, 117, 0.06);
+    }
+
+    body[data-theme="dark"] .detail-header .icon-btn {
+      background: rgba(255,255,255,0.06);
+    }
+
+    .detail-header-copy {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .detail-kicker {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .detail-subtitle {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .detail-overview {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 2px 6px 0;
+    }
+
+    .detail-chip-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .detail-info-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(66, 88, 117, 0.06);
+      border: 1px solid rgba(67, 90, 121, 0.06);
+      color: #56677c;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .detail-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 14px 14px 12px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(249,252,255,0.92), rgba(245,249,253,0.9));
+      border: 1px solid rgba(67, 90, 121, 0.08);
+    }
+
+    .detail-section-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .detail-section-title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .detail-section-title strong {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .detail-section-title span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .inspector-field-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .inspector-field-row {
+      display: grid;
+      grid-template-columns: 84px minmax(0, 1fr);
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.7);
+      border: 1px solid rgba(67, 90, 121, 0.08);
+    }
+
+    .inspector-field-row.stack {
+      align-items: flex-start;
+    }
+
+    .inspector-field-row + .inspector-field-row {
+      margin-top: 0;
+    }
+
+    .inspector-field-control {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .inspector-field-control.wrap {
+      justify-content: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .detail-field {
+      display: contents;
+    }
+
+    .detail-label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .detail-field label {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      line-height: 1.4;
+    }
+
+    .inspector-field-row .field-select,
+    .inspector-field-row .field-date {
+      border-radius: 12px;
+      padding: 8px 10px;
+      background: rgba(250,252,255,0.88);
+      border-color: rgba(67,90,121,0.08);
+      box-shadow: none;
+      font-size: 12.5px;
+    }
+
+    .inspector-field-row .field-select {
+      min-width: 0;
+      max-width: 220px;
+      margin-left: auto;
+    }
+
+    .inspector-field-row .field-date {
+      min-width: 0;
+      max-width: 220px;
+      margin-left: auto;
+    }
+
+    .tag-editor {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag-editor.empty {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    body[data-theme="dark"] .detail-header {
+      border-bottom-color: rgba(173, 192, 219, 0.08);
+    }
+
+    body[data-theme="dark"] .detail-info-chip {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(173, 192, 219, 0.08);
+      color: #b8c9de;
+    }
+
+    body[data-theme="dark"] .detail-section {
+      background: linear-gradient(180deg, rgba(18, 26, 39, 0.84), rgba(15, 22, 34, 0.9));
+      border-color: rgba(173, 192, 219, 0.08);
+    }
+
+    body[data-theme="dark"] .inspector-field-row {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(173, 192, 219, 0.08);
+    }
+
+    body[data-theme="dark"] .inspector-field-row .field-select,
+    body[data-theme="dark"] .inspector-field-row .field-date {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(173, 192, 219, 0.08);
+    }
+
+    .inspector-action-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .inspector-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      padding: 7px 10px;
+      background: rgba(66, 88, 117, 0.06);
+      color: #5a6a7e;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0;
+      cursor: pointer;
+      transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+    }
+
+    .inspector-action-btn:hover {
+      background: rgba(66, 88, 117, 0.1);
+      border-color: rgba(67, 90, 121, 0.08);
+      color: #32445a;
+      transform: translateY(-1px);
+    }
+
+    .inspector-action-btn:active {
+      transform: translateY(0);
+    }
+
+    .inspector-action-btn svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex: 0 0 auto;
+    }
+
+    .inspector-action-btn.quiet {
+      background: transparent;
+      padding-left: 0;
+      padding-right: 0;
+      border-color: transparent;
+    }
+
+    .inspector-action-btn.quiet:hover {
+      background: transparent;
+      color: #32445a;
+      border-color: transparent;
+      transform: none;
+    }
+
+    body[data-theme="dark"] .inspector-action-btn {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(173, 192, 219, 0.06);
+      color: #aebfd4;
+    }
+
+    body[data-theme="dark"] .inspector-action-btn:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(173, 192, 219, 0.1);
+      color: #e2ecfa;
+    }
+
+    body[data-theme="dark"] .inspector-action-btn.quiet {
+      background: transparent;
+      border-color: transparent;
+      color: #9fb0c8;
+    }
+
+    body[data-theme="dark"] .inspector-action-btn.quiet:hover {
+      background: transparent;
+      border-color: transparent;
+      color: #e2ecfa;
+    }
+
+    .tag-manager-modal {
+      width: min(980px, calc(100vw - 56px));
+      padding: 20px 20px 18px;
+    }
+
+    .tag-manager-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .tag-manager-header .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      box-shadow: none;
+    }
+
+    .tag-manager-copy {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .tag-manager-body {
+      display: grid;
+      grid-template-columns: minmax(430px, 1.08fr) minmax(360px, 0.92fr);
+      gap: 18px;
+      min-height: 0;
+    }
+
+    .tag-manager-section {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 0;
+    }
+
+    .tag-panel {
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(248,251,255,0.98), rgba(243,247,252,0.96));
+      border: 1px solid rgba(67,90,121,0.08);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .tag-panel-header {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .tag-panel-title strong {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .tag-panel-caption {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .tag-context-card {
+      border-radius: 18px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.8);
+      border: 1px solid rgba(67,90,121,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .tag-context-card strong {
+      font-size: 13px;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tag-context-card span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .tag-selected-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 34px;
+      align-content: flex-start;
+    }
+
+    .tag-selected-strip.empty {
+      border-radius: 16px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.62);
+      border: 1px dashed rgba(67,90,121,0.12);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .tag-token {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 7px 11px;
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(67,90,121,0.1);
+      font-size: 12px;
+      font-weight: 700;
+      color: #425265;
+    }
+
+    .tag-token i {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+      flex: 0 0 auto;
+    }
+
+    .tag-bind-list,
+    .tag-library-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+      overflow: auto;
+      padding-right: 2px;
+      scrollbar-gutter: stable;
+    }
+
+    .tag-bind-row {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid rgba(67,90,121,0.1);
+      border-radius: 16px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.76);
+      color: #425265;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s ease, box-shadow .18s ease;
+    }
+
+    .tag-bind-row:hover {
+      transform: translateY(-1px);
+      border-color: rgba(79,140,255,0.16);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .tag-bind-row.active {
+      background: rgba(79,140,255,0.12);
+      border-color: rgba(79,140,255,0.22);
+      color: #2d57b5;
+    }
+
+    .tag-bind-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .tag-bind-left span {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tag-bind-state {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      flex: 0 0 auto;
+    }
+
+    .tag-bind-row.active .tag-bind-state {
+      color: #2d57b5;
+    }
+
+    .tag-token i,
+    .tag-bind-left i,
+    .tag-library-name i {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      flex: 0 0 auto;
+    }
+
+    .tag-form-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 72px;
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(67,90,121,0.08);
+    }
+
+    .tag-form-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .tag-form-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 0 2px;
+    }
+
+    .tag-form-actions .ghost-btn {
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      box-shadow: none;
+    }
+
+    .color-input {
+      width: 72px;
+      height: 42px;
+      border-radius: 14px;
+      border: 1px solid rgba(67,90,121,0.12);
+      background: rgba(255,255,255,0.94);
+      padding: 6px;
+      cursor: pointer;
+    }
+
+    .tag-library-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.7);
+      border: 1px solid rgba(67,90,121,0.08);
+      transition: background .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+
+    .tag-library-item:hover {
+      background: rgba(255,255,255,0.92);
+      border-color: rgba(79,140,255,0.12);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .tag-library-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .tag-library-copy {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .tag-library-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      font-weight: 700;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .tag-library-meta {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      flex: 0 0 auto;
+    }
+
+    .tag-library-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      opacity: 0;
+      transform: translateX(4px);
+      transition: opacity .18s ease, transform .18s ease;
+    }
+
+    .tag-library-item:hover .tag-library-actions,
+    .tag-library-item:focus-within .tag-library-actions {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .tag-library-empty {
+      border-radius: 16px;
+      padding: 14px;
+      background: rgba(245,248,252,0.72);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    body[data-theme="dark"] .tag-panel {
+      background: linear-gradient(180deg, rgba(18,26,39,0.92), rgba(15,22,34,0.94));
+      border-color: rgba(173, 192, 219, 0.08);
+    }
+
+    body[data-theme="dark"] .tag-context-card,
+    body[data-theme="dark"] .tag-form-row,
+    body[data-theme="dark"] .tag-selected-strip.empty,
+    body[data-theme="dark"] .tag-library-item,
+    body[data-theme="dark"] .tag-library-empty {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(173, 192, 219, 0.08);
+    }
+
+    body[data-theme="dark"] .tag-token {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(173, 192, 219, 0.1);
+      color: #d5e1f1;
+    }
+
+    body[data-theme="dark"] .tag-bind-row {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(173, 192, 219, 0.08);
+      color: #c7d5e7;
+    }
+
+    body[data-theme="dark"] .tag-bind-row.active {
+      background: rgba(79,140,255,0.18);
+      border-color: rgba(124,174,255,0.22);
+      color: #deebff;
+    }
+
+    body[data-theme="dark"] .tag-bind-row.active .tag-bind-state {
+      color: #deebff;
+    }
+
+    body[data-theme="dark"] .color-input {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(173, 192, 219, 0.1);
+    }
+
+    body[data-theme="dark"] .tag-library-item:hover {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(124,174,255,0.14);
+      box-shadow: none;
+    }
+
+    body[data-theme="dark"] .tag-manager-body {
+      grid-template-columns: minmax(430px, 1.08fr) minmax(360px, 0.92fr);
+    }
+
+    .editor-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      padding: 0;
+    }
+
+    .editor-modes,
+    .editor-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .editor-modes {
+      gap: 0;
+      padding: 4px;
+      border-radius: 14px;
+      background: rgba(66, 88, 117, 0.08);
+      border: 1px solid rgba(67, 90, 121, 0.08);
+    }
+
+    .editor-mode-btn {
+      border-radius: 10px;
+      padding: 7px 12px;
+      border: 0;
+      background: transparent;
+      color: #5a6a7e;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 12px;
+      min-width: 58px;
+      transition: background .18s ease, color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+
+    .editor-mode-btn:hover {
+      background: rgba(255,255,255,0.48);
+    }
+
+    .editor-mode-btn.active {
+      background: rgba(255,255,255,0.94);
+      color: #3152a8;
+      box-shadow: 0 1px 2px rgba(67, 90, 121, 0.12), 0 6px 14px rgba(67, 90, 121, 0.08);
+    }
+
+    body[data-theme="dark"] .editor-mode-btn {
+      color: #a9bbd2;
+    }
+
+    body[data-theme="dark"] .editor-modes {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(173, 192, 219, 0.08);
+    }
+
+    body[data-theme="dark"] .editor-mode-btn:hover {
+      background: rgba(255,255,255,0.06);
+    }
+
+    body[data-theme="dark"] .editor-mode-btn.active {
+      background: rgba(255,255,255,0.1);
+      color: #d9e6ff;
+      box-shadow: none;
+    }
+
+    .editor-surface {
+      flex: 1;
+      min-height: 220px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #fbfdff, #f6f9fc);
+      border: 1px solid rgba(69,92,122,0.1);
+      padding: 16px;
+      overflow: auto;
+      line-height: 1.65;
+      font-size: 13px;
+      scrollbar-gutter: stable;
+    }
+
+    body[data-theme="dark"] .editor-surface,
+    body[data-theme="dark"] .report-editor,
+    body[data-theme="dark"] .modal {
+      background: linear-gradient(180deg, rgba(16,24,36,0.98), rgba(13,20,31,0.98));
+      border-color: rgba(173, 192, 219, 0.1);
+      color: #e8eef8;
+    }
+
+    body[data-theme="dark"] .report-output,
+    body[data-theme="dark"] .channel-form-wrap,
+    body[data-theme="dark"] .panel-side,
+    body[data-theme="dark"] .channel-list-wrap {
+      background: linear-gradient(180deg, rgba(18,26,41,0.9), rgba(13,20,32,0.84));
+      border-color: rgba(173, 192, 219, 0.08);
+    }
+
+    body[data-theme="dark"] .report-banner {
+      background: linear-gradient(135deg, rgba(79,140,255,0.12), rgba(119,215,237,0.08));
+      border-color: rgba(79,140,255,0.12);
+    }
+
+    body[data-theme="dark"] .modal-backdrop {
+      background: rgba(2, 6, 14, 0.44);
+    }
+
+    body[data-theme="dark"] .empty-state {
+      background: rgba(255,255,255,0.03);
+      border-color: rgba(173, 192, 219, 0.14);
+      color: #9fb0c8;
+    }
+
+    .editor-surface.preview h1,
+    .editor-surface.preview h2 {
+      margin: 0 0 10px;
+      font-family: var(--font-ui);
+      letter-spacing: -0.03em;
+    }
+
+    .editor-surface.preview h1 { font-size: 18px; }
+    .editor-surface.preview h2 { font-size: 15px; }
+    .editor-surface.preview ul { margin: 0 0 14px 18px; padding: 0; }
+    .editor-surface.preview p { margin: 0 0 14px; }
+
+    .editor-surface textarea {
+      width: 100%;
+      height: 100%;
+      min-height: 260px;
+      border: 0;
+      resize: none;
+      outline: none;
+      background: transparent;
+      font: inherit;
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 13px;
+    }
+
+    button:disabled,
+    input:disabled,
+    textarea:disabled,
+    select:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+      box-shadow: none !important;
+      filter: saturate(0.9);
+    }
+
+    input:disabled,
+    textarea:disabled,
+    select:disabled {
+      background: rgba(111,124,141,0.06);
+      border-color: rgba(111,124,141,0.08);
+    }
+
+    .ghost-btn:disabled,
+    .soft-btn:disabled,
+    .primary-btn:disabled,
+    .icon-btn:disabled,
+    .inspector-action-btn:disabled {
+      transform: none;
+      background: rgba(111,124,141,0.08);
+      border-color: rgba(111,124,141,0.08);
+      color: #8ea0b5;
+    }
+
+    body[data-theme="dark"] .ghost-btn:disabled,
+    body[data-theme="dark"] .soft-btn:disabled,
+    body[data-theme="dark"] .primary-btn:disabled,
+    body[data-theme="dark"] .icon-btn:disabled,
+    body[data-theme="dark"] .inspector-action-btn:disabled {
+      background: rgba(255,255,255,0.04);
+      color: #6f8197;
+      border-color: rgba(255,255,255,0.05);
+    }
+
+    .meta-strip {
+      display: flex;
+      justify-content: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .meta-strip span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(66, 88, 117, 0.06);
+      border: 1px solid rgba(67, 90, 121, 0.06);
+    }
+
+    body[data-theme="dark"] .meta-strip span {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(173, 192, 219, 0.08);
+    }
+
+    .report-page,
+    .channel-page {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      min-height: 100%;
+    }
+
+    .panel-side,
+    .report-output,
+    .channel-form-wrap {
+      padding: 24px;
+      scrollbar-gutter: stable;
+    }
+
+    .panel-side {
+      border-right: 1px solid rgba(66,88,117,0.08);
+      background: linear-gradient(180deg, rgba(247,250,254,0.94), rgba(238,244,250,0.88));
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow: auto;
+    }
+
+    .report-output,
+    .channel-form-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 0;
+      min-height: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(248,251,255,0.76));
+    }
+
+    .panel-title {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .panel-title h2 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: -0.04em;
+      font-family: var(--font-ui);
+    }
+
+    .panel-title p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .stack-card {
+      padding: 16px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.76);
+      border: 1px solid rgba(66,88,117,0.1);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .stack-card h4 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .option-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .option-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(246,249,253,0.84);
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+
+    .option-row:hover {
+      background: rgba(255,255,255,0.96);
+      border-color: rgba(79, 140, 255, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .option-row:has(input:checked) {
+      background: rgba(79, 140, 255, 0.1);
+      border-color: rgba(79, 140, 255, 0.2);
+      box-shadow: 0 10px 18px rgba(79, 140, 255, 0.08);
+    }
+
+    .option-row input {
+      accent-color: var(--blue);
+    }
+
+    body[data-theme="dark"] .option-row {
+      background: rgba(255,255,255,0.04);
+    }
+
+    body[data-theme="dark"] .option-row:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(124, 174, 255, 0.14);
+    }
+
+    body[data-theme="dark"] .option-row:has(input:checked) {
+      background: rgba(79, 140, 255, 0.16);
+      border-color: rgba(124, 174, 255, 0.22);
+      box-shadow: none;
+    }
+
+    .date-grid,
+    .dual-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .report-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .report-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .report-editor {
+      flex: 1;
+      min-height: 0;
+      border-radius: 22px;
+      border: 1px solid rgba(66,88,117,0.1);
+      background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(246,250,255,0.96));
+      padding: 20px;
+      overflow: auto;
+      line-height: 1.68;
+      font-size: 14px;
+      scrollbar-gutter: stable;
+    }
+
+    .report-editor h1,
+    .report-editor h2 {
+      margin: 0 0 12px;
+      font-family: var(--font-ui);
+      letter-spacing: -0.04em;
+    }
+
+    .report-editor h1 { font-size: 25px; }
+    .report-editor h2 { font-size: 17px; }
+    .report-editor ul { margin: 0 0 16px 18px; padding: 0; }
+    .report-editor p { margin: 0 0 14px; }
+
+    .report-history {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: auto;
+      max-height: 240px;
+      scrollbar-gutter: stable;
+    }
+
+    .history-meta,
+    .channel-meta {
+      color: var(--muted);
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      text-align: left;
+    }
+
+    .channel-page {
+      grid-template-columns: 330px 1fr;
+    }
+
+    .channel-list-wrap {
+      padding: 24px 18px 24px 24px;
+      border-right: 1px solid rgba(66,88,117,0.08);
+      background: linear-gradient(180deg, rgba(246,250,254,0.94), rgba(238,244,250,0.88));
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scrollbar-gutter: stable;
+    }
+
+    .channel-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .channel-state {
+      font-size: 11px;
+      font-weight: 800;
+      border-radius: 999px;
+      padding: 5px 8px;
+      background: rgba(47, 185, 115, 0.14);
+      color: #208252;
+    }
+
+    .channel-state.off {
+      background: rgba(135, 147, 163, 0.18);
+      color: #5f6c7f;
+    }
+
+    .mapping-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px 14px;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .mapping-grid strong {
+      color: #425265;
+    }
+
+    .mapping-grid select {
+      min-width: 150px;
+    }
+
+    .channel-form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .channel-form .full {
+      grid-column: 1 / -1;
+    }
+
+    .settings-inline {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(66,88,117,0.08);
+      font-size: 12px;
+      font-weight: 800;
+      color: #58697d;
+    }
+
+    .report-banner {
+      border-radius: 22px;
+      padding: 18px 18px;
+      background:
+        linear-gradient(135deg, rgba(79,140,255,0.16), rgba(119,215,237,0.14));
+      border: 1px solid rgba(79,140,255,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 38, 0.18);
+      backdrop-filter: blur(10px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 40;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal {
+      width: min(540px, 100%);
+      background: rgba(255,255,255,0.96);
+      border-radius: 28px;
+      box-shadow: 0 30px 70px rgba(17, 27, 42, 0.22);
+      border: 1px solid rgba(255,255,255,0.72);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal h3 {
+      margin: 0;
+      font-size: 24px;
+      font-family: var(--font-ui);
+      letter-spacing: -0.04em;
+    }
+
+    .modal-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 180px;
+      overflow: auto;
+      padding: 4px 2px;
+      scrollbar-gutter: stable;
+    }
+
+    .modal-list-item {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(244,248,253,0.92);
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .modal-list-item strong {
+      color: #203044;
+      font-size: 13px;
+    }
+
+    .modal-list-item span {
+      color: #68788e;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    body[data-theme="dark"] .modal-list-item {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(173, 192, 219, 0.08);
+    }
+
+    body[data-theme="dark"] .modal-list-item strong {
+      color: #e6eef9;
+    }
+
+    body[data-theme="dark"] .modal-list-item span {
+      color: #a8b9cf;
+    }
+
+    .choice-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .choice-btn {
+      border: 1px solid rgba(66,88,117,0.1);
+      border-radius: 16px;
+      background: rgba(250,252,255,0.94);
+      padding: 14px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      font-weight: 700;
+      color: #32445a;
+      transition: background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease, color .18s ease;
+    }
+
+    .choice-btn span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .choice-btn:hover {
+      border-color: rgba(79, 140, 255, 0.16);
+      box-shadow: var(--shadow-soft);
+      transform: translateY(-1px);
+    }
+
+    .choice-btn.active {
+      background: rgba(79,140,255,0.12);
+      border-color: rgba(79,140,255,0.22);
+      color: #2d57b5;
+    }
+
+    body[data-theme="dark"] .choice-btn {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(173, 192, 219, 0.08);
+      color: #d6e1f0;
+    }
+
+    body[data-theme="dark"] .choice-btn span {
+      color: #9fb0c8;
+    }
+
+    body[data-theme="dark"] .choice-btn:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(124, 174, 255, 0.14);
+      box-shadow: none;
+    }
+
+    body[data-theme="dark"] .choice-btn.active {
+      background: rgba(79,140,255,0.16);
+      border-color: rgba(124,174,255,0.22);
+      color: #d9e6ff;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      min-width: 280px;
+      max-width: 420px;
+      border-radius: 18px;
+      background: rgba(27,36,48,0.94);
+      color: white;
+      padding: 14px 16px;
+      box-shadow: 0 20px 38px rgba(16, 23, 33, 0.28);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 60;
+      opacity: 0;
+      transform: translateY(16px);
+      pointer-events: none;
+      transition: .22s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast strong {
+      font-size: 14px;
+    }
+
+    .toast span {
+      font-size: 12px;
+      color: rgba(255,255,255,0.78);
+      line-height: 1.5;
+    }
+
+    .empty-state {
+      border-radius: 24px;
+      padding: 38px 24px;
+      text-align: center;
+      color: var(--muted);
+      background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(246,250,254,0.86));
+      border: 1px dashed rgba(69,92,122,0.16);
+    }
+
+    @media (max-width: 1440px) {
+      .workspace-page {
+        grid-template-columns: minmax(420px, 1fr) 380px;
+      }
+
+      .toolbar-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 1180px) {
+      .sidebar {
+        width: 220px;
+      }
+
+      .workspace-page,
+      .report-page,
+      .channel-page {
+        grid-template-columns: 1fr;
+      }
+
+      .workspace-page {
+        flex-direction: column;
+      }
+
+      .pane-splitter {
+        display: none !important;
+      }
+
+      .detail-pane,
+      .report-output,
+      .channel-form-wrap {
+        border-left: 0;
+        border-top: 1px solid rgba(66,88,117,0.08);
+      }
+
+      .workspace-page.show-detail .detail-pane {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .main-body {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        border-right: 0;
+        border-bottom: 1px solid rgba(66,88,117,0.08);
+      }
+
+      .tag-manager-body {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <div class="app-shell">
+    <div class="window-bar">
+      <div class="window-title">
+        <div class="traffic">
+          <span class="red"></span>
+          <span class="yellow"></span>
+          <span class="green"></span>
+        </div>
+        <div class="brand-mark">TA</div>
+        <div class="brand-copy">
+          <h1>TimeAura</h1>
+          <p>让每个重要时刻如约而至</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" id="themeToggleBtn" title="切换主题" aria-label="切换主题">
+          <svg id="themeToggleIcon" viewBox="0 0 24 24">
+            <path d="M12 3v2.5"></path>
+            <path d="M12 18.5V21"></path>
+            <path d="M4.93 4.93l1.77 1.77"></path>
+            <path d="M17.3 17.3l1.77 1.77"></path>
+            <path d="M3 12h2.5"></path>
+            <path d="M18.5 12H21"></path>
+            <path d="M4.93 19.07l1.77-1.77"></path>
+            <path d="M17.3 6.7l1.77-1.77"></path>
+            <circle cx="12" cy="12" r="4"></circle>
+          </svg>
+        </button>
+        <button class="ghost-btn" id="focusQuickAddBtn">快速新增</button>
+        <button class="primary-btn" id="topGenerateBtn">生成周报</button>
+        <button class="icon-btn" id="gotoChannelsTop" title="AI通道配置" aria-label="AI通道配置">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 7h12"></path>
+            <path d="M4 12h16"></path>
+            <path d="M4 17h9"></path>
+            <circle cx="18" cy="7" r="2"></circle>
+            <circle cx="8" cy="12" r="2"></circle>
+            <circle cx="16" cy="17" r="2"></circle>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="main-body">
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <h2 class="title">TimeAura</h2>
+          <p class="tagline">在紧凑节奏里，先看清楚什么最重要，再让它准时发生。</p>
+        </div>
+
+        <div class="nav-section" id="systemNav"></div>
+
+        <div class="nav-section">
+          <div class="nav-label">标签</div>
+          <div id="tagNav"></div>
+        </div>
+
+        <div class="sidebar-footer">
+          <button class="icon-btn" id="gotoReportsBtn" title="AI报告">
+            <svg viewBox="0 0 24 24">
+              <path d="M8 3h5l4 4v14H8z"></path>
+              <path d="M13 3v5h5"></path>
+              <path d="M10 12h6"></path>
+              <path d="M10 16h6"></path>
+            </svg>
+          </button>
+          <button class="icon-btn" id="trashBtn" title="回收站">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 7h16"></path>
+              <path d="M9 7V4h6v3"></path>
+              <path d="M7 7l1 13h8l1-13"></path>
+            </svg>
+          </button>
+          <button class="icon-btn" id="gotoChannelsBtn" title="设置与AI通道">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 8.5A3.5 3.5 0 1 0 12 15.5A3.5 3.5 0 1 0 12 8.5z"></path>
+              <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 0 1 0 2.83a2 2 0 0 1-2.83 0l-.06-.06a1.7 1.7 0 0 0-1.87-.34a1.7 1.7 0 0 0-1 1.55V21a2 2 0 0 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 0 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87L4.2 7.07a2 2 0 0 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.96 4a1.7 1.7 0 0 0 1-1.55V2.4a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1 1.55a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
+        </div>
+      </aside>
+
+      <div class="page-stack">
+        <section class="page workspace-page active" id="page-workspace">
+          <div class="list-pane">
+            <div class="page-header">
+              <div>
+                <h2 id="workspaceTitle">今天</h2>
+                <p id="workspaceSubtitle">把今天最值得推进的事项留在眼前。</p>
+              </div>
+              <div class="summary-pills">
+                <div class="summary-pill">
+                  <strong id="summaryPending">0</strong>
+                  <span>未完成</span>
+                </div>
+                <div class="summary-pill">
+                  <strong id="summaryUrgent">0</strong>
+                  <span>即将到期</span>
+                </div>
+                <div class="summary-pill">
+                  <strong id="summaryDone">0</strong>
+                  <span>今日完成</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card quick-add-card" id="quickAddCard">
+              <input id="quickAddInput" class="quick-add-input" placeholder="输入一行即可创建：例如 明天下午3点 #工作 !P1 和设计评审">
+              <div class="quick-add-meta">
+                <div class="hint-inline">
+                  <span class="hint-chip">#标签</span>
+                  <span class="hint-chip">!P1</span>
+                  <span class="hint-chip">@明天 18:00</span>
+                </div>
+                <span>回车立即创建，连续记录不打断思路</span>
+              </div>
+            </div>
+
+            <div class="toolbar-row">
+              <div class="search-box">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <path d="M20 20l-4.3-4.3"></path>
+                </svg>
+                <input id="searchInput" placeholder="模糊检索标题、正文、标签">
+              </div>
+              <div class="filter-row">
+                <div class="filter-group">
+                  <label>状态</label>
+                  <button class="filter-chip active" data-filter-group="status" data-value="all">全部</button>
+                  <button class="filter-chip" data-filter-group="status" data-value="todo">未完成</button>
+                  <button class="filter-chip" data-filter-group="status" data-value="done">已完成</button>
+                </div>
+              </div>
+              <select class="field-select" id="sortSelect" aria-label="排序">
+                <option value="smart">智能排序</option>
+                <option value="due">截止时间</option>
+                <option value="priority">优先级</option>
+                <option value="updated">更新时间</option>
+              </select>
+            </div>
+
+            <div class="filter-row">
+              <div class="filter-group">
+                <label>优先级</label>
+                <button class="filter-chip active" data-filter-group="priority" data-value="all">全部</button>
+                <button class="filter-chip" data-filter-group="priority" data-value="P1">P1</button>
+                <button class="filter-chip" data-filter-group="priority" data-value="P2">P2</button>
+                <button class="filter-chip" data-filter-group="priority" data-value="P3">P3</button>
+                <button class="filter-chip" data-filter-group="priority" data-value="P4">P4</button>
+              </div>
+              <div class="filter-group">
+                <label>标签</label>
+                <select class="field-select" id="tagFilterSelect" style="width: 180px">
+                  <option value="all">全部标签</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="reminder-card" id="reminderCard">
+              <div class="reminder-top">
+                <div class="reminder-title">
+                  <div class="warning-badge">时间提醒 · 积压预警</div>
+                  <strong id="reminderHeadline"></strong>
+                  <span id="reminderText"></span>
+                </div>
+                <div class="reminder-actions">
+                  <button class="ghost-btn" id="toggleReminderExpandBtn">展开命中任务</button>
+                  <button class="soft-btn" id="quickReminderShiftBtn">一键调整</button>
+                  <button class="ghost-btn" id="snoozeReminderBtn">稍后提醒</button>
+                </div>
+              </div>
+              <div class="reminder-expand" id="reminderExpand">
+                <div class="reminder-expand-top">
+                  <div>
+                    <strong id="reminderSelectionState">已选 0 / 命中 0</strong>
+                  </div>
+                  <div class="editor-actions">
+                    <button class="text-btn" id="selectAllReminderBtn">全选</button>
+                    <button class="text-btn" id="clearAllReminderBtn">清空选择</button>
+                    <button class="text-btn" id="collapseReminderBtn">收起</button>
+                  </div>
+                </div>
+                <div class="reminder-hit-list" id="reminderHitList"></div>
+                <div class="reminder-actions">
+                  <button class="soft-btn" id="rescheduleSelectedBtn">仅改选中</button>
+                  <button class="ghost-btn" id="rescheduleAllBtn">全部顺延</button>
+                  <button class="ghost-btn" data-reschedule="tomorrow">改到明天上午</button>
+                  <button class="ghost-btn" data-reschedule="friday">改到周五</button>
+                  <button class="ghost-btn" data-reschedule="custom">自定义时间</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card task-list-card">
+              <div class="task-list" id="taskList"></div>
+              <div class="selection-bar" id="selectionBar">
+                <div>
+                  <strong id="selectionCount">已选 0 项</strong>
+                  <div style="font-size:12px;color:var(--muted);margin-top:4px;">支持批量改期、批量 AI 总结。</div>
+                </div>
+                <div class="selection-actions">
+                  <button class="ghost-btn" id="batchRescheduleBtn">批量改期</button>
+                  <button class="soft-btn" id="batchSummarizeBtn">AI 总结</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pane-splitter" id="paneSplitter" title="拖动调整详情区宽度"></div>
+
+          <div class="detail-pane">
+            <div class="detail-card" id="detailCard">
+              <div class="detail-header">
+                <div class="detail-header-copy">
+                  <span class="detail-kicker">Inspector</span>
+                  <h3 id="detailTitle">选择一条记录，开始沉淀细节</h3>
+                  <div class="detail-subtitle" id="detailSubtitle">从左侧列表打开一条记录后，这里会展示它的属性、标签和正文内容。</div>
+                </div>
+                <button class="icon-btn" id="closeDetailBtn" title="收起详情">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M6 6l12 12"></path>
+                    <path d="M18 6L6 18"></path>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="detail-overview">
+                <div class="detail-chip-row">
+                  <span class="detail-info-chip" id="detailChipStatus">状态 · 未选择</span>
+                  <span class="detail-info-chip" id="detailChipPriority">优先级 · --</span>
+                  <span class="detail-info-chip" id="detailChipDue">截止时间 · 未设置</span>
+                </div>
+              </div>
+
+              <div class="detail-section">
+                <div class="detail-section-head">
+                  <div class="detail-section-title">
+                    <strong>属性</strong>
+                    <span>在这里维护状态、优先级、标签和关键时间信息。</span>
+                  </div>
+                </div>
+                <div class="inspector-field-list">
+                  <div class="inspector-field-row">
+                    <label>状态</label>
+                    <div class="inspector-field-control">
+                      <select id="detailStatus" class="field-select">
+                        <option value="未开始">未开始</option>
+                        <option value="进行中">进行中</option>
+                        <option value="已完成">已完成</option>
+                        <option value="已归档">已归档</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="inspector-field-row">
+                    <label>优先级</label>
+                    <div class="inspector-field-control">
+                      <select id="detailPriority" class="field-select">
+                        <option value="P1">P1 紧急重要</option>
+                        <option value="P2">P2 重要</option>
+                        <option value="P3">P3 常规</option>
+                        <option value="P4">P4 低优先级</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="inspector-field-row stack">
+                    <label>标签</label>
+                    <div class="inspector-field-control wrap">
+                      <div class="tag-editor" id="detailTags"></div>
+                      <button class="inspector-action-btn quiet" id="openTagManagerBtn">
+                        <svg viewBox="0 0 24 24">
+                          <path d="M4 20h4l10-10-4-4L4 16v4z"></path>
+                          <path d="M13 7l4 4"></path>
+                        </svg>
+                        管理标签
+                      </button>
+                    </div>
+                  </div>
+                  <div class="inspector-field-row">
+                    <label>截止时间</label>
+                    <div class="inspector-field-control">
+                      <input id="detailDueAt" class="field-date" type="datetime-local">
+                    </div>
+                  </div>
+                  <div class="inspector-field-row">
+                    <label>完成时间</label>
+                    <div class="inspector-field-control">
+                      <input id="detailCompletedAt" class="field-date" type="datetime-local">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="detail-section" style="flex:1;min-height:0;">
+                <div class="detail-section-head">
+                  <div class="detail-section-title">
+                    <strong>内容</strong>
+                    <span>支持 Markdown 编辑、分栏查看和预览切换。</span>
+                  </div>
+                  <div class="inspector-action-group">
+                    <button class="inspector-action-btn" id="aiSummaryBtn">
+                      <svg viewBox="0 0 24 24">
+                        <path d="M4 6h16"></path>
+                        <path d="M4 12h11"></path>
+                        <path d="M4 18h8"></path>
+                        <path d="M18 10l2 2l-2 2"></path>
+                      </svg>
+                      AI 摘要
+                    </button>
+                    <button class="inspector-action-btn" id="aiPolishBtn">
+                      <svg viewBox="0 0 24 24">
+                        <path d="M12 3l1.8 4.8L18 9.6l-4.2 1.8L12 16l-1.8-4.6L6 9.6l4.2-1.8L12 3z"></path>
+                        <path d="M18 16l.9 2.1L21 19l-2.1.9L18 22l-.9-2.1L15 19l2.1-.9L18 16z"></path>
+                      </svg>
+                      润色
+                    </button>
+                  </div>
+                </div>
+                <div class="editor-toolbar">
+                  <div class="editor-modes">
+                    <button class="editor-mode-btn active" data-editor-mode="edit">编辑</button>
+                    <button class="editor-mode-btn" data-editor-mode="split">分栏</button>
+                    <button class="editor-mode-btn" data-editor-mode="preview">预览</button>
+                  </div>
+                </div>
+
+                <textarea id="detailMarkdownModel" hidden></textarea>
+                <div class="editor-surface" id="editorSurface">
+                  <textarea id="detailMarkdownInit"></textarea>
+                </div>
+              </div>
+
+              <div class="detail-section">
+                <div class="detail-section-head">
+                  <div class="detail-section-title">
+                    <strong>记录信息</strong>
+                    <span>保留创建与更新时间，方便回溯内容演进。</span>
+                  </div>
+                </div>
+                <div class="meta-strip">
+                  <span id="detailMetaCreated">创建于 -</span>
+                  <span id="detailMetaUpdated">更新于 -</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="page report-page" id="page-reports">
+          <div class="panel-side">
+            <div class="panel-title">
+              <h2>AI 报告</h2>
+              <p>根据真实记录生成周报、月报与专题总结，保留模板和通道的组合控制感。</p>
+            </div>
+
+            <div class="report-banner">
+              <div>
+                <strong style="display:block;font-size:16px;">报告历史</strong>
+                <span style="font-size:12px;color:var(--muted);">保存后的报告默认进入这里，不干扰主列表。</span>
+              </div>
+              <button class="ghost-btn" id="openChannelManagerFromReport">管理通道</button>
+            </div>
+
+            <div class="stack-card">
+              <h4>报告类型</h4>
+              <div class="option-list">
+                <label class="option-row"><input type="radio" name="reportType" value="周报" checked> 周报</label>
+                <label class="option-row"><input type="radio" name="reportType" value="月报"> 月报</label>
+                <label class="option-row"><input type="radio" name="reportType" value="专题报告"> 专题报告</label>
+              </div>
+            </div>
+
+            <div class="stack-card">
+              <h4>时间范围</h4>
+              <div class="date-grid">
+                <input type="date" class="field-date" id="reportStart" value="2026-03-18">
+                <input type="date" class="field-date" id="reportEnd" value="2026-03-24">
+              </div>
+            </div>
+
+            <div class="stack-card">
+              <h4>筛选条件</h4>
+              <div class="detail-field">
+                <label>标签范围</label>
+                <select id="reportTagFilter" class="field-select"></select>
+              </div>
+              <div class="detail-field">
+                <label>状态范围</label>
+                <select id="reportStatusFilter" class="field-select">
+                  <option value="all">全部状态</option>
+                  <option value="done">已完成</option>
+                  <option value="todo">未完成</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="stack-card">
+              <h4>模板与通道</h4>
+              <div class="detail-field">
+                <label>报告模板</label>
+                <select id="reportTemplate" class="field-select"></select>
+              </div>
+              <button class="ghost-btn" id="openTemplateConfigBtn">配置当前模板</button>
+              <div class="detail-field">
+                <label>AI 通道</label>
+                <select id="reportChannel" class="field-select"></select>
+              </div>
+              <button class="primary-btn" id="generateReportBtn">生成报告</button>
+            </div>
+
+            <div class="stack-card">
+              <h4>历史记录</h4>
+              <div class="report-history" id="reportHistory"></div>
+            </div>
+          </div>
+
+          <div class="report-output">
+            <div class="report-header">
+              <div class="panel-title">
+                <h2 id="reportTitle">本周工作周报</h2>
+                <p id="reportMeta">已使用 报告通道 · 标准周报模板</p>
+              </div>
+              <div class="report-actions">
+                <button class="ghost-btn" id="regenerateReportBtn">重新生成</button>
+                <button class="ghost-btn" id="copyReportBtn">复制</button>
+                <button class="ghost-btn" id="exportReportBtn">导出 Markdown</button>
+                <button class="primary-btn" id="saveReportBtn">保存为记录</button>
+              </div>
+            </div>
+            <div class="report-editor" id="reportEditor"></div>
+          </div>
+        </section>
+
+        <section class="page channel-page" id="page-channels">
+          <div class="channel-list-wrap">
+            <div class="panel-title">
+              <h2>AI 通道配置</h2>
+              <p>把摘要、周报、润色等能力映射到不同模型，保持稳定和可控。</p>
+            </div>
+
+            <div class="channel-list" id="channelList"></div>
+
+            <div class="stack-card">
+              <h4>能力映射</h4>
+              <div class="mapping-grid" id="mappingGrid"></div>
+            </div>
+          </div>
+
+          <div class="channel-form-wrap">
+            <div class="report-header">
+              <div class="panel-title">
+                <h2 id="channelFormTitle">默认通道</h2>
+                <p id="channelFormMeta">适合作为失败回退时的兜底通道。</p>
+              </div>
+              <div class="settings-inline">
+                <span class="switch" id="autoFallbackState">自动回退：开启</span>
+                <button class="ghost-btn" id="testChannelBtn">测试连接</button>
+                <button class="primary-btn" id="saveChannelBtn">保存通道</button>
+              </div>
+            </div>
+
+            <div class="stack-card">
+              <div class="channel-form">
+                <div class="detail-field">
+                  <label>通道名称</label>
+                  <input id="channelName" class="field-input">
+                </div>
+                <div class="detail-field">
+                  <label>服务商类型</label>
+                  <select id="channelProvider" class="field-select">
+                    <option>OpenAI 兼容</option>
+                    <option>Anthropic 协议</option>
+                    <option>Azure OpenAI</option>
+                    <option>本地模型网关</option>
+                    <option>聚合平台</option>
+                  </select>
+                </div>
+                <div class="detail-field full">
+                  <label>Base URL</label>
+                  <input id="channelBaseUrl" class="field-input">
+                </div>
+                <div class="detail-field full">
+                  <label>API Key</label>
+                  <input id="channelApiKey" class="field-input" type="password">
+                </div>
+                <div class="detail-field">
+                  <label>模型名称</label>
+                  <input id="channelModel" class="field-input">
+                </div>
+                <div class="detail-field">
+                  <label>默认语言</label>
+                  <select id="channelLanguage" class="field-select">
+                    <option>中文</option>
+                    <option>英文</option>
+                    <option>双语</option>
+                  </select>
+                </div>
+                <div class="detail-field">
+                  <label>温度</label>
+                  <input id="channelTemperature" class="field-input" type="number" min="0" max="2" step="0.1">
+                </div>
+                <div class="detail-field">
+                  <label>最大输出</label>
+                  <input id="channelMaxTokens" class="field-input" type="number" min="1">
+                </div>
+                <div class="detail-field">
+                  <label>超时（毫秒）</label>
+                  <input id="channelTimeout" class="field-input" type="number" min="1000">
+                </div>
+                <div class="detail-field">
+                  <label>启用状态</label>
+                  <select id="channelEnabled" class="field-select">
+                    <option value="true">启用</option>
+                    <option value="false">停用</option>
+                  </select>
+                </div>
+                <div class="detail-field full">
+                  <label>系统 Prompt</label>
+                  <textarea id="channelPrompt" class="field-textarea"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="stack-card">
+              <h4>可用性策略</h4>
+              <div class="settings-inline">
+                <span class="mini-chip">先使用绑定通道</span>
+                <span class="mini-chip">失败自动重试 1 次</span>
+                <span class="mini-chip">可回退到默认通道</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="rescheduleModal">
+    <div class="modal">
+      <h3>批量调整任务时间</h3>
+      <div style="color:var(--muted);font-size:13px;line-height:1.6;">只会作用于当前选中的提醒任务。如果你没有勾选任何任务，则默认对全部命中任务生效。</div>
+      <div class="modal-list" id="modalTaskList"></div>
+              <div class="choice-list" id="choiceList">
+        <button class="choice-btn" data-choice="1h">延后 1 小时 <span>适合轻量顺延</span></button>
+        <button class="choice-btn" data-choice="eod">今天下班前 <span>固定到今天 18:00</span></button>
+        <button class="choice-btn active" data-choice="tomorrow">明天上午 09:00 <span>适合重新排进明天计划</span></button>
+        <button class="choice-btn" data-choice="friday">本周五 18:00 <span>适合延后到本周收尾</span></button>
+        <button class="choice-btn" data-choice="custom">自定义时间 <span>手动指定日期与时间</span></button>
+      </div>
+      <div id="customTimeWrap" style="display:none;">
+        <input type="datetime-local" class="field-date" id="customTimeInput">
+      </div>
+      <div class="modal-actions">
+        <button class="ghost-btn" id="closeModalBtn">取消</button>
+        <button class="primary-btn" id="confirmRescheduleBtn">确认调整</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="templateModal">
+    <div class="modal">
+      <h3>模板配置</h3>
+      <div style="color:var(--muted);font-size:13px;line-height:1.6;">当前模板将直接影响周报和月报的章节结构、输出语气与汇报风格。</div>
+      <div class="detail-field">
+        <label>模板名称</label>
+        <input id="templateNameInput" class="field-input">
+      </div>
+      <div class="detail-field">
+        <label>输出语气</label>
+        <select id="templateToneSelect" class="field-select">
+          <option value="专业简洁">专业简洁</option>
+          <option value="汇报导向">汇报导向</option>
+          <option value="管理视角">管理视角</option>
+          <option value="复盘导向">复盘导向</option>
+        </select>
+      </div>
+      <div class="detail-field">
+        <label>章节结构（每行一个）</label>
+        <textarea id="templateSectionsInput" class="field-textarea" style="min-height:160px;"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="ghost-btn" id="closeTemplateModalBtn">取消</button>
+        <button class="primary-btn" id="saveTemplateConfigBtn">保存模板配置</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="tagManagerModal">
+    <div class="modal tag-manager-modal">
+      <div class="tag-manager-header">
+        <div>
+          <h3 id="tagManagerTitle">标签管理</h3>
+          <div class="tag-manager-copy" id="tagManagerCopy">在这里清理标签库，并维护当前记录的标签归属。</div>
+        </div>
+        <button class="icon-btn" id="closeTagManagerBtn" title="关闭标签管理">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12"></path>
+            <path d="M18 6L6 18"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="tag-manager-body">
+        <div class="tag-manager-section">
+          <div class="tag-panel">
+            <div class="tag-panel-header">
+              <div class="tag-panel-title"><strong>当前记录标签</strong></div>
+              <div class="tag-panel-caption" id="tagManagerBindHint">点击添加或移除当前记录标签。</div>
+            </div>
+
+            <div class="tag-context-card">
+              <strong id="tagManagerRecordName">当前记录</strong>
+              <span id="tagManagerRecordMeta">未选择记录时仅可浏览标签库</span>
+            </div>
+
+            <div class="tag-selected-strip" id="tagSelectedList"></div>
+
+            <div class="tag-bind-list" id="tagPickerList"></div>
+          </div>
+        </div>
+
+        <div class="tag-manager-section">
+          <div class="tag-panel">
+            <div class="tag-panel-header">
+              <div class="tag-panel-title"><strong>标签库</strong></div>
+              <div class="tag-panel-caption" id="tagLibraryHint">维护标签名称、颜色与清理无用标签。</div>
+            </div>
+
+            <div class="tag-form-stack">
+              <div class="tag-form-row">
+                <input id="tagManagerNameInput" class="field-input" placeholder="输入标签名称">
+                <input id="tagManagerColorInput" class="color-input" type="color" value="#4f8cff">
+              </div>
+              <div class="tag-form-actions">
+                <button class="text-btn" id="resetTagManagerBtn">清空</button>
+                <button class="ghost-btn" id="saveTagManagerBtn">新增标签</button>
+              </div>
+            </div>
+            <input id="tagManagerEditingId" type="hidden">
+            <div class="tag-library-list" id="tagLibraryList"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="ghost-btn" id="closeTagManagerFooterBtn">完成</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">
+    <strong id="toastTitle">操作完成</strong>
+    <span id="toastMessage">内容已更新</span>
+  </div>
+
+  <script>
+    const state = {
+      currentPage: "workspace",
+      currentView: "today",
+      currentTag: null,
+      filters: {
+        status: "all",
+        priority: "all",
+        tag: "all",
+        search: "",
+        sort: "smart"
+      },
+      editorMode: "edit",
+      selectedTaskId: null,
+      detailVisible: false,
+      selectedTaskIds: new Set(),
+      reminderExpanded: false,
+      reminderSelectedIds: new Set(),
+      activeRescheduleChoice: "tomorrow",
+      activeChannelId: "default",
+      activeTemplateId: "tpl-weekly",
+      reportDraft: "",
+      reportTitle: "本周工作周报",
+      reportMeta: "",
+      autoFallback: true,
+      theme: "light",
+      dragDetail: {
+        active: false
+      }
+    };
+
+    const tags = [
+      { id: "t1", name: "AICoding", color: "#1f7aff" },
+      { id: "t2", name: "文件传输系统", color: "#ff9f0a" },
+      { id: "t3", name: "数据管理平台", color: "#cb6ce6" },
+      { id: "t4", name: "数据处理", color: "#ff5a5f" },
+      { id: "t5", name: "汇报", color: "#38bdf8" },
+      { id: "t6", name: "招聘", color: "#64748b" },
+      { id: "t7", name: "未分类", color: "#94a3b8" }
+    ];
+
+    const tasks = [
+      {
+        id: "task-1",
+        title: "采集历史数据治理",
+        status: "进行中",
+        priority: "P1",
+        tags: ["t3", "t4"],
+        dueAt: "2026-03-25T18:00",
+        plannedAt: "2026-03-24T10:00",
+        completedAt: "",
+        createdAt: "2026-03-24T09:20",
+        updatedAt: "2026-03-24T10:35",
+        content: "# 采集历史数据治理\n\n- 梳理历史采集源头\n- 对齐字段命名\n- 确认清洗规则与入库口径\n\n## 当前重点\n\n1. 统一采集时间字段\n2. 识别缺失枚举\n3. 输出阶段性汇总给项目组",
+        aiSummary: "这是一条高优先级的数据治理事项，需要在明晚前完成字段口径统一。"
+      },
+      {
+        id: "task-2",
+        title: "对齐算子",
+        status: "未开始",
+        priority: "P1",
+        tags: ["t4"],
+        dueAt: "2026-03-24T14:00",
+        plannedAt: "2026-03-24T11:00",
+        completedAt: "",
+        createdAt: "2026-03-23T15:20",
+        updatedAt: "2026-03-24T08:42",
+        content: "# 对齐算子\n\n需要在今天内完成基础版本联调，重点关注输入输出格式。\n\n- 校验字段映射\n- 跟进异常值处理\n- 输出测试样例",
+        aiSummary: "该事项已逾期，建议优先决定是立即处理还是顺延到明天上午。"
+      },
+      {
+        id: "task-3",
+        title: "周报草稿整理",
+        status: "未开始",
+        priority: "P2",
+        tags: ["t5"],
+        dueAt: "2026-03-24T17:00",
+        plannedAt: "2026-03-24T16:00",
+        completedAt: "",
+        createdAt: "2026-03-24T09:45",
+        updatedAt: "2026-03-24T09:45",
+        content: "# 周报草稿整理\n\n从本周记录中提炼完成事项、风险与下阶段计划。",
+        aiSummary: "适合直接进入 AI 报告页，用标准周报模板一键生成草稿。"
+      },
+      {
+        id: "task-4",
+        title: "技术方案补充",
+        status: "进行中",
+        priority: "P3",
+        tags: ["t1"],
+        dueAt: "2026-03-28T18:00",
+        plannedAt: "2026-03-26T10:00",
+        completedAt: "",
+        createdAt: "2026-03-24T11:20",
+        updatedAt: "2026-03-24T12:15",
+        content: "# 技术方案补充\n\n补齐 API 层接口定义与桌面端本地存储说明。",
+        aiSummary: "这是一个中优先级的中期任务，适合作为计划视图中的持续推进项。"
+      },
+      {
+        id: "task-5",
+        title: "招聘 JD 优化",
+        status: "未开始",
+        priority: "P4",
+        tags: ["t6"],
+        dueAt: "",
+        plannedAt: "",
+        completedAt: "",
+        createdAt: "2026-03-22T13:00",
+        updatedAt: "2026-03-22T13:00",
+        content: "# 招聘 JD 优化\n\n优化职责描述与团队介绍，保持表达更简洁。",
+        aiSummary: "这是一个无明确截止时间的低优先级事项，适合放在全部视图里弱化显示。"
+      },
+      {
+        id: "task-6",
+        title: "月报素材整理",
+        status: "未开始",
+        priority: "P2",
+        tags: ["t5", "t3"],
+        dueAt: "2026-03-28T18:00",
+        plannedAt: "2026-03-27T10:00",
+        completedAt: "",
+        createdAt: "2026-03-24T14:20",
+        updatedAt: "2026-03-24T14:20",
+        content: "# 月报素材整理\n\n- 汇总里程碑\n- 汇总数据结果\n- 留出复盘章节",
+        aiSummary: "该任务与 AI 报告中心强相关，适合绑定月报模板。"
+      },
+      {
+        id: "task-7",
+        title: "接口日志清洗完成",
+        status: "已完成",
+        priority: "P2",
+        tags: ["t2", "t4"],
+        dueAt: "2026-03-23T16:00",
+        plannedAt: "2026-03-23T10:00",
+        completedAt: "2026-03-24T09:40",
+        createdAt: "2026-03-22T10:40",
+        updatedAt: "2026-03-24T09:40",
+        content: "# 接口日志清洗完成\n\n已完成核心链路数据清洗和样本校验。",
+        aiSummary: "这是已完成事项，可在周报里作为本周期完成项引用。"
+      }
+    ];
+
+    const channels = [
+      {
+        id: "default",
+        name: "默认通道",
+        provider: "OpenAI 兼容",
+        baseUrl: "https://api.example.com/v1",
+        apiKey: "sk-timeaura-default",
+        model: "gpt-5.2",
+        language: "中文",
+        temperature: 0.3,
+        maxTokens: 4000,
+        timeout: 60000,
+        enabled: true,
+        prompt: "你是一名擅长提炼重点、结构清晰的中文工作助手。"
+      },
+      {
+        id: "report",
+        name: "报告通道",
+        provider: "OpenAI 兼容",
+        baseUrl: "https://api.example.com/v1",
+        apiKey: "sk-timeaura-report",
+        model: "gpt-5.4",
+        language: "中文",
+        temperature: 0.2,
+        maxTokens: 6000,
+        timeout: 90000,
+        enabled: true,
+        prompt: "你是一名高级汇报助手，擅长输出有层次的周报和月报。"
+      },
+      {
+        id: "claude",
+        name: "Anthropic 通道",
+        provider: "Anthropic 协议",
+        baseUrl: "https://api.anthropic.example/v1/messages",
+        apiKey: "sk-ant-timeaura",
+        model: "claude-3-7-sonnet",
+        language: "中文",
+        temperature: 0.2,
+        maxTokens: 5000,
+        timeout: 90000,
+        enabled: true,
+        prompt: "你是一名擅长写结构化总结和管理汇报的中文助手。"
+      },
+      {
+        id: "summary",
+        name: "摘要通道",
+        provider: "本地模型网关",
+        baseUrl: "http://localhost:8080/v1",
+        apiKey: "local-gateway",
+        model: "qwen-local",
+        language: "中文",
+        temperature: 0.4,
+        maxTokens: 2500,
+        timeout: 30000,
+        enabled: false,
+        prompt: "请快速压缩关键信息，只保留结论和行动项。"
+      }
+    ];
+
+    const abilityMapping = {
+      "周报生成": "report",
+      "月报生成": "report",
+      "摘要生成": "summary",
+      "内容润色": "default"
+    };
+
+    const templates = [
+      {
+        id: "tpl-weekly",
+        type: "周报",
+        name: "标准周报模板",
+        tone: "专业简洁",
+        sections: ["本周期完成事项", "本周期推进中事项", "风险与阻塞", "下一阶段计划"]
+      },
+      {
+        id: "tpl-weekly-exec",
+        type: "周报",
+        name: "管理视角周报模板",
+        tone: "管理视角",
+        sections: ["关键成果", "项目进展", "风险判断", "资源协同需求", "下周重点"]
+      },
+      {
+        id: "tpl-monthly",
+        type: "月报",
+        name: "标准月报模板",
+        tone: "汇报导向",
+        sections: ["本周期关键成果", "数据与里程碑", "复盘与问题", "下一阶段重点"]
+      },
+      {
+        id: "tpl-topic",
+        type: "专题报告",
+        name: "专题沉淀模板",
+        tone: "复盘导向",
+        sections: ["背景", "现状", "关键问题", "解决方案", "后续建议"]
+      }
+    ];
+
+    const reportHistory = [
+      {
+        id: "rep-1",
+        title: "2026 第 12 周工作周报",
+        meta: "报告通道 · 标准周报模板 · 03-18 ~ 03-24",
+        content: "# 2026 第 12 周工作周报\n\n## 本周期完成事项\n- 完成接口日志清洗\n- 完成关键字段口径对齐\n\n## 推进中事项\n- 采集历史数据治理仍在推进\n\n## 风险与阻塞\n- 多条事项截止时间集中\n\n## 下一阶段计划\n- 优先完成对齐算子与周报整理"
+      }
+    ];
+
+    const pageIds = {
+      workspace: document.getElementById("page-workspace"),
+      reports: document.getElementById("page-reports"),
+      channels: document.getElementById("page-channels")
+    };
+
+    function formatDateLabel(dateStr) {
+      if (!dateStr) return "无日期";
+      const date = new Date(dateStr);
+      const today = new Date("2026-03-24T10:00:00");
+      const dateKey = date.toISOString().slice(0, 10);
+      const todayKey = today.toISOString().slice(0, 10);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowKey = tomorrow.toISOString().slice(0, 10);
+      const hh = String(date.getHours()).padStart(2, "0");
+      const mm = String(date.getMinutes()).padStart(2, "0");
+      if (dateKey === todayKey) return `今天 ${hh}:${mm}`;
+      if (dateKey === tomorrowKey) return `明天 ${hh}:${mm}`;
+      return `${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")} ${hh}:${mm}`;
+    }
+
+    function toLocalInputValue(dateStr) {
+      if (!dateStr) return "";
+      return dateStr.slice(0, 16);
+    }
+
+    function findTag(id) {
+      return tags.find(tag => tag.id === id);
+    }
+
+    function getTagName(id) {
+      return findTag(id)?.name || id;
+    }
+
+    function isReservedTag(tagId) {
+      return tagId === "t7";
+    }
+
+    function normalizeTagAssignments(tagIds) {
+      const next = [...new Set(tagIds.filter(Boolean).filter(id => findTag(id)))];
+      return next.length ? next : ["t7"];
+    }
+
+    function getActiveTask() {
+      return tasks.find(item => item.id === state.selectedTaskId);
+    }
+
+    function resetTagManagerForm() {
+      document.getElementById("tagManagerEditingId").value = "";
+      document.getElementById("tagManagerNameInput").value = "";
+      document.getElementById("tagManagerColorInput").value = "#4f8cff";
+      document.getElementById("saveTagManagerBtn").textContent = "新增标签";
+    }
+
+    function renderTagManagerModal() {
+      const task = getActiveTask();
+      document.getElementById("tagManagerTitle").textContent = task ? `标签管理 · ${task.title}` : "标签管理";
+      document.getElementById("tagManagerCopy").textContent = task
+        ? "你可以在这里维护标签库，并调整当前记录的标签归属。"
+        : "先选择一条记录，再为它调整标签。";
+      document.getElementById("tagManagerBindHint").textContent = task
+        ? "点击列表项即可把标签挂到这条记录上，或从记录里移除。"
+        : "当前未选中记录，仅可查看标签库。";
+      document.getElementById("tagManagerRecordName").textContent = task ? task.title : "当前记录";
+      document.getElementById("tagManagerRecordMeta").textContent = task
+        ? `${task.status} · ${task.priority} · ${task.tags.length} 个标签`
+        : "未选择记录时仅可浏览标签库";
+      document.getElementById("tagLibraryHint").textContent = document.getElementById("tagManagerEditingId").value
+        ? "正在编辑标签；保存后会同步到所有使用该标签的记录。"
+        : "这里是全局标签库，用于维护名称、颜色与历史标签清理。";
+
+      const selectedList = document.getElementById("tagSelectedList");
+      if (task?.tags.length) {
+        selectedList.className = "tag-selected-strip";
+        selectedList.innerHTML = task.tags.map(tagId => {
+          const tag = findTag(tagId);
+          return `<span class="tag-token"><i style="background:${tag?.color || "#94a3b8"}"></i><span>${tag?.name || tagId}</span></span>`;
+        }).join("");
+      } else {
+        selectedList.className = "tag-selected-strip empty";
+        selectedList.textContent = "这条记录还没有标签，建议至少挂一个主题标签，方便之后检索与 AI 汇总。";
+      }
+
+      document.getElementById("tagPickerList").innerHTML = tags.map(tag => {
+        const active = Boolean(task?.tags.includes(tag.id));
+        return `
+          <button
+            class="tag-bind-row ${active ? "active" : ""}"
+            data-toggle-task-tag="${tag.id}"
+            ${task ? "" : "disabled"}
+          >
+            <span class="tag-bind-left">
+              <i style="background:${tag.color}"></i>
+              <span>${tag.name}</span>
+            </span>
+            <span class="tag-bind-state">${active ? "已添加" : "添加"}</span>
+          </button>
+        `;
+      }).join("");
+
+      const tagLibraryList = document.getElementById("tagLibraryList");
+      tagLibraryList.innerHTML = tags.length ? tags.map(tag => {
+        const count = tasks.filter(taskItem => taskItem.tags.includes(tag.id)).length;
+        return `
+          <div class="tag-library-item">
+            <div class="tag-library-left">
+              <div class="tag-library-copy">
+                <div class="tag-library-name">
+                  <i style="background:${tag.color}"></i>
+                  <span>${tag.name}</span>
+                </div>
+                <span class="tag-library-meta">${count} 条记录</span>
+              </div>
+            </div>
+            <div class="tag-library-actions">
+              <button class="tag-action-btn" data-edit-tag="${tag.id}" title="编辑标签" aria-label="编辑标签">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 20h4l10-10-4-4L4 16v4z"></path>
+                  <path d="M13 7l4 4"></path>
+                </svg>
+              </button>
+              <button class="tag-action-btn delete" data-delete-tag="${tag.id}" title="${isReservedTag(tag.id) ? "默认标签不可删除" : "删除标签"}" aria-label="删除标签" ${isReservedTag(tag.id) ? "disabled" : ""}>
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 7h16"></path>
+                  <path d="M9 7V4h6v3"></path>
+                  <path d="M7 7l1 13h8l1-13"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join("") : '<div class="tag-library-empty">当前还没有标签，先新增一个标签开始整理。</div>';
+    }
+
+    function openTagManagerModal() {
+      const task = getActiveTask();
+      if (!task || !state.detailVisible) {
+        showToast("请先选择记录", "从中间列表点开一条记录后，再管理它的标签。");
+        return;
+      }
+      document.getElementById("tagManagerModal").classList.add("show");
+      resetTagManagerForm();
+      renderTagManagerModal();
+    }
+
+    function closeTagManagerModal() {
+      document.getElementById("tagManagerModal").classList.remove("show");
+      resetTagManagerForm();
+    }
+
+    function saveTagManager() {
+      const editingId = document.getElementById("tagManagerEditingId").value;
+      const name = document.getElementById("tagManagerNameInput").value.trim();
+      const color = document.getElementById("tagManagerColorInput").value.trim();
+      if (!name) {
+        showToast("请输入标签名称", "标签名称不能为空。");
+        return;
+      }
+      if (!/^#([0-9a-fA-F]{6})$/.test(color)) {
+        showToast("颜色格式无效", "请使用有效的颜色值。");
+        return;
+      }
+      const duplicate = tags.find(item => item.id !== editingId && item.name.toLowerCase() === name.toLowerCase());
+      if (duplicate) {
+        showToast("标签名称重复", `已存在「${duplicate.name}」，请换一个名称。`);
+        return;
+      }
+
+      if (editingId) {
+        const tag = findTag(editingId);
+        if (!tag) return;
+        tag.name = name;
+        tag.color = color;
+        showToast("标签已更新", `已更新「${tag.name}」。`);
+      } else {
+        const id = `t${Date.now()}`;
+        tags.push({ id, name, color });
+        showToast("标签已新增", `已创建「${name}」。`);
+      }
+
+      renderSidebar();
+      syncTagFilterOptions();
+      renderTaskList();
+      renderDetailPane();
+      renderReportPage();
+      resetTagManagerForm();
+      renderTagManagerModal();
+    }
+
+    function toggleTaskTag(tagId) {
+      const task = getActiveTask();
+      if (!task) return;
+      if (tagId === "t7") {
+        task.tags = ["t7"];
+      } else if (task.tags.includes(tagId)) {
+        task.tags = normalizeTagAssignments(task.tags.filter(id => id !== tagId));
+      } else {
+        task.tags = normalizeTagAssignments([...task.tags.filter(id => id !== "t7"), tagId]);
+      }
+      task.updatedAt = "2026-03-24T17:18";
+      renderSidebar();
+      syncTagFilterOptions();
+      renderTaskList();
+      renderDetailPane();
+      renderTagManagerModal();
+    }
+
+    function editTag(tagId) {
+      const tag = findTag(tagId);
+      if (!tag) return;
+      document.getElementById("tagManagerEditingId").value = tag.id;
+      document.getElementById("tagManagerNameInput").value = tag.name;
+      document.getElementById("tagManagerColorInput").value = tag.color;
+      document.getElementById("saveTagManagerBtn").textContent = "保存标签";
+      document.getElementById("tagManagerModal").classList.add("show");
+      renderTagManagerModal();
+      document.getElementById("tagManagerNameInput").focus();
+      document.getElementById("tagManagerNameInput").select();
+    }
+
+    function deleteTag(tagId) {
+      const tag = findTag(tagId);
+      if (!tag) return;
+      if (isReservedTag(tagId)) {
+        showToast("默认标签不可删除", "「未分类」用于承接清理后的记录。");
+        return;
+      }
+      const boundCount = tasks.filter(task => task.tags.includes(tagId)).length;
+      const ok = confirm(`确认删除标签「${tag.name}」吗？${boundCount ? `\n\n已有 ${boundCount} 条记录会被移动到“未分类”或保留其他标签。` : ""}`);
+      if (!ok) return;
+
+      tasks.forEach(task => {
+        if (!task.tags.includes(tagId)) return;
+        task.tags = normalizeTagAssignments(task.tags.filter(id => id !== tagId));
+        task.updatedAt = "2026-03-24T17:05";
+      });
+
+      const index = tags.findIndex(item => item.id === tagId);
+      if (index >= 0) tags.splice(index, 1);
+      if (state.currentTag === tagId) state.currentTag = null;
+      if (state.filters.tag === tagId) state.filters.tag = "all";
+
+      renderSidebar();
+      syncTagFilterOptions();
+      renderTaskList();
+      renderDetailPane();
+      renderReportPage();
+      if (document.getElementById("tagManagerModal").classList.contains("show")) {
+        resetTagManagerForm();
+        renderTagManagerModal();
+      }
+      showToast("标签已删除", `已清理「${tag.name}」，相关记录已自动归整。`);
+    }
+
+    function isOverdue(task) {
+      return !!task.dueAt && task.status !== "已完成" && new Date(task.dueAt) < new Date("2026-03-24T10:00:00");
+    }
+
+    function isDueSoon(task) {
+      if (!task.dueAt || task.status === "已完成") return false;
+      const now = new Date("2026-03-24T10:00:00").getTime();
+      const due = new Date(task.dueAt).getTime();
+      const diff = due - now;
+      return diff > 0 && diff <= 1000 * 60 * 60 * 24;
+    }
+
+    function getSystemCounts() {
+      const nonReport = tasks.filter(t => t.recordKind !== "report");
+      const todayCount = nonReport.filter(matchViewToday).length;
+      const planCount = nonReport.filter(matchViewPlan).length;
+      const allCount = nonReport.filter(matchViewAll).length;
+      const doneCount = nonReport.filter(t => t.status === "已完成").length;
+      return { today: todayCount, plan: planCount, all: allCount, done: doneCount };
+    }
+
+    function matchViewToday(task) {
+      if (task.status === "已完成") return false;
+      const todayKey = "2026-03-24";
+      return isOverdue(task)
+        || (task.dueAt && task.dueAt.startsWith(todayKey))
+        || (task.plannedAt && task.plannedAt.startsWith(todayKey));
+    }
+
+    function matchViewPlan(task) {
+      if (task.status === "已完成") return false;
+      const endOfToday = new Date("2026-03-24T23:59:59");
+      return !!((task.dueAt && new Date(task.dueAt) > endOfToday) || (task.plannedAt && new Date(task.plannedAt) > endOfToday));
+    }
+
+    function matchViewAll(task) {
+      return task.status !== "已归档";
+    }
+
+    function getVisibleTasks() {
+      const search = state.filters.search.trim().toLowerCase();
+      return tasks
+        .filter(task => {
+          if (state.currentTag) return task.tags.includes(state.currentTag);
+          if (state.currentView === "today") return matchViewToday(task);
+          if (state.currentView === "plan") return matchViewPlan(task);
+          if (state.currentView === "all") return matchViewAll(task);
+          if (state.currentView === "done") return task.status === "已完成";
+          return true;
+        })
+        .filter(task => {
+          if (state.filters.status === "todo") return task.status !== "已完成";
+          if (state.filters.status === "done") return task.status === "已完成";
+          return true;
+        })
+        .filter(task => {
+          if (state.filters.priority === "all") return true;
+          return task.priority === state.filters.priority;
+        })
+        .filter(task => {
+          if (state.filters.tag === "all") return true;
+          return task.tags.includes(state.filters.tag);
+        })
+        .filter(task => {
+          if (!search) return true;
+          const haystack = [
+            task.title,
+            task.content,
+            task.tags.map(getTagName).join(" "),
+            task.status
+          ].join(" ").toLowerCase();
+          return haystack.includes(search);
+        })
+        .sort((a, b) => sortTasks(a, b, state.filters.sort));
+    }
+
+    function sortTasks(a, b, mode) {
+      if (mode === "priority") return priorityWeight(a.priority) - priorityWeight(b.priority);
+      if (mode === "updated") return new Date(b.updatedAt) - new Date(a.updatedAt);
+      if (mode === "due") return compareDates(a.dueAt, b.dueAt);
+      return smartSort(a, b);
+    }
+
+    function priorityWeight(priority) {
+      return { P1: 1, P2: 2, P3: 3, P4: 4 }[priority] || 5;
+    }
+
+    function compareDates(a, b) {
+      if (a && b) return new Date(a) - new Date(b);
+      if (a && !b) return -1;
+      if (!a && b) return 1;
+      return 0;
+    }
+
+    function smartSort(a, b) {
+      const aDone = a.status === "已完成";
+      const bDone = b.status === "已完成";
+      if (aDone !== bDone) return aDone ? 1 : -1;
+      const aOver = isOverdue(a);
+      const bOver = isOverdue(b);
+      if (aOver !== bOver) return aOver ? -1 : 1;
+      const aSoon = isDueSoon(a);
+      const bSoon = isDueSoon(b);
+      if (aSoon !== bSoon) return aSoon ? -1 : 1;
+      const pr = priorityWeight(a.priority) - priorityWeight(b.priority);
+      if (pr !== 0) return pr;
+      const dueCmp = compareDates(a.dueAt, b.dueAt);
+      if (dueCmp !== 0) return dueCmp;
+      return new Date(b.updatedAt) - new Date(a.updatedAt);
+    }
+
+    function renderSidebar() {
+      const counts = getSystemCounts();
+      const systemNav = document.getElementById("systemNav");
+      const navItems = [
+        ["today", "今天", counts.today],
+        ["plan", "计划", counts.plan],
+        ["all", "全部", counts.all],
+        ["done", "已完成", counts.done]
+      ];
+      systemNav.innerHTML = '<div class="nav-label">视图</div>' + navItems.map(([key, label, count]) => `
+        <button class="nav-item ${!state.currentTag && state.currentView === key ? "active" : ""}" data-view="${key}">
+          <div class="nav-item-left">
+            <span class="nav-icon"></span>
+            <span class="nav-item-title">${label}</span>
+          </div>
+          <span class="badge-count">${count}</span>
+        </button>
+      `).join("");
+
+      const tagNav = document.getElementById("tagNav");
+      tagNav.innerHTML = tags.map(tag => {
+        const count = tasks.filter(t => t.tags.includes(tag.id) && t.status !== "已完成").length;
+        return `
+          <button class="tag-item ${state.currentTag === tag.id ? "active" : ""}" data-tag="${tag.id}">
+            <div class="tag-item-left">
+              <span class="tag-dot" style="background:${tag.color}"></span>
+              <span class="tag-item-title">${tag.name}</span>
+            </div>
+            <span class="badge-count">${count}</span>
+          </button>
+        `;
+      }).join("");
+    }
+
+    function renderWorkspaceHeader(visibleTasks) {
+      const titles = {
+        today: ["今天", "把今天最值得推进的事项留在眼前。"],
+        plan: ["计划", "把未来几天的节奏提前排开，不等事情挤到今天。"],
+        all: ["全部", "统一管理所有记录，在一个列表里完成组织与取舍。"],
+        done: ["已完成", "完成时间同样重要，它会成为周报与月报的真实依据。"]
+      };
+      let title = titles[state.currentView]?.[0] || "标签";
+      let subtitle = titles[state.currentView]?.[1] || "从标签视角看清楚当前焦点。";
+      if (state.currentTag) {
+        title = getTagName(state.currentTag);
+        subtitle = "基于标签聚焦同一主题下的所有相关事项。";
+      }
+      document.getElementById("workspaceTitle").textContent = title;
+      document.getElementById("workspaceSubtitle").textContent = subtitle;
+
+      document.getElementById("summaryPending").textContent = visibleTasks.filter(t => t.status !== "已完成").length;
+      document.getElementById("summaryUrgent").textContent = visibleTasks.filter(t => isOverdue(t) || isDueSoon(t)).length;
+      document.getElementById("summaryDone").textContent = tasks.filter(t => t.status === "已完成" && t.completedAt?.startsWith("2026-03-24")).length;
+    }
+
+    function renderTaskList() {
+      const visibleTasks = getVisibleTasks();
+      const visibleIdSet = new Set(visibleTasks.map(task => task.id));
+      state.selectedTaskIds = new Set([...state.selectedTaskIds].filter(id => visibleIdSet.has(id)));
+      renderWorkspaceHeader(visibleTasks);
+      const taskList = document.getElementById("taskList");
+
+      if (!visibleTasks.length) {
+        taskList.innerHTML = `
+          <div class="empty-state">
+            <strong style="display:block;font-size:18px;color:var(--text);margin-bottom:8px;">当前视图还没有记录</strong>
+            <div>从一行文字开始，把现在最重要的事情写下来。</div>
+          </div>
+        `;
+      } else {
+        taskList.innerHTML = visibleTasks.map(task => {
+          const firstTag = findTag(task.tags[0]);
+          const dueStateClass = task.status === "已完成"
+            ? "done"
+            : isOverdue(task)
+              ? "overdue"
+              : isDueSoon(task)
+                ? "soon"
+                : "";
+          return `
+            <div class="task-row ${state.selectedTaskId === task.id ? "active" : ""} ${state.selectedTaskIds.has(task.id) ? "selected" : ""} ${task.status === "已完成" ? "done" : ""}" data-task-id="${task.id}">
+              <button class="task-check" data-check-id="${task.id}">${task.status === "已完成" ? "✓" : ""}</button>
+              <div class="task-main">
+                <div class="task-title">${task.title}</div>
+                <div class="task-sub">
+                  <span class="tag-inline">${firstTag ? `<i style="background:${firstTag.color}"></i>${firstTag.name}` : "未分类"}</span>
+                  <span class="mini-chip">${task.status}</span>
+                </div>
+              </div>
+              <div class="task-meta">
+                <span class="task-time ${dueStateClass}">
+                  ${task.status === "已完成" ? `完成于 ${formatDateLabel(task.completedAt)}` : formatDateLabel(task.dueAt)}
+                </span>
+                <span class="priority-pill priority-${task.priority}">${task.priority}</span>
+              </div>
+              <div class="task-actions">
+                <button class="ghost-btn ${state.selectedTaskIds.has(task.id) ? "active-toggle" : ""}" data-select-task="${task.id}">${state.selectedTaskIds.has(task.id) ? "已选中" : "选中"}</button>
+                <button class="ghost-btn" data-reschedule-task="${task.id}">改期</button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      renderSelectionBar();
+      renderReminderCard();
+      ensureSelectedTask();
+      syncWorkspaceLayout();
+    }
+
+    function renderSelectionBar() {
+      const selectionBar = document.getElementById("selectionBar");
+      document.getElementById("batchRescheduleBtn").disabled = state.selectedTaskIds.size === 0;
+      document.getElementById("batchSummarizeBtn").disabled = state.selectedTaskIds.size === 0;
+      if (state.selectedTaskIds.size) {
+        selectionBar.classList.add("show");
+        document.getElementById("selectionCount").textContent = `已选 ${state.selectedTaskIds.size} 项`;
+      } else {
+        selectionBar.classList.remove("show");
+      }
+    }
+
+    function getReminderTasks() {
+      return getVisibleTasks().filter(task => task.status !== "已完成" && (isOverdue(task) || isDueSoon(task)));
+    }
+
+    function updateRescheduleModalState() {
+      const modal = document.getElementById("rescheduleModal");
+      const customWrap = document.getElementById("customTimeWrap");
+      const customInput = document.getElementById("customTimeInput");
+      const confirmBtn = document.getElementById("confirmRescheduleBtn");
+      const targetIds = JSON.parse(modal.dataset.targetIds || "[]");
+      const isCustom = state.activeRescheduleChoice === "custom";
+      customWrap.style.display = isCustom ? "block" : "none";
+      customInput.disabled = !isCustom;
+      confirmBtn.disabled = !targetIds.length || (isCustom && !customInput.value);
+    }
+
+    function syncInteractiveStates() {
+      const activeTask = tasks.find(item => item.id === state.selectedTaskId);
+      const hasDetailTask = Boolean(activeTask && state.detailVisible);
+      const reminderTasks = getReminderTasks();
+      document.getElementById("selectAllReminderBtn").disabled = !reminderTasks.length || state.reminderSelectedIds.size === reminderTasks.length;
+      document.getElementById("clearAllReminderBtn").disabled = state.reminderSelectedIds.size === 0;
+      document.getElementById("quickReminderShiftBtn").disabled = reminderTasks.length === 0;
+      document.getElementById("rescheduleSelectedBtn").disabled = state.reminderSelectedIds.size === 0;
+      document.getElementById("detailStatus").disabled = !hasDetailTask;
+      document.getElementById("detailPriority").disabled = !hasDetailTask;
+      document.getElementById("detailDueAt").disabled = !hasDetailTask;
+      document.getElementById("detailCompletedAt").disabled = !hasDetailTask || activeTask.status !== "已完成";
+      document.getElementById("openTagManagerBtn").disabled = !hasDetailTask;
+      document.getElementById("aiSummaryBtn").disabled = !hasDetailTask;
+      document.getElementById("aiPolishBtn").disabled = !hasDetailTask;
+      document.querySelectorAll(".editor-mode-btn").forEach(btn => {
+        btn.disabled = !hasDetailTask;
+      });
+      updateRescheduleModalState();
+    }
+
+    function spotlightQuickAdd() {
+      const quickAddCard = document.getElementById("quickAddCard");
+      const quickAddInput = document.getElementById("quickAddInput");
+      if (!quickAddCard || !quickAddInput) return;
+      quickAddCard.classList.remove("spotlight");
+      quickAddInput.focus();
+      quickAddInput.select();
+      requestAnimationFrame(() => quickAddCard.classList.add("spotlight"));
+      clearTimeout(spotlightQuickAdd._timer);
+      spotlightQuickAdd._timer = setTimeout(() => quickAddCard.classList.remove("spotlight"), 1400);
+    }
+
+    function renderReminderCard() {
+      const reminderTasks = getReminderTasks();
+      const reminderCard = document.getElementById("reminderCard");
+      const reminderIdSet = new Set(reminderTasks.map(task => task.id));
+      state.reminderSelectedIds = new Set([...state.reminderSelectedIds].filter(id => reminderIdSet.has(id)));
+      if (!reminderTasks.length) {
+        reminderCard.classList.remove("show");
+        state.reminderExpanded = false;
+        state.reminderSelectedIds.clear();
+        syncInteractiveStates();
+        return;
+      }
+      reminderCard.classList.add("show");
+      const p1Count = reminderTasks.filter(t => t.priority === "P1").length;
+      document.getElementById("reminderHeadline").textContent = `今天有 ${reminderTasks.length} 条任务需要重新确认节奏`;
+      document.getElementById("reminderText").textContent = `${p1Count} 条为 P1，高优先级任务已开始相互挤压，建议优先调整时间窗口。`;
+      const expand = document.getElementById("reminderExpand");
+      expand.classList.toggle("show", state.reminderExpanded);
+      document.getElementById("toggleReminderExpandBtn").textContent = state.reminderExpanded ? "收起命中任务" : "展开命中任务";
+
+      const reminderHitList = document.getElementById("reminderHitList");
+      reminderHitList.innerHTML = reminderTasks.map(task => `
+        <label class="reminder-hit ${state.reminderSelectedIds.has(task.id) ? "checked" : ""}">
+          <input type="checkbox" data-reminder-select="${task.id}" ${state.reminderSelectedIds.has(task.id) ? "checked" : ""}>
+          <div class="reminder-hit-title">
+            <strong>${task.title}</strong>
+            <span>${task.tags.map(getTagName).join(" · ") || "未分类"}</span>
+          </div>
+          <span class="priority-pill priority-${task.priority}">${task.priority}</span>
+          <span class="task-time ${isOverdue(task) ? "overdue" : "soon"}">${formatDateLabel(task.dueAt)}</span>
+        </label>
+      `).join("");
+      document.getElementById("reminderSelectionState").textContent = `已选 ${state.reminderSelectedIds.size} / 命中 ${reminderTasks.length}`;
+      syncInteractiveStates();
+    }
+
+    function renderDetailPane() {
+      syncWorkspaceLayout();
+      const task = tasks.find(item => item.id === state.selectedTaskId);
+      if (!task) {
+        document.getElementById("detailTitle").textContent = "选择一条记录，开始沉淀细节";
+        document.getElementById("detailSubtitle").textContent = "从左侧列表打开一条记录后，这里会展示它的属性、标签和正文内容。";
+        document.getElementById("detailChipStatus").textContent = "状态 · 未选择";
+        document.getElementById("detailChipPriority").textContent = "优先级 · --";
+        document.getElementById("detailChipDue").textContent = "截止时间 · 未设置";
+        document.getElementById("detailMarkdownModel").value = "";
+        document.getElementById("detailTags").className = "tag-editor empty";
+        document.getElementById("detailTags").innerHTML = "当前记录的标签会展示在这里。";
+        document.getElementById("detailMetaCreated").textContent = "创建于 -";
+        document.getElementById("detailMetaUpdated").textContent = "更新于 -";
+        renderEditorMode();
+        syncInteractiveStates();
+        return;
+      }
+
+      document.getElementById("detailTitle").textContent = task.title;
+      document.getElementById("detailSubtitle").textContent = task.status === "已完成"
+        ? "这条记录已经完成，你仍然可以在这里回看内容、标签与完成时间。"
+        : "通过右侧属性和正文区，持续把这条记录整理成可追踪、可交付的内容。";
+      document.getElementById("detailChipStatus").textContent = `状态 · ${task.status}`;
+      document.getElementById("detailChipPriority").textContent = `优先级 · ${task.priority}`;
+      document.getElementById("detailChipDue").textContent = `截止时间 · ${task.dueAt ? formatDateLabel(task.dueAt) : "未设置"}`;
+      document.getElementById("detailStatus").value = task.status;
+      document.getElementById("detailPriority").value = task.priority;
+      document.getElementById("detailDueAt").value = toLocalInputValue(task.dueAt);
+      document.getElementById("detailCompletedAt").value = task.status === "已完成" ? toLocalInputValue(task.completedAt) : "";
+      document.getElementById("detailMarkdownModel").value = task.content;
+      document.getElementById("detailTags").className = "tag-editor";
+      document.getElementById("detailTags").innerHTML = task.tags.map(tagId => {
+        const tag = findTag(tagId);
+        return `<span class="tag-inline"><i style="background:${tag?.color || "#cbd5e1"}"></i>${tag?.name || tagId}</span>`;
+      }).join("");
+      document.getElementById("detailMetaCreated").textContent = `创建于 ${task.createdAt.replace("T", " ")}`;
+      document.getElementById("detailMetaUpdated").textContent = `更新于 ${task.updatedAt.replace("T", " ")}`;
+      renderEditorMode();
+      syncInteractiveStates();
+    }
+
+    function renderEditorMode() {
+      const surface = document.getElementById("editorSurface");
+      const task = tasks.find(item => item.id === state.selectedTaskId);
+      const markdownModel = document.getElementById("detailMarkdownModel");
+      const markdown = markdownModel ? markdownModel.value : "";
+      surface.className = "editor-surface";
+      if (!task) {
+        surface.innerHTML = `<div style="color:var(--muted);line-height:1.7;">从左侧列表选择一条记录，右侧就会显示完整内容、时间和标签信息。</div>`;
+        document.querySelectorAll(".editor-mode-btn").forEach(btn => {
+          btn.classList.toggle("active", btn.dataset.editorMode === state.editorMode);
+        });
+        return;
+      }
+      if (state.editorMode === "preview") {
+        surface.classList.add("preview");
+        surface.innerHTML = markdownToHtml(markdown);
+      } else if (state.editorMode === "split") {
+        surface.innerHTML = `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;height:100%;">
+            <textarea id="detailMarkdownSplit">${escapeHtml(markdown)}</textarea>
+            <div class="editor-surface preview" style="padding:0;border:0;background:transparent;">${markdownToHtml(markdown)}</div>
+          </div>
+        `;
+      } else {
+        surface.innerHTML = `<textarea id="detailMarkdownEdit">${escapeHtml(markdown)}</textarea>`;
+      }
+      document.querySelectorAll(".editor-mode-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.editorMode === state.editorMode);
+      });
+    }
+
+    function markdownToHtml(markdown) {
+      const lines = markdown.split("\n");
+      let html = "";
+      let inList = false;
+      lines.forEach(line => {
+        if (line.startsWith("# ")) {
+          if (inList) { html += "</ul>"; inList = false; }
+          html += `<h1>${escapeHtml(line.slice(2))}</h1>`;
+        } else if (line.startsWith("## ")) {
+          if (inList) { html += "</ul>"; inList = false; }
+          html += `<h2>${escapeHtml(line.slice(3))}</h2>`;
+        } else if (line.startsWith("- ")) {
+          if (!inList) { html += "<ul>"; inList = true; }
+          html += `<li>${escapeHtml(line.slice(2))}</li>`;
+        } else if (!line.trim()) {
+          if (inList) { html += "</ul>"; inList = false; }
+          html += "<p></p>";
+        } else {
+          if (inList) { html += "</ul>"; inList = false; }
+          html += `<p>${escapeHtml(line)}</p>`;
+        }
+      });
+      if (inList) html += "</ul>";
+      return html;
+    }
+
+    function escapeHtml(value) {
+      return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function renderReportPage() {
+      const reportTagFilter = document.getElementById("reportTagFilter");
+      reportTagFilter.innerHTML = `<option value="all">全部标签</option>` + tags.map(tag => `<option value="${tag.id}">${tag.name}</option>`).join("");
+      const reportTemplate = document.getElementById("reportTemplate");
+      const currentType = document.querySelector('input[name="reportType"]:checked')?.value || "周报";
+      const templateCandidates = templates.filter(t => currentType === "专题报告" ? t.type === "专题报告" : t.type === currentType);
+      if (!templateCandidates.some(t => t.id === state.activeTemplateId)) {
+        state.activeTemplateId = templateCandidates[0]?.id || templates[0].id;
+      }
+      reportTemplate.innerHTML = templateCandidates.map(t => `<option value="${t.id}" ${t.id === state.activeTemplateId ? "selected" : ""}>${t.name}</option>`).join("");
+      const reportChannel = document.getElementById("reportChannel");
+      reportChannel.innerHTML = channels.filter(c => c.enabled).map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+      renderReportHistory();
+      if (!state.reportDraft) {
+        state.reportDraft = reportHistory[0].content;
+        state.reportMeta = "已使用 报告通道 · 标准周报模板";
+      }
+      document.getElementById("reportEditor").innerHTML = markdownToHtml(state.reportDraft);
+      document.getElementById("reportTitle").textContent = state.reportTitle;
+      document.getElementById("reportMeta").textContent = state.reportMeta;
+    }
+
+    function openTemplateModal() {
+      const selectedId = document.getElementById("reportTemplate").value || state.activeTemplateId;
+      const template = templates.find(item => item.id === selectedId);
+      if (!template) return;
+      state.activeTemplateId = template.id;
+      document.getElementById("templateNameInput").value = template.name;
+      document.getElementById("templateToneSelect").value = template.tone || "专业简洁";
+      document.getElementById("templateSectionsInput").value = (template.sections || []).join("\n");
+      document.getElementById("templateModal").classList.add("show");
+    }
+
+    function closeTemplateModal() {
+      document.getElementById("templateModal").classList.remove("show");
+    }
+
+    function saveTemplateConfig() {
+      const template = templates.find(item => item.id === state.activeTemplateId);
+      if (!template) return;
+      template.name = document.getElementById("templateNameInput").value.trim() || template.name;
+      template.tone = document.getElementById("templateToneSelect").value;
+      template.sections = document.getElementById("templateSectionsInput").value
+        .split("\n")
+        .map(item => item.trim())
+        .filter(Boolean);
+      renderReportPage();
+      closeTemplateModal();
+      showToast("模板配置已保存", `已更新「${template.name}」的输出结构。`);
+    }
+
+    function applyTheme(theme) {
+      state.theme = theme;
+      document.body.setAttribute("data-theme", theme);
+      const icon = document.getElementById("themeToggleIcon");
+      if (theme === "dark") {
+        icon.innerHTML = `<path d="M20 14.5A7.5 7.5 0 1 1 9.5 4a6 6 0 0 0 10.5 10.5z"></path>`;
+      } else {
+        icon.innerHTML = `
+          <path d="M12 3v2.5"></path>
+          <path d="M12 18.5V21"></path>
+          <path d="M4.93 4.93l1.77 1.77"></path>
+          <path d="M17.3 17.3l1.77 1.77"></path>
+          <path d="M3 12h2.5"></path>
+          <path d="M18.5 12H21"></path>
+          <path d="M4.93 19.07l1.77-1.77"></path>
+          <path d="M17.3 6.7l1.77-1.77"></path>
+          <circle cx="12" cy="12" r="4"></circle>
+        `;
+      }
+    }
+
+    function renderReportHistory() {
+      const history = document.getElementById("reportHistory");
+      history.innerHTML = reportHistory.map(item => `
+        <button class="history-item ${state.reportTitle === item.title ? "active" : ""}" data-report-history="${item.id}">
+          <div class="history-item-left">
+            <div class="brand-mark" style="width:34px;height:34px;border-radius:12px;font-size:14px;">报</div>
+            <div class="history-meta">
+              <span class="history-title">${item.title}</span>
+              <span>${item.meta}</span>
+            </div>
+          </div>
+        </button>
+      `).join("");
+    }
+
+    function renderChannelPage() {
+      const list = document.getElementById("channelList");
+      list.innerHTML = channels.map(channel => `
+        <button class="channel-item ${state.activeChannelId === channel.id ? "active" : ""}" data-channel-id="${channel.id}">
+          <div class="channel-item-left">
+            <div class="brand-mark" style="width:34px;height:34px;border-radius:12px;font-size:12px;">AI</div>
+            <div class="channel-meta">
+              <span class="channel-name">${channel.name}</span>
+              <span>${channel.provider} · ${channel.model}</span>
+            </div>
+          </div>
+          <span class="channel-state ${channel.enabled ? "" : "off"}">${channel.enabled ? "开启" : "停用"}</span>
+        </button>
+      `).join("");
+
+      const mappingGrid = document.getElementById("mappingGrid");
+      mappingGrid.innerHTML = Object.entries(abilityMapping).map(([ability, channelId]) => `
+        <strong>${ability}</strong>
+        <select class="field-select" data-mapping="${ability}">
+          ${channels.map(channel => `<option value="${channel.id}" ${channel.id === channelId ? "selected" : ""}>${channel.name}</option>`).join("")}
+        </select>
+      `).join("");
+
+      const channel = channels.find(item => item.id === state.activeChannelId) || channels[0];
+      document.getElementById("channelFormTitle").textContent = channel.name;
+      document.getElementById("channelFormMeta").textContent = `${channel.provider} · ${channel.model} · ${channel.enabled ? "当前已启用" : "当前已停用"}`;
+      document.getElementById("channelName").value = channel.name;
+      document.getElementById("channelProvider").value = channel.provider;
+      document.getElementById("channelBaseUrl").value = channel.baseUrl;
+      document.getElementById("channelApiKey").value = channel.apiKey;
+      document.getElementById("channelModel").value = channel.model;
+      document.getElementById("channelLanguage").value = channel.language;
+      document.getElementById("channelTemperature").value = channel.temperature;
+      document.getElementById("channelMaxTokens").value = channel.maxTokens;
+      document.getElementById("channelTimeout").value = channel.timeout;
+      document.getElementById("channelEnabled").value = String(channel.enabled);
+      document.getElementById("channelPrompt").value = channel.prompt;
+      document.getElementById("autoFallbackState").textContent = `自动回退：${state.autoFallback ? "开启" : "关闭"}`;
+    }
+
+    function ensureSelectedTask() {
+      const visibleTasks = getVisibleTasks();
+      if (!visibleTasks.length || !state.detailVisible) {
+        state.selectedTaskId = null;
+        renderDetailPane();
+        return;
+      }
+      if (!visibleTasks.some(task => task.id === state.selectedTaskId)) {
+        state.selectedTaskId = null;
+        state.detailVisible = false;
+      }
+      renderDetailPane();
+    }
+
+    function syncWorkspaceLayout() {
+      const workspace = document.getElementById("page-workspace");
+      workspace.classList.toggle("show-detail", state.detailVisible && !!state.selectedTaskId);
+    }
+
+    function switchPage(page) {
+      state.currentPage = page;
+      Object.entries(pageIds).forEach(([key, el]) => el.classList.toggle("active", key === page));
+      if (page === "reports") renderReportPage();
+      if (page === "channels") renderChannelPage();
+    }
+
+    function selectTask(taskId) {
+      state.selectedTaskId = taskId;
+      state.detailVisible = true;
+      renderTaskList();
+      renderDetailPane();
+    }
+
+    function closeDetailPane() {
+      state.detailVisible = false;
+      state.selectedTaskId = null;
+      renderTaskList();
+      renderDetailPane();
+    }
+
+    function toggleTaskDone(taskId) {
+      const task = tasks.find(item => item.id === taskId);
+      if (!task) return;
+      if (task.status === "已完成") {
+        task.status = "进行中";
+        task.completedAt = "";
+      } else {
+        task.status = "已完成";
+        task.completedAt = "2026-03-24T18:00";
+      }
+      task.updatedAt = "2026-03-24T15:30";
+      showToast("状态已更新", `${task.title} 已${task.status === "已完成" ? "标记为完成" : "恢复到进行中"}。`);
+      renderSidebar();
+      renderTaskList();
+    }
+
+    function parseQuickAdd(raw) {
+      const tagMatches = [...raw.matchAll(/#([^\s#]+)/g)].map(item => item[1]);
+      const priorityMatch = raw.match(/!(P[1-4])/i);
+      const newTags = tagMatches.map(name => {
+        const hit = tags.find(tag => tag.name.toLowerCase() === name.toLowerCase());
+        return hit ? hit.id : "t7";
+      });
+      let dueAt = "";
+      if (raw.includes("明天")) dueAt = "2026-03-25T09:00";
+      if (raw.includes("下午3点") || raw.includes("3点")) dueAt = "2026-03-25T15:00";
+      if (raw.includes("周五")) dueAt = "2026-03-27T18:00";
+      const title = raw
+        .replace(/#([^\s#]+)/g, "")
+        .replace(/!(P[1-4])/ig, "")
+        .replace(/@([^\s]+)/g, "")
+        .trim();
+      return {
+        id: `task-${Date.now()}`,
+        title: title || "新建备忘录",
+        status: "未开始",
+        priority: priorityMatch ? priorityMatch[1].toUpperCase() : "P3",
+        tags: newTags.length ? newTags : state.currentTag ? [state.currentTag] : ["t7"],
+        dueAt,
+        plannedAt: "",
+        completedAt: "",
+        createdAt: "2026-03-24T16:00",
+        updatedAt: "2026-03-24T16:00",
+        content: `# ${title || "新建备忘录"}\n\n在这里补充更多细节内容。`,
+        aiSummary: "这是一条刚刚创建的记录，建议你补充标签与截止时间。"
+      };
+    }
+
+    function quickReschedule(taskIds, mode, customValue = "") {
+      const now = new Date("2026-03-24T10:00:00");
+      taskIds.forEach(taskId => {
+        const task = tasks.find(item => item.id === taskId);
+        if (!task || task.status === "已完成") return;
+        if (mode === "1h") {
+          const base = task.dueAt ? new Date(task.dueAt) : new Date(now);
+          base.setHours(base.getHours() + 1);
+          task.dueAt = base.toISOString().slice(0, 16);
+        } else if (mode === "eod") {
+          task.dueAt = "2026-03-24T18:00";
+        } else if (mode === "tomorrow") {
+          task.dueAt = "2026-03-25T09:00";
+        } else if (mode === "friday") {
+          task.dueAt = "2026-03-27T18:00";
+        } else if (mode === "custom" && customValue) {
+          task.dueAt = customValue;
+        }
+        task.updatedAt = "2026-03-24T16:20";
+      });
+      renderTaskList();
+      renderDetailPane();
+    }
+
+    function openRescheduleModal(taskIds) {
+      const targetIds = taskIds.length ? taskIds : getReminderTasks().map(task => task.id);
+      if (!targetIds.length) {
+        showToast("暂无可调整任务", "请先选择至少一条待改期记录。");
+        return;
+      }
+      const modal = document.getElementById("rescheduleModal");
+      modal.classList.add("show");
+      modal.dataset.targetIds = JSON.stringify(targetIds);
+      document.getElementById("customTimeInput").value = "";
+      document.getElementById("modalTaskList").innerHTML = targetIds.map(id => {
+        const task = tasks.find(item => item.id === id);
+        return `<div class="modal-list-item"><strong>${task.title}</strong><span>${formatDateLabel(task.dueAt)}</span></div>`;
+      }).join("");
+      updateRescheduleModalState();
+    }
+
+    function closeRescheduleModal() {
+      document.getElementById("rescheduleModal").classList.remove("show");
+      document.getElementById("rescheduleModal").dataset.targetIds = "[]";
+      document.getElementById("customTimeInput").value = "";
+      document.querySelectorAll(".choice-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.choice === "tomorrow"));
+      state.activeRescheduleChoice = "tomorrow";
+      updateRescheduleModalState();
+    }
+
+    function generateReport() {
+      const type = document.querySelector('input[name="reportType"]:checked').value;
+      const start = document.getElementById("reportStart").value;
+      const end = document.getElementById("reportEnd").value;
+      const tagFilter = document.getElementById("reportTagFilter").value;
+      const statusFilter = document.getElementById("reportStatusFilter").value;
+      const templateId = document.getElementById("reportTemplate").value;
+      const channelId = document.getElementById("reportChannel").value;
+      const channel = channels.find(c => c.id === channelId) || channels[0];
+      const template = templates.find(t => t.id === templateId);
+      const sourceTasks = tasks.filter(task => {
+        if (tagFilter !== "all" && !task.tags.includes(tagFilter)) return false;
+        if (statusFilter === "done" && task.status !== "已完成") return false;
+        if (statusFilter === "todo" && task.status === "已完成") return false;
+        return true;
+      });
+
+      const doneTasks = sourceTasks.filter(task => task.status === "已完成");
+      const activeTasks = sourceTasks.filter(task => task.status !== "已完成");
+      const riskyTasks = sourceTasks.filter(task => isOverdue(task) || task.priority === "P1");
+
+      state.reportTitle = `${start} - ${end} ${type}`;
+      state.reportMeta = `已使用 ${channel.name} · ${template?.name || "默认模板"}`;
+      const sections = template?.sections?.length
+        ? template.sections
+        : ["本周期完成事项", "本周期推进中事项", "风险与阻塞", "下一阶段计划"];
+      const sectionMap = {
+        "本周期完成事项": doneTasks.length ? doneTasks.map(task => `- ${task.title}`).join("\n") : "- 本周期暂无已完成事项记录",
+        "本周期推进中事项": activeTasks.length ? activeTasks.map(task => `- ${task.title}`).join("\n") : "- 当前没有推进中的事项",
+        "风险与阻塞": riskyTasks.length ? riskyTasks.map(task => `- ${task.title}：${task.aiSummary}`).join("\n") : "- 暂无显著风险，节奏相对平稳",
+        "下一阶段计划": "- 优先处理即将过期与高优先级事项\n- 保持记录和总结同步，减少月底集中补材料压力\n- 使用 AI 通道继续生成阶段汇报草稿",
+        "关键成果": doneTasks.length ? doneTasks.map(task => `- ${task.title}`).join("\n") : "- 本周期关键成果待补充",
+        "项目进展": activeTasks.length ? activeTasks.map(task => `- ${task.title}`).join("\n") : "- 当前暂无项目进展记录",
+        "风险判断": riskyTasks.length ? riskyTasks.map(task => `- ${task.title}`).join("\n") : "- 暂无风险判断项",
+        "资源协同需求": "- 建议预留更清晰的跨团队协同时间窗口",
+        "下周重点": "- 集中推进本周遗留的 P1 / P2 事项",
+        "本周期关键成果": doneTasks.length ? doneTasks.map(task => `- ${task.title}`).join("\n") : "- 本周期关键成果待补充",
+        "数据与里程碑": "- 请结合项目关键指标补充当前里程碑达成情况",
+        "复盘与问题": riskyTasks.length ? riskyTasks.map(task => `- ${task.title}：${task.aiSummary}`).join("\n") : "- 暂无重大复盘问题",
+        "背景": "- 说明本专题的业务背景和使用场景",
+        "现状": activeTasks.length ? activeTasks.map(task => `- ${task.title}`).join("\n") : "- 当前暂无可引用现状记录",
+        "关键问题": riskyTasks.length ? riskyTasks.map(task => `- ${task.title}`).join("\n") : "- 当前暂无关键问题",
+        "解决方案": "- 结合既有记录给出可执行方案建议",
+        "后续建议": "- 明确下一步行动与时间安排"
+      };
+      state.reportDraft = `# ${state.reportTitle}\n\n> 输出语气：${template?.tone || "专业简洁"}\n\n` + sections.map(section => `## ${section}\n${sectionMap[section] || "- 请补充相关内容"}`).join("\n\n");
+      renderReportPage();
+      showToast("报告已生成", `${type} 已基于 ${sourceTasks.length} 条记录生成草稿。`);
+    }
+
+    function saveCurrentReport() {
+      reportHistory.unshift({
+        id: `rep-${Date.now()}`,
+        title: state.reportTitle,
+        meta: state.reportMeta,
+        content: state.reportDraft
+      });
+      renderReportHistory();
+      showToast("已保存为报告记录", "报告已进入 AI 报告历史，不会自动污染主任务列表。");
+    }
+
+    function showToast(title, message) {
+      const toast = document.getElementById("toast");
+      document.getElementById("toastTitle").textContent = title;
+      document.getElementById("toastMessage").textContent = message;
+      toast.classList.add("show");
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    function syncTagFilterOptions() {
+      if (state.filters.tag !== "all" && !findTag(state.filters.tag)) {
+        state.filters.tag = "all";
+      }
+      const select = document.getElementById("tagFilterSelect");
+      select.innerHTML = `<option value="all">全部标签</option>` + tags.map(tag => `<option value="${tag.id}">${tag.name}</option>`).join("");
+      select.value = state.filters.tag;
+      document.getElementById("reportTagFilter").innerHTML = select.innerHTML;
+    }
+
+    function boot() {
+      renderSidebar();
+      syncTagFilterOptions();
+      renderTaskList();
+      renderReportPage();
+      renderChannelPage();
+
+      document.getElementById("focusQuickAddBtn").addEventListener("click", () => {
+        switchPage("workspace");
+        spotlightQuickAdd();
+        showToast("已定位到快速新增", "现在可以直接输入一行内容并回车创建。");
+      });
+      document.getElementById("openTagManagerBtn").addEventListener("click", openTagManagerModal);
+      document.getElementById("themeToggleBtn").addEventListener("click", () => {
+        applyTheme(state.theme === "light" ? "dark" : "light");
+        showToast("主题已切换", state.theme === "dark" ? "已切换到暗色风格。" : "已切换到浅色风格。");
+      });
+      document.getElementById("topGenerateBtn").addEventListener("click", () => {
+        switchPage("reports");
+        generateReport();
+      });
+      document.getElementById("gotoChannelsTop").addEventListener("click", () => switchPage("channels"));
+      document.getElementById("gotoReportsBtn").addEventListener("click", () => switchPage("reports"));
+      document.getElementById("gotoChannelsBtn").addEventListener("click", () => switchPage("channels"));
+      document.getElementById("openChannelManagerFromReport").addEventListener("click", () => switchPage("channels"));
+      document.getElementById("trashBtn").addEventListener("click", () => showToast("回收站预留", "当前原型重点展示主工作台、AI 报告与 AI 通道配置。"));
+
+      document.getElementById("quickAddInput").addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          const value = event.currentTarget.value.trim();
+          if (!value) return;
+          const task = parseQuickAdd(value);
+          tasks.unshift(task);
+          event.currentTarget.value = "";
+          state.selectedTaskId = task.id;
+          state.detailVisible = true;
+          showToast("已快速创建", `已新增「${task.title}」，你可以继续连续输入。`);
+          renderSidebar();
+          renderTaskList();
+        }
+      });
+
+      document.getElementById("searchInput").addEventListener("input", (e) => {
+        state.filters.search = e.target.value;
+        renderTaskList();
+      });
+
+      document.getElementById("sortSelect").addEventListener("change", (e) => {
+        state.filters.sort = e.target.value;
+        renderTaskList();
+      });
+
+      document.getElementById("tagFilterSelect").addEventListener("change", (e) => {
+        state.filters.tag = e.target.value;
+        renderTaskList();
+      });
+
+      document.body.addEventListener("click", (event) => {
+        const viewBtn = event.target.closest("[data-view]");
+        if (viewBtn) {
+          state.currentTag = null;
+          state.currentView = viewBtn.dataset.view;
+          renderSidebar();
+          renderTaskList();
+          switchPage("workspace");
+          return;
+        }
+
+        const editTagBtn = event.target.closest("[data-edit-tag]");
+        if (editTagBtn) {
+          editTag(editTagBtn.dataset.editTag);
+          return;
+        }
+
+        const deleteTagBtn = event.target.closest("[data-delete-tag]");
+        if (deleteTagBtn) {
+          deleteTag(deleteTagBtn.dataset.deleteTag);
+          return;
+        }
+
+        const toggleTaskTagBtn = event.target.closest("[data-toggle-task-tag]");
+        if (toggleTaskTagBtn) {
+          toggleTaskTag(toggleTaskTagBtn.dataset.toggleTaskTag);
+          return;
+        }
+
+        const tagBtn = event.target.closest("[data-tag]");
+        if (tagBtn) {
+          state.currentTag = tagBtn.dataset.tag;
+          state.currentView = "all";
+          renderSidebar();
+          renderTaskList();
+          switchPage("workspace");
+          return;
+        }
+
+        const filterBtn = event.target.closest(".filter-chip");
+        if (filterBtn) {
+          const group = filterBtn.dataset.filterGroup;
+          document.querySelectorAll(`.filter-chip[data-filter-group="${group}"]`).forEach(btn => btn.classList.remove("active"));
+          filterBtn.classList.add("active");
+          state.filters[group] = filterBtn.dataset.value;
+          renderTaskList();
+          return;
+        }
+
+        const taskRow = event.target.closest(".task-row");
+        if (
+          taskRow &&
+          !event.target.closest("[data-check-id]") &&
+          !event.target.closest("[data-reschedule-task]") &&
+          !event.target.closest("[data-select-task]")
+        ) {
+          selectTask(taskRow.dataset.taskId);
+          return;
+        }
+
+        const checkBtn = event.target.closest("[data-check-id]");
+        if (checkBtn) {
+          toggleTaskDone(checkBtn.dataset.checkId);
+          return;
+        }
+
+        const taskRescheduleBtn = event.target.closest("[data-reschedule-task]");
+      if (taskRescheduleBtn) {
+          openRescheduleModal([taskRescheduleBtn.dataset.rescheduleTask]);
+          return;
+        }
+
+        const taskSelectBtn = event.target.closest("[data-select-task]");
+        if (taskSelectBtn) {
+          const id = taskSelectBtn.dataset.selectTask;
+          if (state.selectedTaskIds.has(id)) state.selectedTaskIds.delete(id);
+          else state.selectedTaskIds.add(id);
+          renderTaskList();
+          showToast(state.selectedTaskIds.has(id) ? "已加入批量选择" : "已取消选择", `当前共选中 ${state.selectedTaskIds.size} 条记录。`);
+          return;
+        }
+
+        const reportHistoryBtn = event.target.closest("[data-report-history]");
+        if (reportHistoryBtn) {
+          const item = reportHistory.find(entry => entry.id === reportHistoryBtn.dataset.reportHistory);
+          state.reportTitle = item.title;
+          state.reportMeta = item.meta;
+          state.reportDraft = item.content;
+          renderReportPage();
+          return;
+        }
+
+        const channelBtn = event.target.closest("[data-channel-id]");
+        if (channelBtn) {
+          state.activeChannelId = channelBtn.dataset.channelId;
+          renderChannelPage();
+          return;
+        }
+
+        const reminderSelect = event.target.closest("[data-reminder-select]");
+        if (reminderSelect) {
+          if (reminderSelect.checked) state.reminderSelectedIds.add(reminderSelect.dataset.reminderSelect);
+          else state.reminderSelectedIds.delete(reminderSelect.dataset.reminderSelect);
+          renderReminderCard();
+          return;
+        }
+
+        const choiceBtn = event.target.closest(".choice-btn");
+        if (choiceBtn) {
+          state.activeRescheduleChoice = choiceBtn.dataset.choice;
+          document.querySelectorAll(".choice-btn").forEach(btn => btn.classList.toggle("active", btn === choiceBtn));
+          updateRescheduleModalState();
+          return;
+        }
+
+        const quickRescheduleBtn = event.target.closest("[data-reschedule]");
+        if (quickRescheduleBtn) {
+          const ids = state.reminderSelectedIds.size ? [...state.reminderSelectedIds] : getReminderTasks().map(task => task.id);
+          if (quickRescheduleBtn.dataset.reschedule === "custom") {
+            openRescheduleModal(ids);
+            return;
+          }
+          quickReschedule(ids, quickRescheduleBtn.dataset.reschedule === "tomorrow" ? "tomorrow" : "friday");
+          showToast("改期已生效", `已更新 ${ids.length} 条任务的截止时间。`);
+          return;
+        }
+      });
+
+      document.getElementById("taskList").addEventListener("dblclick", (e) => {
+        const row = e.target.closest(".task-row");
+        if (!row) return;
+        const task = tasks.find(item => item.id === row.dataset.taskId);
+        if (!task) return;
+        const nextTitle = prompt("快速编辑标题", task.title);
+        if (nextTitle) {
+          task.title = nextTitle;
+          task.updatedAt = "2026-03-24T16:35";
+          renderTaskList();
+          renderDetailPane();
+        }
+      });
+
+      document.getElementById("toggleReminderExpandBtn").addEventListener("click", () => {
+        state.reminderExpanded = !state.reminderExpanded;
+        if (state.reminderExpanded && !state.reminderSelectedIds.size) {
+          getReminderTasks().slice(0, 2).forEach(task => state.reminderSelectedIds.add(task.id));
+        }
+        renderReminderCard();
+      });
+      document.getElementById("collapseReminderBtn").addEventListener("click", () => {
+        state.reminderExpanded = false;
+        renderReminderCard();
+      });
+      document.getElementById("selectAllReminderBtn").addEventListener("click", () => {
+        state.reminderSelectedIds = new Set(getReminderTasks().map(task => task.id));
+        renderReminderCard();
+      });
+      document.getElementById("clearAllReminderBtn").addEventListener("click", () => {
+        state.reminderSelectedIds.clear();
+        renderReminderCard();
+      });
+      document.getElementById("rescheduleSelectedBtn").addEventListener("click", () => openRescheduleModal([...state.reminderSelectedIds]));
+      document.getElementById("rescheduleAllBtn").addEventListener("click", () => {
+        const ids = getReminderTasks().map(task => task.id);
+        quickReschedule(ids, "1h");
+        showToast("已全部顺延", `已顺延 ${ids.length} 条命中任务。`);
+      });
+      document.getElementById("quickReminderShiftBtn").addEventListener("click", () => {
+        const ids = state.reminderSelectedIds.size ? [...state.reminderSelectedIds] : getReminderTasks().map(task => task.id);
+        openRescheduleModal(ids);
+      });
+      document.getElementById("snoozeReminderBtn").addEventListener("click", () => showToast("稍后提醒", "当前批次提醒将在 30 分钟后再次出现。"));
+
+      document.getElementById("batchRescheduleBtn").addEventListener("click", () => openRescheduleModal([...state.selectedTaskIds]));
+      document.getElementById("batchSummarizeBtn").addEventListener("click", () => showToast("AI 总结已生成", "已将选中事项提炼成 3 条行动建议。"));
+      document.getElementById("closeDetailBtn").addEventListener("click", closeDetailPane);
+
+      document.getElementById("closeModalBtn").addEventListener("click", closeRescheduleModal);
+      document.getElementById("customTimeInput").addEventListener("input", updateRescheduleModalState);
+      document.getElementById("confirmRescheduleBtn").addEventListener("click", () => {
+        const ids = JSON.parse(document.getElementById("rescheduleModal").dataset.targetIds || "[]");
+        const customValue = document.getElementById("customTimeInput").value;
+        quickReschedule(ids, state.activeRescheduleChoice, customValue);
+        showToast("时间已调整", `已调整 ${ids.length} 条任务的计划时间。`);
+        closeRescheduleModal();
+      });
+
+      document.getElementById("generateReportBtn").addEventListener("click", generateReport);
+      document.getElementById("regenerateReportBtn").addEventListener("click", generateReport);
+      document.getElementById("saveReportBtn").addEventListener("click", saveCurrentReport);
+      document.getElementById("openTemplateConfigBtn").addEventListener("click", openTemplateModal);
+      document.getElementById("closeTemplateModalBtn").addEventListener("click", closeTemplateModal);
+      document.getElementById("saveTemplateConfigBtn").addEventListener("click", saveTemplateConfig);
+      document.getElementById("closeTagManagerBtn").addEventListener("click", closeTagManagerModal);
+      document.getElementById("closeTagManagerFooterBtn").addEventListener("click", closeTagManagerModal);
+      document.getElementById("resetTagManagerBtn").addEventListener("click", () => {
+        resetTagManagerForm();
+        renderTagManagerModal();
+      });
+      document.getElementById("saveTagManagerBtn").addEventListener("click", saveTagManager);
+      document.querySelectorAll('input[name="reportType"]').forEach(input => {
+        input.addEventListener("change", () => renderReportPage());
+      });
+      document.getElementById("reportTemplate").addEventListener("change", (e) => {
+        state.activeTemplateId = e.target.value;
+      });
+      document.getElementById("copyReportBtn").addEventListener("click", () => showToast("已复制到剪贴板", "原型环境中未接入系统剪贴板，已模拟复制反馈。"));
+      document.getElementById("exportReportBtn").addEventListener("click", () => showToast("已导出 Markdown", "示意导出成功，正式开发时可输出 .md 文件。"));
+
+      document.querySelectorAll(".editor-mode-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.editorMode = btn.dataset.editorMode;
+          renderEditorMode();
+        });
+      });
+
+      document.getElementById("detailStatus").addEventListener("change", (e) => {
+        const task = tasks.find(item => item.id === state.selectedTaskId);
+        if (!task) return;
+        task.status = e.target.value;
+        task.updatedAt = "2026-03-24T16:40";
+        if (task.status === "已完成" && !task.completedAt) task.completedAt = "2026-03-24T18:00";
+        if (task.status !== "已完成") task.completedAt = "";
+        renderSidebar();
+        renderTaskList();
+      });
+
+      document.getElementById("detailPriority").addEventListener("change", (e) => {
+        const task = tasks.find(item => item.id === state.selectedTaskId);
+        if (!task) return;
+        task.priority = e.target.value;
+        task.updatedAt = "2026-03-24T16:40";
+        renderTaskList();
+      });
+
+      document.getElementById("detailDueAt").addEventListener("change", (e) => {
+        const task = tasks.find(item => item.id === state.selectedTaskId);
+        if (!task) return;
+        task.dueAt = e.target.value;
+        task.updatedAt = "2026-03-24T16:42";
+        renderTaskList();
+      });
+
+      document.getElementById("detailCompletedAt").addEventListener("change", (e) => {
+        const task = tasks.find(item => item.id === state.selectedTaskId);
+        if (!task) return;
+        task.completedAt = e.target.value;
+        task.updatedAt = "2026-03-24T16:42";
+      });
+
+      document.getElementById("detailCard").addEventListener("input", (e) => {
+        if (e.target.id === "detailMarkdownEdit" || e.target.id === "detailMarkdownSplit") {
+          const task = tasks.find(item => item.id === state.selectedTaskId);
+          if (!task) return;
+          task.content = e.target.value;
+          document.getElementById("detailMarkdownModel").value = e.target.value;
+          task.updatedAt = "2026-03-24T16:45";
+        }
+      });
+
+      document.getElementById("aiSummaryBtn").addEventListener("click", () => {
+        const task = tasks.find(item => item.id === state.selectedTaskId);
+        if (!task) return;
+        showToast("AI 摘要已刷新", task.aiSummary);
+      });
+      document.getElementById("aiPolishBtn").addEventListener("click", () => showToast("内容已润色", "已将当前内容调整为更清晰的汇报表达风格。"));
+
+      document.getElementById("testChannelBtn").addEventListener("click", () => showToast("连接测试成功", "当前通道响应 128ms，可用于报告生成。"));
+      document.getElementById("saveChannelBtn").addEventListener("click", () => {
+        const channel = channels.find(item => item.id === state.activeChannelId);
+        channel.name = document.getElementById("channelName").value;
+        channel.provider = document.getElementById("channelProvider").value;
+        channel.baseUrl = document.getElementById("channelBaseUrl").value;
+        channel.apiKey = document.getElementById("channelApiKey").value;
+        channel.model = document.getElementById("channelModel").value;
+        channel.language = document.getElementById("channelLanguage").value;
+        channel.temperature = Number(document.getElementById("channelTemperature").value);
+        channel.maxTokens = Number(document.getElementById("channelMaxTokens").value);
+        channel.timeout = Number(document.getElementById("channelTimeout").value);
+        channel.enabled = document.getElementById("channelEnabled").value === "true";
+        channel.prompt = document.getElementById("channelPrompt").value;
+        renderChannelPage();
+        showToast("通道已保存", `「${channel.name}」配置已更新。`);
+      });
+
+      document.getElementById("mappingGrid").addEventListener("change", (e) => {
+        if (!e.target.dataset.mapping) return;
+        abilityMapping[e.target.dataset.mapping] = e.target.value;
+        showToast("能力映射已更新", `${e.target.dataset.mapping} 已切换到新的 AI 通道。`);
+      });
+
+      document.getElementById("reportEditor").addEventListener("dblclick", () => {
+        const next = prompt("直接编辑报告 Markdown", state.reportDraft);
+        if (next) {
+          state.reportDraft = next;
+          renderReportPage();
+        }
+      });
+
+      const splitter = document.getElementById("paneSplitter");
+      splitter.addEventListener("mousedown", (event) => {
+        if (!(state.detailVisible && state.selectedTaskId)) return;
+        state.dragDetail.active = true;
+        event.preventDefault();
+        document.getElementById("page-workspace").classList.add("dragging");
+      });
+
+      window.addEventListener("mousemove", (event) => {
+        if (!state.dragDetail.active) return;
+        const workspace = document.getElementById("page-workspace");
+        const rect = workspace.getBoundingClientRect();
+        const nextWidth = Math.max(500, Math.min(760, rect.right - event.clientX));
+        workspace.style.setProperty("--detail-width", `${nextWidth}px`);
+      });
+
+      window.addEventListener("mouseup", () => {
+        if (!state.dragDetail.active) return;
+        state.dragDetail.active = false;
+        document.getElementById("page-workspace").classList.remove("dragging");
+      });
+    }
+
+    window.addEventListener("keydown", (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "n") {
+        event.preventDefault();
+        switchPage("workspace");
+        document.getElementById("quickAddInput").focus();
+      }
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        switchPage("workspace");
+        document.getElementById("searchInput").focus();
+      }
+      if (event.key === "Escape") {
+        if (document.getElementById("tagManagerModal").classList.contains("show")) {
+          closeTagManagerModal();
+          return;
+        }
+        if (document.getElementById("rescheduleModal").classList.contains("show")) {
+          closeRescheduleModal();
+          return;
+        }
+        if (state.detailVisible) {
+          closeDetailPane();
+        }
+      }
+    });
+
+    applyTheme("light");
+    boot();
+  </script>
+</body>
+</html>
