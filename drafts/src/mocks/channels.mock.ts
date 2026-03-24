@@ -1,0 +1,78 @@
+import type { AbilityMappingEntity, AIChannelEntity } from "../types";
+
+export const channelsMock: AIChannelEntity[] = [
+  {
+    id: "channel_default",
+    name: "默认通道",
+    providerType: "openai_compatible",
+    baseUrl: "https://api.example.com/v1",
+    model: "gpt-5-mini",
+    temperature: 0.3,
+    maxTokens: 4000,
+    timeoutMs: 60000,
+    systemPrompt: "你是一名擅长任务整理和工作总结的助手。",
+    defaultLanguage: "zh-CN",
+    enabled: true,
+    allowFallback: true,
+    apiKeyRef: "cred://channel_default",
+    createdAt: "2026-03-24T09:00:00+08:00",
+    updatedAt: "2026-03-24T09:00:00+08:00",
+  },
+  {
+    id: "channel_reports",
+    name: "报告通道",
+    providerType: "anthropic",
+    baseUrl: "https://api.anthropic.com",
+    model: "claude-sonnet-4",
+    temperature: 0.2,
+    maxTokens: 6000,
+    timeoutMs: 90000,
+    systemPrompt: "你擅长把零散记录整理成适合汇报的结构化内容。",
+    defaultLanguage: "zh-CN",
+    enabled: true,
+    allowFallback: true,
+    apiKeyRef: "cred://channel_reports",
+    createdAt: "2026-03-24T09:00:00+08:00",
+    updatedAt: "2026-03-24T09:00:00+08:00",
+  },
+  {
+    id: "channel_summary",
+    name: "摘要通道",
+    providerType: "local_gateway",
+    baseUrl: "http://127.0.0.1:11434/v1",
+    model: "qwen2.5:14b",
+    temperature: 0.4,
+    maxTokens: 2000,
+    timeoutMs: 30000,
+    systemPrompt: "请用简明方式总结当前记录。",
+    defaultLanguage: "zh-CN",
+    enabled: false,
+    allowFallback: true,
+    apiKeyRef: null,
+    createdAt: "2026-03-24T09:00:00+08:00",
+    updatedAt: "2026-03-24T09:00:00+08:00",
+  },
+];
+
+export const abilityMappingsMock: AbilityMappingEntity[] = [
+  {
+    abilityKey: "weekly_report",
+    channelId: "channel_reports",
+    updatedAt: "2026-03-24T09:00:00+08:00",
+  },
+  {
+    abilityKey: "monthly_report",
+    channelId: "channel_reports",
+    updatedAt: "2026-03-24T09:00:00+08:00",
+  },
+  {
+    abilityKey: "summary",
+    channelId: "channel_summary",
+    updatedAt: "2026-03-24T09:00:00+08:00",
+  },
+  {
+    abilityKey: "polish",
+    channelId: "channel_default",
+    updatedAt: "2026-03-24T09:00:00+08:00",
+  },
+];
