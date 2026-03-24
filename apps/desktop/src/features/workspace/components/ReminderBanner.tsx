@@ -1,26 +1,7 @@
-import type { ReminderHit, ReminderSummary } from "@timeaura-core";
-
-import type { ReminderPreset } from "../types";
+import type { ReminderBannerContract } from "../contracts";
 import { formatDateLabel, formatReminderKind } from "../utils";
 
-export interface ReminderBannerProps {
-  reminder: ReminderSummary | null;
-  activeReminderHits: ReminderHit[];
-  activeReminderTargetIds: string[];
-  reminderExpanded: boolean;
-  reminderSelectedIds: string[];
-  reminderSelectedOnly: boolean;
-  selectedId: string | null;
-  visibleReminderSelectedCount: number;
-  onToggleExpanded(): void;
-  onToggleSelectedOnly(): void;
-  onSnoozeReminder(minutes: number): void;
-  onReschedule(preset: Extract<ReminderPreset, "plus_1_hour" | "today_18" | "tomorrow_09">): void;
-  onOpenCustom(): void;
-  onToggleSelectAll(): void;
-  onFocusRecord(recordId: string): void;
-  onToggleReminderSelection(recordId: string): void;
-}
+export type ReminderBannerProps = ReminderBannerContract;
 
 export function ReminderBanner({
   reminder,

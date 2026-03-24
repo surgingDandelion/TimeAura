@@ -2,68 +2,13 @@ import type { MutableRefObject, RefObject } from "react";
 
 import type { RecordEntity, ReminderHit, ReminderSummary, TagEntity } from "@timeaura-core";
 
+import type { WorkspaceListPanelContract } from "../contracts";
 import { NotificationDebugPanel } from "./NotificationDebugPanel";
 import { ReminderBanner } from "./ReminderBanner";
 import type { NotificationDebugEntry, WorkspaceSort, WorkspaceStatusFilter } from "../types";
 import { formatDateLabel } from "../utils";
 
-export interface WorkspaceListPanelProps {
-  activeTagId: string;
-  activeView: "today" | "plan" | "all" | "done";
-  currentTagName: string;
-  quickAdd: string;
-  keyword: string;
-  status: WorkspaceStatusFilter;
-  sortBy: WorkspaceSort;
-  tags: TagEntity[];
-  records: RecordEntity[];
-  selectedId: string | null;
-  selectedIds: string[];
-  selectedCount: number;
-  visibleSelectedCount: number;
-  highlightedRecordId: string | null;
-  loading: boolean;
-  quickAddActive: boolean;
-  message: string | null;
-  runtimeNoticeTone?: "info" | "warning";
-  reminder: ReminderSummary | null;
-  activeReminderHits: ReminderHit[];
-  activeReminderTargetIds: string[];
-  reminderExpanded: boolean;
-  reminderSelectedIds: string[];
-  reminderSelectedOnly: boolean;
-  visibleReminderSelectedCount: number;
-  notificationDebugFeed: NotificationDebugEntry[];
-  notificationDebugOpen: boolean;
-  quickAddRef: RefObject<HTMLInputElement>;
-  searchRef: RefObject<HTMLInputElement>;
-  rowRefs: MutableRefObject<Record<string, HTMLButtonElement | null>>;
-  onRefresh(): void;
-  onQuickAddChange(value: string): void;
-  onQuickAddSubmit(): void;
-  onKeywordChange(value: string): void;
-  onStatusChange(value: WorkspaceStatusFilter): void;
-  onTagFilterChange(tagId: string): void;
-  onSortByChange(value: WorkspaceSort): void;
-  onOpenShortcutHelp(): void;
-  onToggleSelectAllVisible(): void;
-  onClearSelection(): void;
-  onBatchReschedule(preset: "plus_1_hour" | "today_18" | "tomorrow_09"): void;
-  onToggleNotificationDebug(): void;
-  onExportNotificationDebug(): void;
-  onClearNotificationDebug(): void;
-  onToggleReminderExpanded(): void;
-  onToggleReminderSelectedOnly(): void;
-  onSnoozeReminder(minutes: number): void;
-  onReminderReschedule(preset: "plus_1_hour" | "today_18" | "tomorrow_09"): void;
-  onOpenCustomReminderReschedule(): void;
-  onToggleSelectAllReminderHits(): void;
-  onFocusRecordFromReminder(recordId: string): void;
-  onToggleReminderSelection(recordId: string): void;
-  onSelectRecord(recordId: string): void;
-  onToggleSelection(recordId: string): void;
-  onCompleteRecord(recordId: string): void;
-}
+export type WorkspaceListPanelProps = WorkspaceListPanelContract;
 
 export function WorkspaceListPanel({
   activeTagId,

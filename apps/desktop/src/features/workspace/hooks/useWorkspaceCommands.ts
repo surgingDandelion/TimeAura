@@ -3,12 +3,14 @@ import type { MutableRefObject, RefObject } from "react";
 
 import type { RecordEntity, ReminderHit, ReminderSummary, TagEntity } from "@timeaura-core";
 
-import type { CustomReminderSheetProps } from "../components/CustomReminderSheet";
-import type { ShortcutHelpSheetProps } from "../components/ShortcutHelpSheet";
-import type { TagManagerSheetProps } from "../components/TagManagerSheet";
-import type { WorkspaceDetailInspectorProps } from "../components/WorkspaceDetailInspector";
-import type { WorkspaceListPanelProps } from "../components/WorkspaceListPanel";
 import type { ContentMode, NotificationDebugEntry, RecordDraft, TagEditorDraft, WorkspaceSort, WorkspaceStatusFilter } from "../types";
+import type {
+  CustomReminderSheetContract,
+  ShortcutHelpSheetContract,
+  TagManagerSheetContract,
+  WorkspaceDetailInspectorContract,
+  WorkspaceListPanelContract,
+} from "../contracts";
 import { WORKSPACE_SHORTCUT_ITEMS, useWorkspaceKeyboardShortcuts } from "./useWorkspaceKeyboardShortcuts";
 
 interface UseWorkspaceCommandsOptions {
@@ -137,7 +139,7 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
     onOpenShortcutHelp: openShortcutHelp,
   });
 
-  const listPanelProps: WorkspaceListPanelProps = {
+  const listPanelProps: WorkspaceListPanelContract = {
       activeTagId: options.activeTagId,
       activeView: options.activeView,
       currentTagName: options.currentTagName,
@@ -195,7 +197,7 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
       onCompleteRecord: options.onCompleteRecord,
     };
 
-  const detailInspectorProps: WorkspaceDetailInspectorProps = {
+  const detailInspectorProps: WorkspaceDetailInspectorContract = {
       selectedRecord: options.selectedRecord,
       draft: options.draft,
       tags: options.tags,
@@ -214,7 +216,7 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
       onContentModeChange: options.onContentModeChange,
     };
 
-  const tagManagerSheetProps: TagManagerSheetProps = {
+  const tagManagerSheetProps: TagManagerSheetContract = {
       open: options.tagManagerOpen,
       tags: options.tags,
       draft: options.draft,
@@ -229,7 +231,7 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
       onDelete: options.onDeleteTag,
     };
 
-  const customReminderSheetProps: CustomReminderSheetProps = {
+  const customReminderSheetProps: CustomReminderSheetContract = {
       open: options.customReminderTimeOpen,
       reminderSelectedOnly: options.reminderSelectedOnly,
       reminderSelectedIds: options.reminderSelectedIds,
@@ -242,7 +244,7 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
       onSubmit: options.onSubmitCustomReminder,
     };
 
-  const shortcutHelpProps: ShortcutHelpSheetProps = {
+  const shortcutHelpProps: ShortcutHelpSheetContract = {
       open: shortcutHelpOpen,
       shortcuts: WORKSPACE_SHORTCUT_ITEMS,
       onClose: closeShortcutHelp,

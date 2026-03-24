@@ -1,13 +1,7 @@
-import type { NotificationDebugEntry } from "../types";
+import type { NotificationDebugPanelContract } from "../contracts";
 import { formatDateTime } from "../utils";
 
-export interface NotificationDebugPanelProps {
-  entries: NotificationDebugEntry[];
-  open: boolean;
-  onToggleOpen(): void;
-  onExport(): void;
-  onClear(): void;
-}
+export type NotificationDebugPanelProps = NotificationDebugPanelContract;
 
 export function NotificationDebugPanel({
   entries,

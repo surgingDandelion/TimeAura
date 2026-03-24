@@ -1,26 +1,10 @@
 import type { RecordEntity, RecordPriority, RecordStatus, TagEntity } from "@timeaura-core";
 
+import type { WorkspaceDetailInspectorContract } from "../contracts";
 import type { ContentMode, RecordDraft } from "../types";
 import { formatDateTime, renderMarkdownPreview, resolvePresetDate, toInputValue } from "../utils";
 
-export interface WorkspaceDetailInspectorProps {
-  selectedRecord: RecordEntity | null;
-  draft: RecordDraft | null;
-  tags: TagEntity[];
-  contentMode: ContentMode;
-  saving: boolean;
-  draftDirty: boolean;
-  onGenerateSummary(): void;
-  onPolishMarkdown(): void;
-  onOpenTagManager(): void;
-  onArchive(recordId: string): void;
-  onDelete(recordId: string): void;
-  onClose(): void;
-  onSave(): void;
-  onDraftChange(nextDraft: RecordDraft): void;
-  onToggleTag(tagId: string): void;
-  onContentModeChange(mode: ContentMode): void;
-}
+export type WorkspaceDetailInspectorProps = WorkspaceDetailInspectorContract;
 
 export function WorkspaceDetailInspector({
   selectedRecord,

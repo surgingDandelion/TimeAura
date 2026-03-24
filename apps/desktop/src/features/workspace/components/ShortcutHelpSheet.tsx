@@ -1,10 +1,6 @@
-import type { WorkspaceShortcutItem } from "../types";
+import type { ShortcutHelpSheetContract } from "../contracts";
 
-export interface ShortcutHelpSheetProps {
-  open: boolean;
-  shortcuts: WorkspaceShortcutItem[];
-  onClose(): void;
-}
+export type ShortcutHelpSheetProps = ShortcutHelpSheetContract;
 
 export function ShortcutHelpSheet({
   open,

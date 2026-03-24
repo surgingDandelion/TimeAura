@@ -1,21 +1,8 @@
 import type { TagEntity } from "@timeaura-core";
 
-import type { RecordDraft, TagEditorDraft } from "../types";
+import type { TagManagerSheetContract } from "../contracts";
 
-export interface TagManagerSheetProps {
-  open: boolean;
-  tags: TagEntity[];
-  draft: RecordDraft | null;
-  tagEditor: TagEditorDraft;
-  editingTag: TagEntity | null;
-  onClose(): void;
-  onResetEditor(): void;
-  onToggleTag(tagId: string): void;
-  onSelectTag(tag: TagEntity): void;
-  onTagEditorChange(nextEditor: TagEditorDraft): void;
-  onSubmit(): void;
-  onDelete(tag: TagEntity): void;
-}
+export type TagManagerSheetProps = TagManagerSheetContract;
 
 export function TagManagerSheet({
   open,

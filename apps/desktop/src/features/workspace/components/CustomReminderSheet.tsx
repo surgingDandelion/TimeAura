@@ -1,15 +1,6 @@
-export interface CustomReminderSheetProps {
-  open: boolean;
-  reminderSelectedOnly: boolean;
-  reminderSelectedIds: string[];
-  activeReminderTargetIds: string[];
-  customReminderDueAt: string;
-  customReminderValidation: string[];
-  onClose(): void;
-  onChangeDueAt(value: string): void;
-  onApplyPreset(preset: "plus_1_hour" | "today_18" | "tomorrow_09" | "friday_18" | "next_monday_09"): void;
-  onSubmit(): void;
-}
+import type { CustomReminderSheetContract } from "../contracts";
+
+export type CustomReminderSheetProps = CustomReminderSheetContract;
 
 export function CustomReminderSheet({
   open,
