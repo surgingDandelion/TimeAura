@@ -3,6 +3,8 @@ import type { RefObject } from "react";
 
 import type { AppServices } from "@timeaura-core";
 
+import type { WorkspaceCommandResult } from "../contracts";
+
 interface UseWorkspaceQuickAddActionsOptions {
   activeTagId: string;
   quickAddRef: RefObject<HTMLInputElement>;
@@ -20,11 +22,13 @@ export function useWorkspaceQuickAddActions({
 }: UseWorkspaceQuickAddActionsOptions) {
   const [quickAdd, setQuickAdd] = useState("");
 
-  const handleQuickAdd = useCallback(async (): Promise<void> => {
+  const handleQuickAdd = useCallback(async (): Promise<WorkspaceCommandResult<{ recordId: string }>> => {
     const title = quickAdd.trim();
 
     if (!title) {
-      return;
+      return {
+        status: "noop",
+      };
     }
 
     const created = await services.recordService.createRecord({
@@ -39,6 +43,11 @@ export function useWorkspaceQuickAddActions({
     onSelectCreatedRecord(created.id);
     await syncWorkspace("已新增记录");
     quickAddRef.current?.focus();
+    return {
+      status: "success",
+      message: "已新增记录",
+      data: { recordId: created.id },
+    };
   }, [activeTagId, onSelectCreatedRecord, quickAdd, quickAddRef, services.recordService, syncWorkspace]);
 
   return {

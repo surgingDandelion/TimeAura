@@ -18,6 +18,7 @@ export type WorkspacePrimaryReschedulePreset = Extract<
   ReminderPreset,
   "plus_1_hour" | "today_18" | "tomorrow_09"
 >;
+export type WorkspaceCommandStatus = "success" | "cancelled" | "noop";
 
 export type StringHandler = (value: string) => void;
 export type RecordIdHandler = (recordId: string) => void;
@@ -30,6 +31,12 @@ export type WorkspaceReminderPresetHandler = (preset: ReminderPreset) => void;
 export type RecordDraftHandler = (nextDraft: RecordDraft) => void;
 export type TagEditorDraftHandler = (nextEditor: TagEditorDraft) => void;
 export type ContentModeHandler = (mode: ContentMode) => void;
+
+export interface WorkspaceCommandResult<TData = void> {
+  status: WorkspaceCommandStatus;
+  message?: string;
+  data?: TData;
+}
 
 export interface NotificationDebugPanelContract {
   entries: NotificationDebugEntry[];

@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
 
+import type { WorkspaceCommandResult } from "../contracts";
 import type { NotificationDebugEntry } from "../types";
+import { createDefaultWorkspaceTestSeams, type WorkspaceTestSeams } from "../testSeams";
 
 interface RuntimeNotificationEntry {
   id: string;
@@ -15,6 +17,7 @@ interface UseWorkspaceNotificationDebugActionsOptions {
   runtimeNotifications?: RuntimeNotificationEntry[];
   onClearNotificationDebug?(): void | Promise<void>;
   onMessage(message: string): void;
+  seams?: WorkspaceTestSeams;
 }
 
 export function useWorkspaceNotificationDebugActions({
@@ -22,6 +25,7 @@ export function useWorkspaceNotificationDebugActions({
   runtimeNotifications,
   onClearNotificationDebug,
   onMessage,
+  seams = createDefaultWorkspaceTestSeams(),
 }: UseWorkspaceNotificationDebugActionsOptions) {
   const [notificationDebugOpen, setNotificationDebugOpen] = useState(false);
 
@@ -41,41 +45,52 @@ export function useWorkspaceNotificationDebugActions({
       .slice(0, 24);
   }, [notificationDebugEntries, runtimeNotifications]);
 
-  const handleExportNotificationDebug = useCallback(() => {
+  const handleExportNotificationDebug = useCallback((): WorkspaceCommandResult<{ count: number }> => {
     if (notificationDebugFeed.length === 0) {
-      return;
+      return {
+        status: "noop",
+      };
     }
 
     const payload = {
-      exportedAt: new Date().toISOString(),
+      exportedAt: seams.clock.nowIso(),
       entries: notificationDebugFeed,
     };
-    const fileName = `timeaura-notification-debug-${createExportTimestamp()}.json`;
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const fileName = `timeaura-notification-debug-${seams.clock.fileTimestamp()}.json`;
 
-    link.href = url;
-    link.download = fileName;
-    link.click();
-    URL.revokeObjectURL(url);
+    seams.download.downloadJson(fileName, payload);
     onMessage("通知调试记录已导出");
-  }, [notificationDebugFeed, onMessage]);
+    return {
+      status: "success",
+      message: "通知调试记录已导出",
+      data: {
+        count: notificationDebugFeed.length,
+      },
+    };
+  }, [notificationDebugFeed, onMessage, seams.clock, seams.download]);
 
-  const handleClearNotificationDebugPanel = useCallback(async (): Promise<void> => {
+  const handleClearNotificationDebugPanel = useCallback(async (): Promise<WorkspaceCommandResult> => {
     if (notificationDebugFeed.length === 0) {
-      return;
+      return {
+        status: "noop",
+      };
     }
 
-    const confirmed = globalThis.confirm?.("确认清空当前通知调试记录吗？") ?? true;
+    const confirmed = await seams.confirm.confirm("确认清空当前通知调试记录吗？");
 
     if (!confirmed) {
-      return;
+      return {
+        status: "cancelled",
+      };
     }
 
     await onClearNotificationDebug?.();
     onMessage("通知调试记录已清空");
-  }, [notificationDebugFeed.length, onClearNotificationDebug, onMessage]);
+    return {
+      status: "success",
+      message: "通知调试记录已清空",
+    };
+  }, [notificationDebugFeed.length, onClearNotificationDebug, onMessage, seams.confirm]);
 
   return {
     notificationDebugOpen,
@@ -84,16 +99,4 @@ export function useWorkspaceNotificationDebugActions({
     handleExportNotificationDebug,
     handleClearNotificationDebugPanel,
   };
-}
-
-function createExportTimestamp(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  const hours = String(now.getHours()).padStart(2, "0");
-  const minutes = String(now.getMinutes()).padStart(2, "0");
-  const seconds = String(now.getSeconds()).padStart(2, "0");
-
-  return `${year}${month}${day}-${hours}${minutes}${seconds}`;
 }
