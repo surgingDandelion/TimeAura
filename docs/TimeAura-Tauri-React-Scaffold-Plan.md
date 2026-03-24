@@ -54,6 +54,14 @@ TimeAura/
     └── desktop/
 ```
 
+当前仓库已经补出该目录的首轮 scaffold 草稿，包括：
+
+- `apps/desktop/package.json`
+- `apps/desktop/vite.config.ts`
+- `apps/desktop/src/app/providers/AppServicesProvider.tsx`
+- `apps/desktop/src/app/bootstrap/createDesktopAppServices.ts`
+- `apps/desktop/src-tauri/*`
+
 这样做的价值：
 
 - 保留当前设计资产，不打乱原型与文档
@@ -372,6 +380,9 @@ export async function createAppServices(
 
 - `drafts/src/bootstrap/createMockAppServices.ts`
 - `drafts/src/bootstrap/createAppServices.ts`
+- `drafts/src/bootstrap/createSqliteAppServices.ts`
+- `drafts/src/providers/http/*`
+- `drafts/src/providers/tauri/*`
 
 这意味着真实工程初始化后，只需要：
 
