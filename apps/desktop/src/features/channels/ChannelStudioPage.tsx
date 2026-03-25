@@ -125,31 +125,35 @@ export function ChannelStudioPage(): JSX.Element {
   );
 
   const loadChannels = useCallback(async () => {
-    const [channelResult, mappingResult, nextDefaultChannelId] = await Promise.all([
-      services.channelService.listChannels(),
-      services.channelService.listAbilityMappings(),
-      services.channelService.getDefaultChannelId(),
-    ]);
+    try {
+      const [channelResult, mappingResult, nextDefaultChannelId] = await Promise.all([
+        services.channelService.listChannels(),
+        services.channelService.listAbilityMappings(),
+        services.channelService.getDefaultChannelId(),
+      ]);
 
-    setChannels(channelResult);
-    setDefaultChannelId(nextDefaultChannelId);
-    setMappings(
-      mappingResult.reduce<Record<AIAbilityKey, string>>(
-        (result, item) => {
-          result[item.abilityKey] = item.channelId;
-          return result;
-        },
-        {
-          summary: "",
-          polish: "",
-          weekly_report: "",
-          monthly_report: "",
-        },
-      ),
-    );
+      setChannels(channelResult);
+      setDefaultChannelId(nextDefaultChannelId);
+      setMappings(
+        mappingResult.reduce<Record<AIAbilityKey, string>>(
+          (result, item) => {
+            result[item.abilityKey] = item.channelId;
+            return result;
+          },
+          {
+            summary: "",
+            polish: "",
+            weekly_report: "",
+            monthly_report: "",
+          },
+        ),
+      );
 
-    if (!selectedId && channelResult[0]) {
-      setSelectedId(channelResult[0].id);
+      if (!selectedId && channelResult[0]) {
+        setSelectedId(channelResult[0].id);
+      }
+    } catch (error) {
+      setMessage(toErrorMessage(error, "加载 AI 通道配置失败"));
     }
   }, [selectedId, services.channelService]);
 

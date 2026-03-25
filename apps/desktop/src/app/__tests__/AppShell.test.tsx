@@ -248,6 +248,36 @@ describe("AppShell", () => {
     });
   });
 
+  it("shows runtime warning when sidebar refresh fails", async () => {
+    const container = createContainer();
+    container.services.tagService.listTagsWithCounts = vi.fn(async () => {
+      throw new Error("sidebar failed");
+    });
+    useAppServicesSpy.mockReturnValue(container);
+
+    render(<AppShell />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("workspace-runtime-notice").textContent).toBe("侧栏信息刷新失败，请稍后重试");
+      expect(screen.getByTestId("workspace-debug-count").textContent).toBe("1");
+    });
+  });
+
+  it("shows runtime warning when reminder scheduling fails", async () => {
+    const container = createContainer();
+    container.services.notificationService.scheduleReminderNotifications = vi.fn(async () => {
+      throw new Error("schedule failed");
+    });
+    useAppServicesSpy.mockReturnValue(container);
+
+    render(<AppShell />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("workspace-runtime-notice").textContent).toBe("提醒通知调度失败，请稍后重试");
+      expect(screen.getByTestId("workspace-debug-count").textContent).toBe("1");
+    });
+  });
+
   it("re-schedules reminder notifications on interval", async () => {
     vi.useFakeTimers();
     const container = createContainer();

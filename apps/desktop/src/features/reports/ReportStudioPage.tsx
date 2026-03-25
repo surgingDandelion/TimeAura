@@ -30,24 +30,28 @@ export function ReportStudioPage(): JSX.Element {
   );
 
   const loadReportMeta = useCallback(async () => {
-    const [templateResult, channelResult, tagResult, historyResult] = await Promise.all([
-      services.templateService.listTemplates(),
-      services.channelService.listChannels(),
-      services.tagService.listTags(),
-      services.reportService.listReportHistories(),
-    ]);
+    try {
+      const [templateResult, channelResult, tagResult, historyResult] = await Promise.all([
+        services.templateService.listTemplates(),
+        services.channelService.listChannels(),
+        services.tagService.listTags(),
+        services.reportService.listReportHistories(),
+      ]);
 
-    setTemplates(templateResult);
-    setChannels(channelResult);
-    setTags(tagResult);
-    setHistories(historyResult);
+      setTemplates(templateResult);
+      setChannels(channelResult);
+      setTags(tagResult);
+      setHistories(historyResult);
 
-    if (!templateId && templateResult[0]) {
-      setTemplateId(templateResult[0].id);
-    }
+      if (!templateId && templateResult[0]) {
+        setTemplateId(templateResult[0].id);
+      }
 
-    if (!selectedHistoryId && historyResult[0]) {
-      setSelectedHistoryId(historyResult[0].id);
+      if (!selectedHistoryId && historyResult[0]) {
+        setSelectedHistoryId(historyResult[0].id);
+      }
+    } catch (error) {
+      setMessage(toErrorMessage(error, "报告工作台初始化失败"));
     }
   }, [selectedHistoryId, services.channelService, services.reportService, services.tagService, services.templateService, templateId]);
 
@@ -75,6 +79,8 @@ export function ReportStudioPage(): JSX.Element {
 
       setDraft(result);
       setMessage("报告草稿已生成");
+    } catch (error) {
+      setMessage(toErrorMessage(error, "生成报告草稿失败"));
     } finally {
       setBusy(false);
     }
@@ -104,6 +110,8 @@ export function ReportStudioPage(): JSX.Element {
       setSelectedHistoryId(history.id);
       setMessage("报告历史已保存");
       await loadReportMeta();
+    } catch (error) {
+      setMessage(toErrorMessage(error, "保存报告历史失败"));
     } finally {
       setBusy(false);
     }
@@ -119,6 +127,8 @@ export function ReportStudioPage(): JSX.Element {
     try {
       await services.reportService.saveReportAsRecord(selectedHistoryId);
       setMessage("报告已保存为记录");
+    } catch (error) {
+      setMessage(toErrorMessage(error, "保存为记录失败"));
     } finally {
       setBusy(false);
     }
@@ -265,4 +275,8 @@ function defaultRangeStart(): string {
 
 function defaultRangeEnd(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+function toErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? `${fallback}：${error.message}` : fallback;
 }

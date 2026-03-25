@@ -61,30 +61,66 @@ export function AppShell(): JSX.Element {
     }
   }, [runtime]);
 
-  const loadSidebarData = useCallback(async () => {
-    const [tagCounts, todayRecords, planRecords, allRecords, doneRecords] = await Promise.all([
-      services.tagService.listTagsWithCounts(false),
-      services.recordService.listRecords({ status: "todo", view: "today" }),
-      services.recordService.listRecords({ status: "todo", view: "plan" }),
-      services.recordService.listRecords({ status: "todo", view: "all" }),
-      services.recordService.listRecords({ status: "done", view: "done" }),
-    ]);
-
-    setSidebarTags(tagCounts);
-    setWorkspaceCounts({
-      today: todayRecords.total,
-      plan: planRecords.total,
-      all: allRecords.total,
-      done: doneRecords.total,
+  const presentRuntimeNotice = useCallback((text: string, tone: WorkspaceRuntimeNotice["tone"]) => {
+    setWorkspaceRuntimeNotice({
+      text,
+      tone,
+      nonce: Date.now(),
     });
-  }, [services.recordService, services.tagService]);
+  }, []);
+
+  const reportShellFailure = useCallback((
+    title: string,
+    fallbackText: string,
+    error: unknown,
+  ) => {
+    const detail = error instanceof Error ? `${fallbackText}：${error.message}` : fallbackText;
+
+    pushNotificationDebug({
+      source: "driver",
+      level: "error",
+      title,
+      detail,
+    });
+    presentRuntimeNotice(fallbackText, "warning");
+  }, [presentRuntimeNotice, pushNotificationDebug]);
+
+  const loadSidebarData = useCallback(async () => {
+    try {
+      const [tagCounts, todayRecords, planRecords, allRecords, doneRecords] = await Promise.all([
+        services.tagService.listTagsWithCounts(false),
+        services.recordService.listRecords({ status: "todo", view: "today" }),
+        services.recordService.listRecords({ status: "todo", view: "plan" }),
+        services.recordService.listRecords({ status: "todo", view: "all" }),
+        services.recordService.listRecords({ status: "done", view: "done" }),
+      ]);
+
+      setSidebarTags(tagCounts);
+      setWorkspaceCounts({
+        today: todayRecords.total,
+        plan: planRecords.total,
+        all: allRecords.total,
+        done: doneRecords.total,
+      });
+    } catch (error) {
+      reportShellFailure("侧栏刷新失败", "侧栏信息刷新失败，请稍后重试", error);
+    }
+  }, [reportShellFailure, services.recordService, services.tagService]);
+
+  const scheduleReminderNotifications = useCallback(async () => {
+    try {
+      await services.notificationService.scheduleReminderNotifications();
+    } catch (error) {
+      reportShellFailure("提醒调度失败", "提醒通知调度失败，请稍后重试", error);
+    }
+  }, [reportShellFailure, services.notificationService]);
 
   const handleWorkspaceChanged = useCallback(async () => {
-    await Promise.all([
+    await Promise.allSettled([
       loadSidebarData(),
-      services.notificationService.scheduleReminderNotifications(),
+      scheduleReminderNotifications(),
     ]);
-  }, [loadSidebarData, services.notificationService]);
+  }, [loadSidebarData, scheduleReminderNotifications]);
 
   const routeToWorkspaceRecord = useCallback((recordId: string) => {
     setPage("workspace");
@@ -234,14 +270,14 @@ export function AppShell(): JSX.Element {
   }, [loadSidebarData]);
 
   useEffect(() => {
-    void services.notificationService.scheduleReminderNotifications();
+    void scheduleReminderNotifications();
 
     const interval = window.setInterval(() => {
-      void services.notificationService.scheduleReminderNotifications();
+      void scheduleReminderNotifications();
     }, 60_000);
 
     return () => window.clearInterval(interval);
-  }, [services.notificationService]);
+  }, [scheduleReminderNotifications]);
 
   useEffect(() => {
     if (!isTauriRuntime()) {
@@ -255,38 +291,46 @@ export function AppShell(): JSX.Element {
     void Promise.all([
       import("@tauri-apps/plugin-notification"),
       import("@tauri-apps/api/event"),
-    ]).then(async ([notification, event]) => {
-      if (disposed) {
-        return;
-      }
+    ])
+      .then(async ([notification, event]) => {
+        if (disposed) {
+          return;
+        }
 
-      const listener = await notification.onAction((payload) => {
-        void handleNotificationAction({
-          actionId: "notification_click",
-          extra: payload.extra ?? {},
+        const listener = await notification.onAction((payload) => {
+          void handleNotificationAction({
+            actionId: "notification_click",
+            extra: payload.extra ?? {},
+          });
         });
-      });
-      const desktopListener = await event.listen<NotificationActionEventPayload>(
-        "timeaura://notification-action",
-        (payload) => {
-          void handleNotificationAction(payload.payload);
-        },
-      );
+        const desktopListener = await event.listen<NotificationActionEventPayload>(
+          "timeaura://notification-action",
+          (payload) => {
+            void handleNotificationAction(payload.payload);
+          },
+        );
 
-      unsubscribeAction = () => {
-        void listener.unregister();
-      };
-      unsubscribeDesktopAction = () => {
-        void desktopListener();
-      };
-    });
+        unsubscribeAction = () => {
+          void listener.unregister();
+        };
+        unsubscribeDesktopAction = () => {
+          void desktopListener();
+        };
+      })
+      .catch((error) => {
+        if (disposed) {
+          return;
+        }
+
+        reportShellFailure("桌面通知接线失败", "桌面通知接线失败，请稍后重试", error);
+      });
 
     return () => {
       disposed = true;
       unsubscribeAction?.();
       unsubscribeDesktopAction?.();
     };
-  }, [handleNotificationAction]);
+  }, [handleNotificationAction, reportShellFailure]);
 
   const sidebarSummary = useMemo(
     () => ({

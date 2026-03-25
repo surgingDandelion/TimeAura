@@ -1,4 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -120,10 +122,6 @@ describe("AppServicesProvider", () => {
   });
 
   it("throws when useAppServices is used before provider is ready", () => {
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-
-    expect(() => render(<ThrowingConsumer />)).toThrow("AppServicesProvider is not ready");
-
-    consoleErrorSpy.mockRestore();
+    expect(() => renderToStaticMarkup(<ThrowingConsumer />)).toThrow("AppServicesProvider is not ready");
   });
 });
