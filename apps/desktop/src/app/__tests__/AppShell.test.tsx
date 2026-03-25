@@ -8,10 +8,37 @@ const useAppServicesSpy = vi.fn();
 const workspacePageSpy = vi.fn();
 const reportPageSpy = vi.fn();
 const channelPageSpy = vi.fn();
+const tauriBridge = vi.hoisted(() => ({
+  notificationCallback: null as null | ((payload: { extra?: Record<string, unknown> }) => void),
+  desktopCallback: null as null | ((payload: { payload: { actionId?: string; extra?: Record<string, unknown> } }) => void),
+  unregister: vi.fn(async () => undefined),
+  unlisten: vi.fn(),
+}));
 
 vi.mock("../providers/AppServicesProvider", () => ({
   useAppServices: () => useAppServicesSpy(),
   AppServicesProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
+}));
+
+vi.mock("@tauri-apps/plugin-notification", () => ({
+  onAction: vi.fn(async (callback: (payload: { extra?: Record<string, unknown> }) => void) => {
+    tauriBridge.notificationCallback = callback;
+    return {
+      unregister: tauriBridge.unregister,
+    };
+  }),
+}));
+
+vi.mock("@tauri-apps/api/event", () => ({
+  listen: vi.fn(
+    async (
+      _eventName: string,
+      callback: (payload: { payload: { actionId?: string; extra?: Record<string, unknown> } }) => void,
+    ) => {
+      tauriBridge.desktopCallback = callback;
+      return tauriBridge.unlisten;
+    },
+  ),
 }));
 
 vi.mock("../../features/workspace/WorkspacePage", () => ({
@@ -22,6 +49,9 @@ vi.mock("../../features/workspace/WorkspacePage", () => ({
         <div data-testid="workspace-view">{String(props.activeView)}</div>
         <div data-testid="workspace-tag">{String(props.activeTagId)}</div>
         <div data-testid="workspace-debug-count">{Array.isArray(props.notificationDebugEntries) ? props.notificationDebugEntries.length : 0}</div>
+        <div data-testid="workspace-focus-record">{String((props.focusTarget as { recordId?: string } | null)?.recordId ?? "")}</div>
+        <div data-testid="workspace-runtime-notice">{String((props.runtimeNotice as { text?: string } | null)?.text ?? "")}</div>
+        <div data-testid="workspace-quick-add-target">{String(Boolean(props.quickAddTarget))}</div>
         <button onClick={() => (props.onWorkspaceChanged as (() => void) | undefined)?.()}>simulate-workspace-change</button>
       </div>
     );
@@ -101,9 +131,14 @@ describe("AppShell", () => {
     workspacePageSpy.mockReset();
     reportPageSpy.mockReset();
     channelPageSpy.mockReset();
+    tauriBridge.notificationCallback = null;
+    tauriBridge.desktopCallback = null;
+    tauriBridge.unregister.mockClear();
+    tauriBridge.unlisten.mockClear();
   });
 
   afterEach(() => {
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
@@ -141,6 +176,7 @@ describe("AppShell", () => {
     expect(screen.getByTestId("workspace-page")).toBeTruthy();
     expect(screen.getByTestId("workspace-view").textContent).toBe("all");
     expect(screen.getByTestId("workspace-tag").textContent).toBe("all");
+    expect(screen.getByTestId("workspace-quick-add-target").textContent).toBe("true");
   });
 
   it("refreshes sidebar state on workspace change and forwards notification debug events", async () => {
@@ -200,5 +236,83 @@ describe("AppShell", () => {
     expect(container.services.notificationService.scheduleReminderNotifications).toHaveBeenCalledTimes(2);
 
     vi.useRealTimers();
+  });
+
+  it("handles desktop notification actions for complete and click-to-open flows", async () => {
+    const container = createContainer();
+    useAppServicesSpy.mockReturnValue(container);
+    vi.stubGlobal("__TAURI_INTERNALS__", {});
+
+    render(<AppShell />);
+
+    await waitFor(() => {
+      expect(tauriBridge.desktopCallback).toBeTruthy();
+      expect(tauriBridge.notificationCallback).toBeTruthy();
+    });
+
+    await act(async () => {
+      tauriBridge.desktopCallback?.({
+        payload: {
+          actionId: "complete",
+          extra: {
+            recordId: "record-1",
+          },
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(container.services.recordService.completeRecord).toHaveBeenCalledWith("record-1");
+      expect(screen.getByTestId("workspace-focus-record").textContent).toBe("record-1");
+      expect(screen.getByTestId("workspace-runtime-notice").textContent).toBe("已通过桌面通知完成任务");
+      expect(screen.getByTestId("workspace-debug-count").textContent).toBe("1");
+    });
+
+    await act(async () => {
+      tauriBridge.notificationCallback?.({
+        extra: {
+          recordId: "record-2",
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("workspace-focus-record").textContent).toBe("record-2");
+      expect(screen.getByTestId("workspace-runtime-notice").textContent).toBe("已从桌面通知回到对应记录");
+      expect(screen.getByTestId("workspace-debug-count").textContent).toBe("2");
+    });
+  });
+
+  it("falls back to workspace warning notice when notification action handling fails", async () => {
+    const container = createContainer();
+    container.services.recordService.completeRecord = vi.fn(async () => {
+      throw new Error("complete failed");
+    });
+    useAppServicesSpy.mockReturnValue(container);
+    vi.stubGlobal("__TAURI_INTERNALS__", {});
+
+    render(<AppShell />);
+
+    await waitFor(() => {
+      expect(tauriBridge.desktopCallback).toBeTruthy();
+    });
+
+    await act(async () => {
+      tauriBridge.desktopCallback?.({
+        payload: {
+          actionId: "complete",
+          extra: {
+            recordId: "record-3",
+          },
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("workspace-view").textContent).toBe("all");
+      expect(screen.getByTestId("workspace-focus-record").textContent).toBe("record-3");
+      expect(screen.getByTestId("workspace-runtime-notice").textContent).toBe("通知动作处理失败，请在工作台中手动继续操作");
+      expect(screen.getByTestId("workspace-debug-count").textContent).toBe("2");
+    });
   });
 });
