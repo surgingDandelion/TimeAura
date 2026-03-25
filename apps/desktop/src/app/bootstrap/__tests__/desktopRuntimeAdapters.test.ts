@@ -250,7 +250,7 @@ describe("desktop runtime adapters", () => {
       }),
     ).rejects.toThrow("SQLite 事务失败：write failed；回滚失败：rollback unavailable");
 
-    expect(executedStatements).toEqual(["BEGIN", "ROLLBACK"]);
+    expect(executedStatements).toEqual(["BEGIN IMMEDIATE", "ROLLBACK"]);
   });
 
   it("keeps the original sqlite error when rollback reports no active transaction", async () => {
@@ -278,7 +278,7 @@ describe("desktop runtime adapters", () => {
       }),
     ).rejects.toThrow("UNIQUE constraint failed: records.id");
 
-    expect(executedStatements).toEqual(["BEGIN", "ROLLBACK"]);
+    expect(executedStatements).toEqual(["BEGIN IMMEDIATE", "ROLLBACK"]);
   });
 
   it("serializes concurrent sqlite transactions on the same client", async () => {
@@ -310,60 +310,63 @@ describe("desktop runtime adapters", () => {
 
     await Promise.resolve();
 
-    expect(executedStatements[0]).toBe("BEGIN");
-    expect(executedStatements.filter((statement) => statement === "BEGIN")).toHaveLength(1);
+    expect(executedStatements[0]).toBe("BEGIN IMMEDIATE");
+    expect(executedStatements.filter((statement) => statement === "BEGIN IMMEDIATE")).toHaveLength(1);
     expect(executedStatements).not.toContain("second-run");
 
     releaseFirstTransaction();
     await Promise.all([firstTransaction, secondTransaction]);
 
     expect(executedStatements).toEqual([
-      "BEGIN",
+      "BEGIN IMMEDIATE",
       "first-run",
       "first-finish",
       "COMMIT",
-      "BEGIN",
+      "BEGIN IMMEDIATE",
       "second-run",
       "COMMIT",
     ]);
   });
 
-  it("serializes concurrent standalone sqlite writes outside transactions", async () => {
+  it("serializes concurrent standalone sqlite operations outside transactions", async () => {
     const executedStatements: string[] = [];
-    let releaseFirstWrite!: () => void;
-    const firstWriteGate = new Promise<void>((resolve) => {
-      releaseFirstWrite = resolve;
+    let releaseFirstSelect!: () => void;
+    const firstSelectGate = new Promise<void>((resolve) => {
+      releaseFirstSelect = resolve;
     });
     const client = new SqliteClient({
       execute: async (query: string) => {
         executedStatements.push(query);
-
-        if (query === "INSERT INTO records VALUES (1)") {
-          await firstWriteGate;
-        }
-
         return {
           rowsAffected: 1,
           lastInsertId: null,
         };
       },
-      select: async () => [],
+      select: async (query: string) => {
+        executedStatements.push(query);
+
+        if (query === "SELECT * FROM records") {
+          await firstSelectGate;
+        }
+
+        return [];
+      },
       close: async () => undefined,
     });
 
-    const firstWrite = client.execute("INSERT INTO records VALUES (1)");
-    const secondWrite = client.execute("UPDATE records SET title = 'done' WHERE id = 1");
+    const firstSelect = client.select("SELECT * FROM records");
+    const secondWrite = client.execute("INSERT INTO records VALUES (1)");
 
     await Promise.resolve();
 
-    expect(executedStatements).toEqual(["INSERT INTO records VALUES (1)"]);
+    expect(executedStatements).toEqual(["SELECT * FROM records"]);
 
-    releaseFirstWrite();
-    await Promise.all([firstWrite, secondWrite]);
+    releaseFirstSelect();
+    await Promise.all([firstSelect, secondWrite]);
 
     expect(executedStatements).toEqual([
+      "SELECT * FROM records",
       "INSERT INTO records VALUES (1)",
-      "UPDATE records SET title = 'done' WHERE id = 1",
     ]);
   });
 
@@ -386,7 +389,7 @@ describe("desktop runtime adapters", () => {
     });
 
     expect(executedStatements).toEqual([
-      "BEGIN",
+      "BEGIN IMMEDIATE",
       "SAVEPOINT timeaura_tx_2",
       "RELEASE SAVEPOINT timeaura_tx_2",
       "COMMIT",

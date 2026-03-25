@@ -26,7 +26,7 @@ export interface ConnectSqliteClientOptions {
 export class SqliteClient {
   private transactionDepth = 0;
   private transactionSequence = 0;
-  private mutationQueue: Promise<void> = Promise.resolve();
+  private operationQueue: Promise<void> = Promise.resolve();
 
   constructor(private readonly database: SqliteDatabaseDriver) {}
 
@@ -55,14 +55,18 @@ export class SqliteClient {
   }
 
   async execute(query: string, bindValues: unknown[] = []): Promise<SqliteExecuteResult> {
-    if (this.transactionDepth === 0 && isMutationQuery(query)) {
-      return this.enqueueMutation(() => this.database.execute(query, bindValues));
+    if (this.transactionDepth === 0) {
+      return this.enqueueOperation(() => this.database.execute(query, bindValues));
     }
 
     return this.database.execute(query, bindValues);
   }
 
   async select<T = Record<string, unknown>>(query: string, bindValues: unknown[] = []): Promise<T[]> {
+    if (this.transactionDepth === 0) {
+      return this.enqueueOperation(() => this.database.select<T>(query, bindValues));
+    }
+
     return this.database.select<T>(query, bindValues);
   }
 
@@ -71,7 +75,7 @@ export class SqliteClient {
       return this.runTransaction(run);
     }
 
-    return this.enqueueMutation(() => this.runTransaction(run));
+    return this.enqueueOperation(() => this.runTransaction(run));
   }
 
   async migrate(migrations: SqliteMigration[]): Promise<void> {
@@ -110,7 +114,7 @@ export class SqliteClient {
   }
 
   private async initializeConnection(): Promise<void> {
-    await this.enqueueMutation(async () => {
+    await this.enqueueOperation(async () => {
       await this.database.execute("PRAGMA foreign_keys = ON");
       await this.database.execute("PRAGMA busy_timeout = 5000");
       await this.database.execute("PRAGMA journal_mode = WAL");
@@ -118,10 +122,10 @@ export class SqliteClient {
     });
   }
 
-  private async enqueueMutation<T>(run: () => Promise<T>): Promise<T> {
-    const previous = this.mutationQueue;
+  private async enqueueOperation<T>(run: () => Promise<T>): Promise<T> {
+    const previous = this.operationQueue;
     let release!: () => void;
-    this.mutationQueue = new Promise<void>((resolve) => {
+    this.operationQueue = new Promise<void>((resolve) => {
       release = resolve;
     });
 
@@ -140,7 +144,7 @@ export class SqliteClient {
     this.transactionDepth += 1;
 
     try {
-      await this.database.execute(isNested ? `SAVEPOINT ${savepointName}` : "BEGIN");
+      await this.database.execute(isNested ? `SAVEPOINT ${savepointName}` : "BEGIN IMMEDIATE");
       const result = await run(this);
       await this.database.execute(isNested ? `RELEASE SAVEPOINT ${savepointName}` : "COMMIT");
       return result;
@@ -225,20 +229,4 @@ function toErrorMessage(error: unknown): string {
 function shouldIgnoreRollbackFailure(error: unknown): boolean {
   const message = toErrorMessage(error).toLowerCase();
   return message.includes("no transaction is active") || message.includes("no such savepoint");
-}
-
-function isMutationQuery(query: string): boolean {
-  const normalized = query.trim().toUpperCase();
-
-  return [
-    "INSERT",
-    "UPDATE",
-    "DELETE",
-    "REPLACE",
-    "CREATE",
-    "ALTER",
-    "DROP",
-    "PRAGMA",
-    "VACUUM",
-  ].some((keyword) => normalized.startsWith(keyword));
 }
