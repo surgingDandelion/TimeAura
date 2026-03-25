@@ -28,7 +28,7 @@ export function useWorkspaceData({
     setLoading(true);
 
     try {
-      const [recordResult, tagResult, reminderResult, reminderHitsResult] = await Promise.all([
+      const [recordResult, tagResult, reminderResult, reminderHitsResult] = await Promise.allSettled([
         services.recordService.listRecords({
           view: activeView,
           keyword: keyword.trim() || undefined,
@@ -41,10 +41,31 @@ export function useWorkspaceData({
         services.reminderService.listReminderHits(new Date().toISOString()),
       ]);
 
-      setRecords(recordResult.items);
-      setTags(tagResult);
-      setReminder(reminderResult);
-      setReminderHits(reminderHitsResult);
+      if (recordResult.status === "fulfilled") {
+        setRecords(recordResult.value.items);
+      } else {
+        reportWorkspaceLoadIssue("records", recordResult.reason);
+      }
+
+      if (tagResult.status === "fulfilled") {
+        setTags(tagResult.value);
+      } else {
+        reportWorkspaceLoadIssue("tags", tagResult.reason);
+      }
+
+      if (reminderResult.status === "fulfilled") {
+        setReminder(reminderResult.value);
+      } else {
+        setReminder(null);
+        reportWorkspaceLoadIssue("reminder-summary", reminderResult.reason);
+      }
+
+      if (reminderHitsResult.status === "fulfilled") {
+        setReminderHits(reminderHitsResult.value);
+      } else {
+        setReminderHits([]);
+        reportWorkspaceLoadIssue("reminder-hits", reminderHitsResult.reason);
+      }
     } finally {
       setLoading(false);
     }
@@ -76,4 +97,8 @@ export function useWorkspaceData({
     currentTagName,
     loadWorkspace,
   };
+}
+
+function reportWorkspaceLoadIssue(scope: string, reason: unknown): void {
+  console.error(`[timeaura] workspace load issue (${scope})`, reason);
 }

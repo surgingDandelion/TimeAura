@@ -25,23 +25,14 @@ export async function ensureDesktopExperienceData(services: AppServices): Promis
     services.tagService.listTags(),
   ]);
 
-  if (allRecords.total > 0 || channels.length > 0) {
-    await services.settingsService.setSetting(EXPERIENCE_SEED_SETTING_KEY, true);
-    return {
-      seeded: false,
-      recordIds: [],
-      channelId: null,
-    };
-  }
-
   const tagMap = await ensurePrototypeTags(services, tags);
-  const records = await createPrototypeRecords(services, tagMap);
-  const channel = await createPrototypeChannel(services);
+  const records = allRecords.total > 0 ? allRecords.items : await createPrototypeRecords(services, tagMap);
+  const channel = channels[0] ?? (await createPrototypeChannel(services));
 
   await services.settingsService.setSetting(EXPERIENCE_SEED_SETTING_KEY, true);
 
   return {
-    seeded: true,
+    seeded: allRecords.total === 0 || channels.length === 0 || tags.length < 4,
     recordIds: records.map((record) => record.id),
     channelId: channel?.id ?? null,
   };

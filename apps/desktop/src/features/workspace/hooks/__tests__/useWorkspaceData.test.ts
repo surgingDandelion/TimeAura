@@ -134,7 +134,7 @@ describe("useWorkspaceData", () => {
     });
   });
 
-  it("resets loading when a manual reload fails and preserves existing data", async () => {
+  it("resets loading when the record query fails during manual reload and preserves existing data", async () => {
     const deferred = createDeferred<{ items: ReturnType<typeof createWorkspaceRecordEntity>[]; total: number }>();
     const listRecords = vi
       .fn()
@@ -186,7 +186,7 @@ describe("useWorkspaceData", () => {
     deferred.reject(new Error("workspace load failed"));
     await reloadPromise;
 
-    expect((caughtError as Error).message).toBe("workspace load failed");
+    expect(caughtError).toBeUndefined();
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
@@ -196,5 +196,50 @@ describe("useWorkspaceData", () => {
         title: "已有记录",
       }),
     ]);
+  });
+
+  it("keeps records available when reminder queries fail", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const record = createWorkspaceRecordEntity({
+      id: "record-1",
+      title: "已有记录",
+    });
+    const services = createWorkspaceAppServicesDouble({
+      recordService: {
+        listRecords: vi.fn(async () => ({
+          items: [record],
+          total: 1,
+        })),
+      },
+      tagService: {
+        listTags: vi.fn(async () => []),
+      },
+      reminderService: {
+        getReminderSummary: vi.fn(async () => {
+          throw new Error("summary failed");
+        }),
+        listReminderHits: vi.fn(async () => {
+          throw new Error("hits failed");
+        }),
+      },
+    });
+
+    const { result } = renderHook(() =>
+      useWorkspaceData({
+        activeTagId: "all",
+        activeView: "all",
+        services,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+      expect(result.current.records).toHaveLength(1);
+    });
+
+    expect(result.current.reminder).toBeNull();
+    expect(result.current.reminderHits).toEqual([]);
+    expect(errorSpy).toHaveBeenCalled();
+    errorSpy.mockRestore();
   });
 });
