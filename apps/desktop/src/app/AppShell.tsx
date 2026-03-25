@@ -18,6 +18,7 @@ import type {
 } from "../features/workspace/types";
 
 type AppPage = "workspace" | "reports" | "channels";
+type ThemeMode = "light" | "dark";
 
 interface WorkspaceSidebarCounts {
   today: number;
@@ -45,6 +46,7 @@ export function AppShell(): JSX.Element {
   const [workspaceQuickAddTarget, setWorkspaceQuickAddTarget] = useState<WorkspaceQuickAddTarget | null>(null);
   const [workspaceRuntimeNotice, setWorkspaceRuntimeNotice] = useState<WorkspaceRuntimeNotice | null>(null);
   const [notificationDebugEntries, setNotificationDebugEntries] = useState<NotificationDebugEntry[]>([]);
+  const [theme, setTheme] = useState<ThemeMode>("light");
 
   const pushNotificationDebug = useCallback((entry: Omit<NotificationDebugEntry, "id" | "at">) => {
     setNotificationDebugEntries((current) => [
@@ -247,6 +249,34 @@ export function AppShell(): JSX.Element {
   }, [workspaceRuntimeNotice]);
 
   useEffect(() => {
+    let cancelled = false;
+
+    void services.settingsService?.getAppSettings?.()
+      .then((settings) => {
+        if (cancelled || !settings?.theme) {
+          return;
+        }
+
+        setTheme(settings.theme);
+      })
+      .catch(() => {
+        // Keep the shell usable even when settings are unavailable.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [services.settingsService]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    document.body.dataset.theme = theme;
+  }, [theme]);
+
+  useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
@@ -395,26 +425,7 @@ export function AppShell(): JSX.Element {
     };
   }, [handleNotificationAction, reportShellFailure]);
 
-  const shellTitle = useMemo(() => {
-    if (page === "reports") {
-      return {
-        kicker: "AI 报告",
-        title: "时间范围报告工作台",
-      };
-    }
-
-    if (page === "channels") {
-      return {
-        kicker: "通道配置",
-        title: "AI Channel Studio",
-      };
-    }
-
-    return {
-      kicker: "备忘录",
-      title: "统一记录工作台",
-    };
-  }, [page]);
+  const canTriggerQuickAdd = !workspaceBootstrapping;
 
   function openWorkspaceView(view: WorkspaceSystemView): void {
     setPage("workspace");
@@ -437,35 +448,83 @@ export function AppShell(): JSX.Element {
     });
   }
 
+  function toggleTheme(): void {
+    const nextTheme: ThemeMode = theme === "light" ? "dark" : "light";
+    setTheme(nextTheme);
+    void services.settingsService?.setTheme?.(nextTheme);
+  }
+
   return (
-    <div className="desktop-shell">
-      <aside className="desktop-sidebar">
-        <div className="desktop-brand">
-          <div className="desktop-title">TimeAura</div>
-          <div className="desktop-subtitle">让每个重要时刻如约而至</div>
+    <div className="app-shell">
+      <div className="window-bar">
+        <div className="window-title">
+          <div className="traffic" aria-hidden="true">
+            <span className="red" />
+            <span className="yellow" />
+            <span className="green" />
+          </div>
+          <div className="brand-mark">TA</div>
+          <div className="brand-copy">
+            <h1>TimeAura</h1>
+            <p>让每个重要时刻如约而至</p>
+          </div>
         </div>
 
-        <nav className="desktop-nav">
+        <div className="top-actions">
+          <button className="icon-btn" title="切换主题" aria-label="切换主题" onClick={toggleTheme}>
+            <ThemeToggleIcon theme={theme} />
+          </button>
+          <button className="ghost-btn" onClick={triggerQuickAdd} disabled={!canTriggerQuickAdd}>
+            快速新增
+          </button>
+          <button className="primary-btn" onClick={() => setPage("reports")}>
+            生成周报
+          </button>
+          <button
+            className={`icon-btn${page === "channels" ? " icon-btn-active" : ""}`}
+            onClick={() => setPage("channels")}
+            title="AI通道配置"
+            aria-label="AI通道配置"
+          >
+            <ChannelStudioIcon />
+          </button>
+        </div>
+      </div>
+
+      <div className="main-body">
+        <aside className="sidebar">
+          <div className="sidebar-brand">
+            <h2 className="title">TimeAura</h2>
+            <p className="tagline">在紧凑节奏里，先看清楚什么最重要，再让它准时发生。</p>
+          </div>
+
+          <div className="nav-section">
+            <div className="nav-label">视图</div>
+            <nav className="desktop-nav">
           {[
-            { id: "today", label: "今天", count: workspaceCounts.today },
-            { id: "plan", label: "计划", count: workspaceCounts.plan },
-            { id: "all", label: "全部", count: workspaceCounts.all },
-            { id: "done", label: "已完成", count: workspaceCounts.done },
+            { id: "today", label: "今天", count: workspaceCounts.today, dotClass: "nav-item-dot-today" },
+            { id: "plan", label: "计划", count: workspaceCounts.plan, dotClass: "nav-item-dot-plan" },
+            { id: "all", label: "全部", count: workspaceCounts.all, dotClass: "nav-item-dot-all" },
+            { id: "done", label: "已完成", count: workspaceCounts.done, dotClass: "nav-item-dot-done" },
           ].map((item) => (
             <button
               key={item.id}
               className={`nav-item${page === "workspace" && workspaceView === item.id ? " nav-item-active" : ""}`}
               onClick={() => openWorkspaceView(item.id as WorkspaceSystemView)}
             >
-              <span>{item.label}</span>
-              <span className="nav-badge">{item.count}</span>
+              <span className="nav-item-left">
+                <span className={`nav-icon ${item.dotClass}`} />
+                <span className="nav-item-title">{item.label}</span>
+              </span>
+              <span className="badge-count">{item.count}</span>
             </button>
           ))}
-        </nav>
+            </nav>
+          </div>
 
-        <div className="sidebar-section">
-          <div className="sidebar-section-title">标签</div>
-          <div className="sidebar-tag-list">
+          <div className="nav-section sidebar-section">
+            <div className="nav-label">标签</div>
+            <div className="sidebar-tag-list">
             <button
               className={`sidebar-tag-item${page === "workspace" && workspaceTagId === "all" ? " sidebar-tag-item-active" : ""}`}
               onClick={() => {
@@ -473,8 +532,11 @@ export function AppShell(): JSX.Element {
                 setWorkspaceTagId("all");
               }}
             >
-              <span className="sidebar-tag-label">全部记录</span>
-              <span className="sidebar-tag-count">{workspaceCounts.all}</span>
+              <span className="sidebar-tag-label">
+                <span className="nav-icon nav-item-dot-all" />
+                <span className="tag-item-title">全部记录</span>
+              </span>
+              <span className="badge-count">{workspaceCounts.all}</span>
             </button>
 
             {sidebarTags.map((tag) => (
@@ -488,18 +550,17 @@ export function AppShell(): JSX.Element {
               >
                 <span className="sidebar-tag-label">
                   <span className="tag-dot" style={{ backgroundColor: tag.color }} />
-                  <span>{tag.name}</span>
+                  <span className="tag-item-title">{tag.name}</span>
                 </span>
-                <span className="sidebar-tag-count">{tag.count}</span>
+                <span className="badge-count">{tag.count}</span>
               </button>
             ))}
+            </div>
           </div>
-        </div>
 
-        <div className="desktop-sidebar-footer">
-          <div className="sidebar-footer-actions">
+          <div className="sidebar-footer">
             <button
-              className={`sidebar-icon-button${page === "reports" ? " sidebar-icon-button-active" : ""}`}
+              className={`icon-btn sidebar-footer-icon${page === "reports" ? " icon-btn-active" : ""}`}
               onClick={() => setPage("reports")}
               title="AI 报告"
               aria-label="AI 报告"
@@ -507,7 +568,15 @@ export function AppShell(): JSX.Element {
               <ReportIcon />
             </button>
             <button
-              className={`sidebar-icon-button${page === "channels" ? " sidebar-icon-button-active" : ""}`}
+              className="icon-btn sidebar-footer-icon"
+              disabled
+              title="回收站"
+              aria-label="回收站"
+            >
+              <TrashIcon />
+            </button>
+            <button
+              className={`icon-btn sidebar-footer-icon${page === "channels" ? " icon-btn-active" : ""}`}
               onClick={() => setPage("channels")}
               title="通道配置"
               aria-label="通道配置"
@@ -515,7 +584,7 @@ export function AppShell(): JSX.Element {
               <ChannelIcon />
             </button>
             <button
-              className="sidebar-icon-button"
+              className="icon-btn sidebar-footer-icon"
               onClick={triggerQuickAdd}
               title="快速新增"
               aria-label="快速新增"
@@ -524,36 +593,26 @@ export function AppShell(): JSX.Element {
               <QuickAddIcon />
             </button>
           </div>
-        </div>
-      </aside>
+        </aside>
 
-      <main className="desktop-main">
-        <div className="desktop-main-header">
-          <div>
-            <div className="panel-kicker">{shellTitle.kicker}</div>
-            <div className="desktop-main-title">{shellTitle.title}</div>
-          </div>
-          <button className="button-secondary" onClick={triggerQuickAdd} disabled={workspaceBootstrapping}>
-            快速新增
-          </button>
-        </div>
-
-        {page === "workspace" ? (
-          <WorkspacePage
-            activeTagId={workspaceTagId}
-            activeView={workspaceView}
-            focusTarget={workspaceFocusTarget}
-            quickAddTarget={workspaceQuickAddTarget}
-            runtimeNotice={workspaceRuntimeNotice}
-            notificationDebugEntries={notificationDebugEntries}
-            onClearNotificationDebug={clearNotificationDebug}
-            onTagFilterChange={setWorkspaceTagId}
-            onWorkspaceChanged={handleWorkspaceChanged}
-          />
-        ) : null}
-        {page === "reports" ? <ReportStudioPage /> : null}
-        {page === "channels" ? <ChannelStudioPage /> : null}
-      </main>
+        <main className="page-stack">
+          {page === "workspace" ? (
+            <WorkspacePage
+              activeTagId={workspaceTagId}
+              activeView={workspaceView}
+              focusTarget={workspaceFocusTarget}
+              quickAddTarget={workspaceQuickAddTarget}
+              runtimeNotice={workspaceRuntimeNotice}
+              notificationDebugEntries={notificationDebugEntries}
+              onClearNotificationDebug={clearNotificationDebug}
+              onTagFilterChange={setWorkspaceTagId}
+              onWorkspaceChanged={handleWorkspaceChanged}
+            />
+          ) : null}
+          {page === "reports" ? <ReportStudioPage /> : null}
+          {page === "channels" ? <ChannelStudioPage /> : null}
+        </main>
+      </div>
     </div>
   );
 }
@@ -589,10 +648,57 @@ function ChannelIcon(): JSX.Element {
   );
 }
 
+function ChannelStudioIcon(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 7h12" />
+      <path d="M4 12h16" />
+      <path d="M4 17h9" />
+      <circle cx="18" cy="7" r="2" />
+      <circle cx="8" cy="12" r="2" />
+      <circle cx="16" cy="17" r="2" />
+    </svg>
+  );
+}
+
 function QuickAddIcon(): JSX.Element {
   return (
     <svg viewBox="0 0 20 20" aria-hidden="true">
       <path d="M10 4.5v11M4.5 10h11" />
+    </svg>
+  );
+}
+
+function TrashIcon(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 7h16" />
+      <path d="M9 7V4h6v3" />
+      <path d="M7 7l1 13h8l1-13" />
+    </svg>
+  );
+}
+
+function ThemeToggleIcon({ theme }: { theme: ThemeMode }): JSX.Element {
+  if (theme === "dark") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20 15.5A8.5 8.5 0 0 1 8.5 4A8.5 8.5 0 1 0 20 15.5Z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3v2.5" />
+      <path d="M12 18.5V21" />
+      <path d="M4.93 4.93l1.77 1.77" />
+      <path d="M17.3 17.3l1.77 1.77" />
+      <path d="M3 12h2.5" />
+      <path d="M18.5 12H21" />
+      <path d="M4.93 19.07l1.77-1.77" />
+      <path d="M17.3 6.7l1.77-1.77" />
+      <circle cx="12" cy="12" r="4" />
     </svg>
   );
 }
