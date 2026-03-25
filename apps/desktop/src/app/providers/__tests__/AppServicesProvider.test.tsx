@@ -14,6 +14,11 @@ function Consumer() {
   return <div data-testid="provider-consumer">{container.services ? "ready" : "missing"}</div>;
 }
 
+function ThrowingConsumer() {
+  useAppServices();
+  return null;
+}
+
 function createDeferred<T>() {
   let resolve!: (value: T) => void;
   let reject!: (reason?: unknown) => void;
@@ -112,5 +117,13 @@ describe("AppServicesProvider", () => {
     unmount();
 
     expect(disposeSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("throws when useAppServices is used before provider is ready", () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    expect(() => render(<ThrowingConsumer />)).toThrow("AppServicesProvider is not ready");
+
+    consoleErrorSpy.mockRestore();
   });
 });

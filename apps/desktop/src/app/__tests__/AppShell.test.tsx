@@ -2,7 +2,10 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createMockRuntime } from "@timeaura-core";
+
 import { AppShell } from "../AppShell";
+import { createWorkspaceAppContainerDouble } from "../../features/workspace/testing/workspaceServiceTestDoubles";
 
 const useAppServicesSpy = vi.fn();
 const workspacePageSpy = vi.fn();
@@ -73,56 +76,75 @@ vi.mock("../../features/channels/ChannelStudioPage", () => ({
 }));
 
 function createContainer() {
-  return {
-    services: {
-      channelService: {},
-      notificationService: {
-        scheduleReminderNotifications: vi.fn(async () => undefined),
-      },
-      recordService: {
-        listRecords: vi.fn(async ({ view, status }: { view: string; status: string }) => {
-          if (view === "today" && status === "todo") {
-            return { items: [], total: 2 };
-          }
+  const container = createWorkspaceAppContainerDouble({
+    recordService: {
+      listRecords: vi.fn(async ({ view, status }) => {
+        if (view === "today" && status === "todo") {
+          return { items: [], total: 2 };
+        }
 
-          if (view === "plan" && status === "todo") {
-            return { items: [], total: 3 };
-          }
+        if (view === "plan" && status === "todo") {
+          return { items: [], total: 3 };
+        }
 
-          if (view === "all" && status === "todo") {
-            return { items: [], total: 5 };
-          }
+        if (view === "all" && status === "todo") {
+          return { items: [], total: 5 };
+        }
 
-          if (view === "done" && status === "done") {
-            return { items: [], total: 1 };
-          }
+        if (view === "done" && status === "done") {
+          return { items: [], total: 1 };
+        }
 
-          return { items: [], total: 0 };
-        }),
-        completeRecord: vi.fn(async () => undefined),
-      },
-      reminderService: {
-        snoozeReminder: vi.fn(async () => undefined),
-      },
-      tagService: {
-        listTagsWithCounts: vi.fn(async () => [
-          {
-            id: "tag_work",
-            name: "工作",
-            color: "#5f89ff",
-            count: 4,
-            isSystem: false,
-            sortOrder: 0,
-            createdAt: "2026-01-01T09:00:00.000Z",
-            updatedAt: "2026-01-01T09:00:00.000Z",
-          },
-        ]),
-      },
+        return { items: [], total: 0 };
+      }),
+      completeRecord: vi.fn(async (id: string) => ({
+        id,
+        recordKind: "task" as const,
+        title: "已完成任务",
+        contentMarkdown: "",
+        contentPlain: "",
+        status: "已完成" as const,
+        priority: "P3" as const,
+        tags: [],
+        dueAt: null,
+        plannedAt: null,
+        completedAt: "2026-01-01T10:00:00.000Z",
+        createdAt: "2026-01-01T09:00:00.000Z",
+        updatedAt: "2026-01-01T10:00:00.000Z",
+        archivedAt: null,
+        deletedAt: null,
+        sourceReportHistoryId: null,
+        aiSummary: null,
+        isPinned: false,
+      })),
     },
-    runtime: {
-      notifications: [],
+    reminderService: {
+      snoozeReminder: vi.fn(async () => undefined),
     },
+    tagService: {
+      listTagsWithCounts: vi.fn(async () => [
+        {
+          id: "tag_work",
+          name: "工作",
+          color: "#5f89ff",
+          count: 4,
+          isSystem: false,
+          sortOrder: 0,
+          createdAt: "2026-01-01T09:00:00.000Z",
+          updatedAt: "2026-01-01T09:00:00.000Z",
+        },
+      ]),
+    },
+    runtime: createMockRuntime(),
+  });
+
+  container.services.notificationService = {
+    notify: vi.fn(async () => undefined),
+    cancelNotification: vi.fn(async () => undefined),
+    scheduleReminderNotifications: vi.fn(async () => undefined),
   };
+
+  return container;
 }
 
 describe("AppShell", () => {
@@ -177,6 +199,20 @@ describe("AppShell", () => {
     expect(screen.getByTestId("workspace-view").textContent).toBe("all");
     expect(screen.getByTestId("workspace-tag").textContent).toBe("all");
     expect(screen.getByTestId("workspace-quick-add-target").textContent).toBe("true");
+  });
+
+  it("renders sqlite runtime label and fallback service status when optional runtime services are absent", async () => {
+    const container = createContainer();
+    container.runtime = undefined;
+    container.services.channelService = null as unknown as typeof container.services.channelService;
+    useAppServicesSpy.mockReturnValue(container);
+
+    render(<AppShell />);
+
+    await waitFor(() => {
+      expect(screen.getByText("SQLite Runtime")).toBeTruthy();
+      expect(screen.getByText("未就绪")).toBeTruthy();
+    });
   });
 
   it("refreshes sidebar state on workspace change and forwards notification debug events", async () => {
@@ -283,6 +319,52 @@ describe("AppShell", () => {
     });
   });
 
+  it("handles snooze and open-detail desktop notification actions", async () => {
+    const container = createContainer();
+    useAppServicesSpy.mockReturnValue(container);
+    vi.stubGlobal("__TAURI_INTERNALS__", {});
+
+    render(<AppShell />);
+
+    await waitFor(() => {
+      expect(tauriBridge.desktopCallback).toBeTruthy();
+    });
+
+    await act(async () => {
+      tauriBridge.desktopCallback?.({
+        payload: {
+          actionId: "snooze_30",
+          extra: {
+            recordIds: ["record-1", "record-2"],
+            recordId: "record-1",
+          },
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(container.services.reminderService.snoozeReminder).toHaveBeenCalledWith(["record-1", "record-2"], 30);
+      expect(screen.getByTestId("workspace-focus-record").textContent).toBe("record-1");
+      expect(screen.getByTestId("workspace-runtime-notice").textContent).toBe("已通过桌面通知延后 30 分钟提醒");
+    });
+
+    await act(async () => {
+      tauriBridge.desktopCallback?.({
+        payload: {
+          actionId: "open_detail",
+          extra: {
+            recordId: "record-9",
+          },
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("workspace-focus-record").textContent).toBe("record-9");
+      expect(screen.getByTestId("workspace-runtime-notice").textContent).toBe("已从桌面通知回到对应记录");
+    });
+  });
+
   it("falls back to workspace warning notice when notification action handling fails", async () => {
     const container = createContainer();
     container.services.recordService.completeRecord = vi.fn(async () => {
@@ -314,5 +396,23 @@ describe("AppShell", () => {
       expect(screen.getByTestId("workspace-runtime-notice").textContent).toBe("通知动作处理失败，请在工作台中手动继续操作");
       expect(screen.getByTestId("workspace-debug-count").textContent).toBe("2");
     });
+  });
+
+  it("cleans up tauri notification listeners on unmount", async () => {
+    const container = createContainer();
+    useAppServicesSpy.mockReturnValue(container);
+    vi.stubGlobal("__TAURI_INTERNALS__", {});
+
+    const { unmount } = render(<AppShell />);
+
+    await waitFor(() => {
+      expect(tauriBridge.desktopCallback).toBeTruthy();
+      expect(tauriBridge.notificationCallback).toBeTruthy();
+    });
+
+    unmount();
+
+    expect(tauriBridge.unlisten).toHaveBeenCalledTimes(1);
+    expect(tauriBridge.unregister).toHaveBeenCalledTimes(1);
   });
 });
