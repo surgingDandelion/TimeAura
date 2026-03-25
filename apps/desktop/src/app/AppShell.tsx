@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { TagCountItem } from "@timeaura-core";
 
 import { useAppServices } from "./providers/AppServicesProvider";
+import { ensureDesktopExperienceData } from "./bootstrap/ensureDesktopExperienceData";
 import { ChannelStudioPage } from "../features/channels/ChannelStudioPage";
 import { ReportStudioPage } from "../features/reports/ReportStudioPage";
 import { WorkspacePage } from "../features/workspace/WorkspacePage";
@@ -266,6 +267,40 @@ export function AppShell(): JSX.Element {
   }, [pushNotificationDebug]);
 
   useEffect(() => {
+    if (runtime) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void ensureDesktopExperienceData(services)
+      .then(async (result) => {
+        if (cancelled || !result.seeded) {
+          return;
+        }
+
+        await handleWorkspaceChanged();
+
+        if (cancelled) {
+          return;
+        }
+
+        presentRuntimeNotice("已自动准备演示数据，现在可以直接体验新增与提醒链路", "info");
+      })
+      .catch((error) => {
+        if (cancelled) {
+          return;
+        }
+
+        reportShellFailure("演示数据准备失败", "首次体验数据准备失败，请稍后重试", error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [handleWorkspaceChanged, presentRuntimeNotice, reportShellFailure, runtime, services]);
+
+  useEffect(() => {
     void loadSidebarData();
   }, [loadSidebarData]);
 
@@ -502,7 +537,16 @@ export function AppShell(): JSX.Element {
 }
 
 function isTauriRuntime(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const runtimeWindow = window as Window & {
+    __TAURI_INTERNALS__?: unknown;
+    isTauri?: boolean;
+  };
+
+  return Boolean(runtimeWindow.__TAURI_INTERNALS__ || runtimeWindow.isTauri);
 }
 
 function ReportIcon(): JSX.Element {

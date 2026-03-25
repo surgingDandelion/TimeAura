@@ -97,6 +97,14 @@ export function useWorkspaceViewModel({
     }
   }, [loadWorkspace, onWorkspaceChanged]);
 
+  const runCommandSafely = useCallback(async (command: () => Promise<unknown>, fallback: string): Promise<void> => {
+    try {
+      await command();
+    } catch (error) {
+      setMessage(toErrorMessage(error, fallback));
+    }
+  }, []);
+
   const {
     draft,
     setDraft,
@@ -279,11 +287,11 @@ export function useWorkspaceViewModel({
     searchRef,
     rowRefs,
     onRefresh: () => {
-      void loadWorkspace();
+      void runCommandSafely(loadWorkspace, "刷新工作台失败");
     },
     onQuickAddChange: setQuickAdd,
     onQuickAddSubmit: () => {
-      void handleQuickAdd();
+      void runCommandSafely(handleQuickAdd, "新增记录失败");
     },
     onKeywordChange: setKeyword,
     onStatusChange: setStatus,
@@ -292,20 +300,20 @@ export function useWorkspaceViewModel({
     onToggleSelectAllVisible: toggleSelectAllVisible,
     onClearSelection: clearSelection,
     onBatchReschedule: (preset) => {
-      void handleReschedule(preset);
+      void runCommandSafely(() => handleReschedule(preset), "批量改期失败");
     },
     onToggleNotificationDebug: () => setNotificationDebugOpen((current) => !current),
     onExportNotificationDebug: handleExportNotificationDebug,
     onClearNotificationDebug: () => {
-      void handleClearNotificationDebugPanel();
+      void runCommandSafely(handleClearNotificationDebugPanel, "清空通知调试日志失败");
     },
     onToggleReminderExpanded: () => setReminderExpanded((current) => !current),
     onToggleReminderSelectedOnly: () => setReminderSelectedOnly((current) => !current),
     onSnoozeReminder: (minutes) => {
-      void handleSnoozeReminder(minutes);
+      void runCommandSafely(() => handleSnoozeReminder(minutes), "延后提醒失败");
     },
     onReminderReschedule: (preset) => {
-      void handleReminderReschedule(preset);
+      void runCommandSafely(() => handleReminderReschedule(preset), "提醒命中改期失败");
     },
     onOpenCustomReminderReschedule: openCustomReminderReschedule,
     onToggleSelectAllReminderHits: toggleSelectAllReminderHits,
@@ -314,24 +322,24 @@ export function useWorkspaceViewModel({
     onSelectRecord: setSelectedId,
     onToggleSelection: toggleSelection,
     onCompleteRecord: (recordId) => {
-      void handleComplete(recordId);
+      void runCommandSafely(() => handleComplete(recordId), "完成任务失败");
     },
     onGenerateSummary: () => {
-      void generateSummary();
+      void runCommandSafely(generateSummary, "生成 AI 摘要失败");
     },
     onPolishMarkdown: () => {
-      void polishMarkdown();
+      void runCommandSafely(polishMarkdown, "AI 润色失败");
     },
     onOpenTagManager: openTagManager,
     onArchive: (recordId) => {
-      void handleArchive(recordId);
+      void runCommandSafely(() => handleArchive(recordId), "归档记录失败");
     },
     onDelete: (recordId) => {
-      void handleDelete(recordId);
+      void runCommandSafely(() => handleDelete(recordId), "删除记录失败");
     },
     onCloseInspector: closeInspector,
     onSave: () => {
-      void saveDraft();
+      void runCommandSafely(saveDraft, "保存记录失败");
     },
     onDraftChange: setDraft,
     onToggleTag: toggleTag,
@@ -341,17 +349,25 @@ export function useWorkspaceViewModel({
     onSelectTag: startEditTag,
     onTagEditorChange: setTagEditor,
     onSubmitTagEditor: () => {
-      void handleCreateOrUpdateTag();
+      void runCommandSafely(handleCreateOrUpdateTag, "保存标签失败");
     },
     onDeleteTag: (tag: TagEntity) => {
-      void handleDeleteTag(tag);
+      void runCommandSafely(() => handleDeleteTag(tag), "删除标签失败");
     },
     onCloseCustomReminder: () => setCustomReminderTimeOpen(false),
     onChangeCustomReminderDueAt: setCustomReminderDueAt,
     onApplyCustomReminderPreset: applyCustomReminderPreset,
     onSubmitCustomReminder: () => {
-      void submitCustomReminderReschedule();
+      void runCommandSafely(submitCustomReminderReschedule, "自定义改期失败");
     },
     onFocusQuickAdd: triggerQuickAddSpotlight,
   });
+}
+
+function toErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error) {
+    return `${fallback}：${error.message}`;
+  }
+
+  return fallback;
 }

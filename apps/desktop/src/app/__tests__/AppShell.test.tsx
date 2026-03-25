@@ -8,6 +8,7 @@ import { AppShell } from "../AppShell";
 import { createWorkspaceAppContainerDouble } from "../../features/workspace/testing/workspaceServiceTestDoubles";
 
 const useAppServicesSpy = vi.fn();
+const ensureDesktopExperienceDataSpy = vi.fn();
 const workspacePageSpy = vi.fn();
 const reportPageSpy = vi.fn();
 const channelPageSpy = vi.fn();
@@ -21,6 +22,10 @@ const tauriBridge = vi.hoisted(() => ({
 vi.mock("../providers/AppServicesProvider", () => ({
   useAppServices: () => useAppServicesSpy(),
   AppServicesProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
+}));
+
+vi.mock("../bootstrap/ensureDesktopExperienceData", () => ({
+  ensureDesktopExperienceData: (...args: unknown[]) => ensureDesktopExperienceDataSpy(...args),
 }));
 
 vi.mock("@tauri-apps/plugin-notification", () => ({
@@ -150,6 +155,12 @@ function createContainer() {
 describe("AppShell", () => {
   beforeEach(() => {
     useAppServicesSpy.mockReset();
+    ensureDesktopExperienceDataSpy.mockReset();
+    ensureDesktopExperienceDataSpy.mockResolvedValue({
+      seeded: false,
+      recordIds: [],
+      channelId: null,
+    });
     workspacePageSpy.mockReset();
     reportPageSpy.mockReset();
     channelPageSpy.mockReset();
@@ -180,6 +191,7 @@ describe("AppShell", () => {
     expect(screen.getByText("Mock Runtime")).toBeTruthy();
     expect(screen.getByText("已就绪")).toBeTruthy();
     expect(container.services.notificationService.scheduleReminderNotifications).toHaveBeenCalledTimes(1);
+    expect(ensureDesktopExperienceDataSpy).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByText("今天"));
     expect(screen.getByTestId("workspace-view").textContent).toBe("today");
@@ -213,6 +225,28 @@ describe("AppShell", () => {
       expect(screen.getByText("SQLite Runtime")).toBeTruthy();
       expect(screen.getByText("未就绪")).toBeTruthy();
     });
+
+    expect(ensureDesktopExperienceDataSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("prepares demo data for sqlite first-run experience and announces readiness", async () => {
+    const container = createContainer();
+    container.runtime = undefined;
+    useAppServicesSpy.mockReturnValue(container);
+    ensureDesktopExperienceDataSpy.mockResolvedValue({
+      seeded: true,
+      recordIds: ["record-seed-1"],
+      channelId: "channel-seed-1",
+    });
+
+    render(<AppShell />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("workspace-runtime-notice").textContent).toBe("已自动准备演示数据，现在可以直接体验新增与提醒链路");
+    });
+
+    expect(ensureDesktopExperienceDataSpy).toHaveBeenCalledTimes(1);
+    expect(container.services.notificationService.scheduleReminderNotifications).toHaveBeenCalledTimes(2);
   });
 
   it("refreshes sidebar state on workspace change and forwards notification debug events", async () => {

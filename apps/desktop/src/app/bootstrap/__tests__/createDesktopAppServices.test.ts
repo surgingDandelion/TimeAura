@@ -64,6 +64,19 @@ describe("createDesktopAppServices", () => {
     });
   });
 
+  it("also treats global isTauri as desktop runtime signal", async () => {
+    vi.stubGlobal("isTauri", true);
+    createAppServicesSpy.mockResolvedValue({ services: {} });
+
+    await createDesktopAppServices();
+
+    expect(createAppServicesSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: "sqlite",
+      }),
+    );
+  });
+
   it("wraps bootstrap failures with the selected mode", async () => {
     vi.stubEnv("VITE_TIMEAURA_DATA_MODE", "sqlite");
     createAppServicesSpy.mockRejectedValue(new Error("database locked"));

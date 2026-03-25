@@ -37,5 +37,14 @@ export async function createDesktopAppServices(): Promise<AppContainer> {
 }
 
 function isTauriRuntime(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const runtimeWindow = window as Window & {
+    __TAURI_INTERNALS__?: unknown;
+    isTauri?: boolean;
+  };
+
+  return Boolean(runtimeWindow.__TAURI_INTERNALS__ || runtimeWindow.isTauri);
 }
