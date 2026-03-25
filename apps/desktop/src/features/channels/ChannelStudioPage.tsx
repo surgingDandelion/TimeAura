@@ -366,31 +366,31 @@ export function ChannelStudioPage(): JSX.Element {
   }
 
   return (
-    <div className="channel-layout">
-      <section className="panel panel-list">
-        <div className="panel-header">
-          <div>
-            <div className="panel-kicker">AI 通道</div>
-            <h1 className="panel-title">通道配置中心</h1>
+    <div className="channel-layout channel-page-shell">
+      <section className="panel panel-list channel-list-wrap">
+        <div className="panel-title report-panel-title">
+          <h2>AI 通道配置</h2>
+          <p>把摘要、周报、润色等能力映射到不同模型，保持稳定和可控。</p>
+        </div>
+
+        <div className="channel-list-toolbar">
+          <div className="channel-list-meta">
+            <span>{channels.length} 个通道</span>
+            <span>{enabledChannels.length} 个已启用</span>
           </div>
           <button className="button-primary" onClick={() => void handleCreateChannel()}>
             新增通道
           </button>
         </div>
 
-        <div className="channel-list-meta">
-          <span>{channels.length} 个通道</span>
-          <span>{enabledChannels.length} 个已启用</span>
-        </div>
-
-        <div className="record-list">
+        <div className="record-list channel-list">
           {channels.map((channel) => {
             const providerMeta = providerOptions.find((item) => item.type === channel.providerType);
 
             return (
               <button
                 key={channel.id}
-                className={`record-row${channel.id === selectedId ? " record-row-active" : ""}`}
+                className={`record-row channel-list-row${channel.id === selectedId ? " record-row-active" : ""}`}
                 onClick={() => setSelectedId(channel.id)}
               >
                 <div className={`priority-pill ${channel.enabled ? "priority-p3" : "priority-p4"}`}>
@@ -416,18 +416,17 @@ export function ChannelStudioPage(): JSX.Element {
         </div>
       </section>
 
-      <section className="panel panel-detail">
+      <section className="panel panel-detail channel-form-wrap">
         {!selectedChannel || !draft || !draftParseResult ? (
           <div className="empty-state detail-empty">选择左侧通道后，在这里编辑协议、模型与凭证。</div>
         ) : (
           <>
-            <div className="panel-header">
-              <div>
-                <div className="panel-kicker">通道详情</div>
-                <h2 className="panel-title panel-title-small">{selectedChannel.name}</h2>
-                <div className="channel-panel-subtitle">{currentProviderOption.description}</div>
+            <div className="report-header channel-form-header">
+              <div className="panel-title">
+                <h2>{selectedChannel.name}</h2>
+                <p>{currentProviderOption.description}</p>
               </div>
-              <div className="detail-header-actions">
+              <div className="detail-header-actions channel-form-actions">
                 <button className="button-ghost" onClick={() => void handleDuplicateChannel()}>
                   复制
                 </button>
@@ -746,12 +745,10 @@ export function ChannelStudioPage(): JSX.Element {
         )}
       </section>
 
-      <section className="panel panel-report-history">
-        <div className="panel-header">
-          <div>
-            <div className="panel-kicker">能力映射</div>
-            <h2 className="panel-title panel-title-small">AI 功能路由</h2>
-          </div>
+      <section className="panel panel-report-history channel-mapping-wrap">
+        <div className="panel-title report-panel-title">
+          <h2>AI 功能路由</h2>
+          <p>为不同能力指定默认通道，保持稳定与可解释的模型分工。</p>
         </div>
 
         <div className="mapping-panel">

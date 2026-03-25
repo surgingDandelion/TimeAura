@@ -203,7 +203,7 @@ describe("ReportStudioPage", () => {
     render(<ReportStudioPage />);
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "周报 / 月报工作台" })).toBeTruthy();
+      expect(screen.getByRole("heading", { name: "AI 报告" })).toBeTruthy();
       expect(screen.getByDisplayValue("默认周报模板")).toBeTruthy();
     });
 
@@ -263,7 +263,7 @@ describe("ReportStudioPage", () => {
       expect(screen.getByText("2026 第 12 周周报草稿")).toBeTruthy();
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "存为记录" }));
+    fireEvent.click(screen.getAllByRole("button", { name: "存为记录" })[1] as HTMLButtonElement);
 
     await waitFor(() => {
       expect(reportService.saveReportAsRecord).toHaveBeenCalledWith("history-2");

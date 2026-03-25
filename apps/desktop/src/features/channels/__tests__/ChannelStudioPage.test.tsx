@@ -224,7 +224,7 @@ describe("ChannelStudioPage", () => {
     render(<ChannelStudioPage />);
 
     await waitFor(() => {
-      expect(screen.getByText("通道配置中心")).toBeTruthy();
+      expect(screen.getByText("AI 通道配置")).toBeTruthy();
       expect(screen.getByRole("heading", { name: "主通道" })).toBeTruthy();
     });
 

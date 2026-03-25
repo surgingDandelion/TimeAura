@@ -135,16 +135,23 @@ export function ReportStudioPage(): JSX.Element {
   }
 
   return (
-    <div className="report-layout">
-      <section className="panel panel-report-config">
-        <div className="panel-header">
-          <div>
-            <div className="panel-kicker">AI 报告</div>
-            <h1 className="panel-title">周报 / 月报工作台</h1>
-          </div>
+    <div className="report-layout report-page-shell">
+      <section className="panel panel-report-config report-panel-side">
+        <div className="panel-title report-panel-title">
+          <h2>AI 报告</h2>
+          <p>根据真实记录生成周报、月报与专题总结，保留模板和通道的组合控制感。</p>
         </div>
 
-        <div className="detail-grid">
+        <div className="report-banner">
+          <div>
+            <strong className="report-banner-title">报告历史</strong>
+            <span className="report-banner-text">保存后的报告默认进入这里，不干扰主列表。</span>
+          </div>
+          <button className="button-ghost button-ghost-compact">管理通道</button>
+        </div>
+
+        <div className="stack-card">
+          <h4>模板与范围</h4>
           <label className="field">
             <span className="field-label">报告模板</span>
             <select className="select" value={templateId} onChange={(event) => setTemplateId(event.target.value)}>
@@ -166,7 +173,10 @@ export function ReportStudioPage(): JSX.Element {
               <input className="input" type="date" value={timeRangeEnd} onChange={(event) => setTimeRangeEnd(event.target.value)} />
             </label>
           </div>
+        </div>
 
+        <div className="stack-card">
+          <h4>筛选条件</h4>
           <div className="field-inline-group">
             <label className="field">
               <span className="field-label">标签范围</span>
@@ -192,7 +202,10 @@ export function ReportStudioPage(): JSX.Element {
               </select>
             </label>
           </div>
+        </div>
 
+        <div className="stack-card">
+          <h4>模板与通道</h4>
           <div className="field">
             <span className="field-label">当前 AI 通道</span>
             <div className="summary-box">
@@ -216,38 +229,47 @@ export function ReportStudioPage(): JSX.Element {
               存为记录
             </button>
           </div>
-
-          {message ? <div className="inline-message">{message}</div> : null}
         </div>
+
+        {message ? <div className="inline-message">{message}</div> : null}
       </section>
 
-      <section className="panel panel-report-preview">
-        <div className="panel-header">
-          <div>
-            <div className="panel-kicker">草稿预览</div>
-            <h2 className="panel-title panel-title-small">{draft?.title ?? "尚未生成报告"}</h2>
+      <section className="panel panel-report-preview report-output">
+        <div className="report-header">
+          <div className="panel-title">
+            <h2>{draft?.title ?? "尚未生成报告"}</h2>
+            <p>{draft ? "可在这里继续编辑、复制或另存为记录。" : "点击“生成草稿”后，在这里预览 AI 生成的报告内容。"}</p>
+          </div>
+          <div className="report-actions">
+            <button className="button-ghost button-ghost-compact" disabled={!draft}>
+              重新生成
+            </button>
+            <button className="button-ghost button-ghost-compact" disabled={!draft}>
+              复制
+            </button>
+            <button className="button-primary" disabled={!draft || busy} onClick={() => void handleSaveAsRecord()}>
+              存为记录
+            </button>
           </div>
         </div>
 
-        <div className="markdown-preview">
+        <div className="markdown-preview report-editor">
           {draft ? draft.contentMarkdown : "点击“生成草稿”后，在这里预览 AI 生成的报告内容。"}
         </div>
       </section>
 
-      <section className="panel panel-report-history">
-        <div className="panel-header">
-          <div>
-            <div className="panel-kicker">历史记录</div>
-            <h2 className="panel-title panel-title-small">已生成报告</h2>
-          </div>
+      <section className="panel panel-report-history report-history-panel">
+        <div className="panel-title report-panel-title">
+          <h2>已生成报告</h2>
+          <p>切换历史记录后，在下方快速回看输出内容。</p>
         </div>
 
-        <div className="history-list">
+        <div className="history-list report-history-list">
           {histories.length === 0 ? <div className="empty-state">还没有保存过报告历史。</div> : null}
           {histories.map((history) => (
             <button
               key={history.id}
-              className={`history-row${history.id === selectedHistoryId ? " history-row-active" : ""}`}
+              className={`history-row report-history-row${history.id === selectedHistoryId ? " history-row-active" : ""}`}
               onClick={() => setSelectedHistoryId(history.id)}
             >
               <div className="history-title">{history.title}</div>
@@ -258,7 +280,7 @@ export function ReportStudioPage(): JSX.Element {
           ))}
         </div>
 
-        <div className="history-preview">
+        <div className="history-preview report-history-preview">
           {selectedHistory ? selectedHistory.contentMarkdown : "选择左侧历史记录后，在这里查看内容。"}
         </div>
       </section>

@@ -59,7 +59,7 @@ describe("Desktop experience smoke", () => {
     fireEvent.click(screen.getByLabelText("AI 报告"));
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "周报 / 月报工作台" })).toBeTruthy();
+      expect(screen.getByRole("heading", { name: "AI 报告" })).toBeTruthy();
     });
 
     fireEvent.click(screen.getByRole("button", { name: "生成草稿" }));
@@ -71,7 +71,7 @@ describe("Desktop experience smoke", () => {
     fireEvent.click(screen.getByLabelText("通道配置"));
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "通道配置中心" })).toBeTruthy();
+      expect(screen.getByRole("heading", { name: "AI 通道配置" })).toBeTruthy();
     });
 
     fireEvent.click(screen.getByRole("button", { name: "测试连接" }));
