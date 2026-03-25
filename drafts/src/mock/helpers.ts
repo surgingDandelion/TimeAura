@@ -30,8 +30,14 @@ export function nowWithOffset(date = new Date()): string {
 }
 
 export function createMockId(prefix: string): string {
+  const cryptoObject = globalThis.crypto;
+
+  if (cryptoObject?.randomUUID) {
+    return `${prefix}_${cryptoObject.randomUUID().replace(/-/g, "")}`;
+  }
+
   idSeed += 1;
-  return `${prefix}_${String(idSeed).padStart(4, "0")}`;
+  return `${prefix}_${Date.now().toString(36)}_${String(idSeed).padStart(4, "0")}`;
 }
 
 export function normalizeText(value: string): string {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import type { TagCountItem } from "@timeaura-core";
+import type { AppServices, TagCountItem } from "@timeaura-core";
 
 import { useAppServices } from "./providers/AppServicesProvider";
 import { ensureDesktopExperienceData } from "./bootstrap/ensureDesktopExperienceData";
@@ -25,6 +25,8 @@ interface WorkspaceSidebarCounts {
   all: number;
   done: number;
 }
+
+const UNCATEGORIZED_TAG_ID = "tag_uncategorized";
 
 export function AppShell(): JSX.Element {
   const { runtime, services } = useAppServices();
@@ -301,6 +303,40 @@ export function AppShell(): JSX.Element {
   }, [handleWorkspaceChanged, presentRuntimeNotice, reportShellFailure, runtime, services]);
 
   useEffect(() => {
+    if (runtime) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void repairWorkspaceRecordTags(services)
+      .then(async (repairedCount) => {
+        if (cancelled || repairedCount === 0) {
+          return;
+        }
+
+        await handleWorkspaceChanged();
+
+        if (cancelled) {
+          return;
+        }
+
+        presentRuntimeNotice(`已修复 ${repairedCount} 条历史记录的标签关联`, "info");
+      })
+      .catch((error) => {
+        if (cancelled) {
+          return;
+        }
+
+        reportShellFailure("工作台数据修复失败", "工作台历史数据修复失败，请稍后重试", error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [handleWorkspaceChanged, presentRuntimeNotice, reportShellFailure, runtime, services]);
+
+  useEffect(() => {
     void loadSidebarData();
   }, [loadSidebarData]);
 
@@ -560,4 +596,17 @@ function QuickAddIcon(): JSX.Element {
       <path d="M10 4.5v11M4.5 10h11" />
     </svg>
   );
+}
+
+async function repairWorkspaceRecordTags(
+  services: AppServices,
+): Promise<number> {
+  const records = await services.recordService.listRecords({ view: "all", status: "all" });
+  const missingTagRecords = records.items.filter((record) => record.tags.length === 0 && !record.deletedAt);
+
+  for (const record of missingTagRecords) {
+    await services.tagService.setRecordTags(record.id, [UNCATEGORIZED_TAG_ID]);
+  }
+
+  return missingTagRecords.length;
 }

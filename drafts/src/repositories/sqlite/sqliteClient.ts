@@ -138,6 +138,10 @@ export class SqliteClient {
           await this.database.execute("ROLLBACK");
         }
       } catch (rollbackError) {
+        if (shouldIgnoreRollbackFailure(rollbackError)) {
+          throw normalizeError(error, "SQLite 事务失败");
+        }
+
         throw new Error(`SQLite 事务失败：${toErrorMessage(error)}；回滚失败：${toErrorMessage(rollbackError)}`);
       }
 
@@ -201,4 +205,9 @@ function toErrorMessage(error: unknown): string {
   }
 
   return String(error);
+}
+
+function shouldIgnoreRollbackFailure(error: unknown): boolean {
+  const message = toErrorMessage(error).toLowerCase();
+  return message.includes("no transaction is active") || message.includes("no such savepoint");
 }

@@ -253,6 +253,34 @@ describe("desktop runtime adapters", () => {
     expect(executedStatements).toEqual(["BEGIN", "ROLLBACK"]);
   });
 
+  it("keeps the original sqlite error when rollback reports no active transaction", async () => {
+    const executedStatements: string[] = [];
+    const client = new SqliteClient({
+      execute: async (query: string) => {
+        executedStatements.push(query);
+
+        if (query === "ROLLBACK") {
+          throw new Error("cannot rollback - no transaction is active");
+        }
+
+        return {
+          rowsAffected: 0,
+          lastInsertId: null,
+        };
+      },
+      select: async () => [],
+      close: async () => undefined,
+    });
+
+    await expect(
+      client.transaction(async () => {
+        throw new Error("UNIQUE constraint failed: records.id");
+      }),
+    ).rejects.toThrow("UNIQUE constraint failed: records.id");
+
+    expect(executedStatements).toEqual(["BEGIN", "ROLLBACK"]);
+  });
+
   it("serializes concurrent sqlite transactions on the same client", async () => {
     const executedStatements: string[] = [];
     let releaseFirstTransaction!: () => void;
