@@ -39,6 +39,24 @@ export default defineConfig({
         "src/**/*.test.tsx",
         "src/test/**",
       ],
+      thresholds: {
+        lines: 50,
+        statements: 50,
+        functions: 50,
+        branches: 40,
+        "src/app/**/*.{ts,tsx}": {
+          lines: 50,
+          statements: 50,
+          functions: 60,
+          branches: 40,
+        },
+        "src/features/workspace/hooks/**/*.{ts,tsx}": {
+          lines: 85,
+          statements: 85,
+          functions: 75,
+          branches: 80,
+        },
+      },
     },
   },
 });
