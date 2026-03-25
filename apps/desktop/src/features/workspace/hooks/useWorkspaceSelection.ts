@@ -24,7 +24,8 @@ export function useWorkspaceSelection({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [highlightedRecordId, setHighlightedRecordId] = useState<string | null>(null);
-  const [quickAddActive, setQuickAddActive] = useState(false);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [quickAddSpotlight, setQuickAddSpotlight] = useState(false);
   const handledFocusNonceRef = useRef<number | null>(null);
   const handledQuickAddNonceRef = useRef<number | null>(null);
 
@@ -71,24 +72,30 @@ export function useWorkspaceSelection({
     onResetListContext();
     onTagFilterChange("all");
     setSelectedId(null);
-    triggerQuickAddSpotlight();
+    openQuickAdd();
   }, [onResetListContext, onTagFilterChange, quickAddTarget?.nonce]);
 
   useEffect(() => {
-    if (!quickAddActive) {
+    if (!quickAddSpotlight) {
       return;
     }
 
     const timer = window.setTimeout(() => {
-      setQuickAddActive(false);
+      setQuickAddSpotlight(false);
     }, 1400);
 
     return () => window.clearTimeout(timer);
-  }, [quickAddActive]);
+  }, [quickAddSpotlight]);
 
-  function triggerQuickAddSpotlight(): void {
+  function openQuickAdd(): void {
     onQuickAddRequested();
-    setQuickAddActive(true);
+    setQuickAddOpen(true);
+    setQuickAddSpotlight(true);
+  }
+
+  function closeQuickAdd(): void {
+    setQuickAddOpen(false);
+    setQuickAddSpotlight(false);
   }
 
   function toggleSelection(recordId: string): void {
@@ -132,9 +139,11 @@ export function useWorkspaceSelection({
     setSelectedIds,
     selectedCount,
     highlightedRecordId,
-    quickAddActive,
+    quickAddOpen,
+    quickAddSpotlight,
     visibleSelectedCount,
-    triggerQuickAddSpotlight,
+    openQuickAdd,
+    closeQuickAdd,
     toggleSelection,
     toggleSelectAllVisible,
     focusRecord,

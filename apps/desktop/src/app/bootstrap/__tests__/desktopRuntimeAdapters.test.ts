@@ -328,6 +328,45 @@ describe("desktop runtime adapters", () => {
     ]);
   });
 
+  it("serializes concurrent standalone sqlite writes outside transactions", async () => {
+    const executedStatements: string[] = [];
+    let releaseFirstWrite!: () => void;
+    const firstWriteGate = new Promise<void>((resolve) => {
+      releaseFirstWrite = resolve;
+    });
+    const client = new SqliteClient({
+      execute: async (query: string) => {
+        executedStatements.push(query);
+
+        if (query === "INSERT INTO records VALUES (1)") {
+          await firstWriteGate;
+        }
+
+        return {
+          rowsAffected: 1,
+          lastInsertId: null,
+        };
+      },
+      select: async () => [],
+      close: async () => undefined,
+    });
+
+    const firstWrite = client.execute("INSERT INTO records VALUES (1)");
+    const secondWrite = client.execute("UPDATE records SET title = 'done' WHERE id = 1");
+
+    await Promise.resolve();
+
+    expect(executedStatements).toEqual(["INSERT INTO records VALUES (1)"]);
+
+    releaseFirstWrite();
+    await Promise.all([firstWrite, secondWrite]);
+
+    expect(executedStatements).toEqual([
+      "INSERT INTO records VALUES (1)",
+      "UPDATE records SET title = 'done' WHERE id = 1",
+    ]);
+  });
+
   it("uses savepoints for nested sqlite transactions", async () => {
     const executedStatements: string[] = [];
     const client = new SqliteClient({
@@ -387,6 +426,33 @@ describe("desktop runtime adapters", () => {
     ).rejects.toThrow("SQLite 初始化失败：migration failed；关闭连接失败：close failed");
 
     expect(closeSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("configures sqlite pragmas before running migrations", async () => {
+    const executedStatements: string[] = [];
+
+    await SqliteClient.connect({
+      databaseUrl: "sqlite:test.db",
+      loadDatabase: async () => ({
+        execute: async (query: string) => {
+          executedStatements.push(query.trim());
+          return {
+            rowsAffected: 0,
+            lastInsertId: null,
+          };
+        },
+        select: async () => [],
+        close: async () => undefined,
+      }),
+      migrations: [],
+    });
+
+    expect(executedStatements.slice(0, 4)).toEqual([
+      "PRAGMA foreign_keys = ON",
+      "PRAGMA busy_timeout = 5000",
+      "PRAGMA journal_mode = WAL",
+      "PRAGMA synchronous = NORMAL",
+    ]);
   });
 
   it("still closes sqlite when vault disposal fails during app container cleanup", async () => {

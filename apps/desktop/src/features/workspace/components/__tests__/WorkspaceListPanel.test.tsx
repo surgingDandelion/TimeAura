@@ -24,7 +24,6 @@ function createProps() {
     activeTagId: "all",
     activeView: "all" as const,
     currentTagName: "全部标签",
-    quickAdd: "补充内容",
     keyword: "",
     status: "todo" as const,
     sortBy: "smart" as const,
@@ -36,7 +35,6 @@ function createProps() {
     visibleSelectedCount: 1,
     highlightedRecordId: record.id,
     loading: false,
-    quickAddActive: true,
     message: "已新增记录",
     runtimeNoticeTone: "info" as const,
     reminder: createWorkspaceReminderSummary({
@@ -50,12 +48,9 @@ function createProps() {
     visibleReminderSelectedCount: 0,
     notificationDebugFeed: [],
     notificationDebugOpen: false,
-    quickAddRef: { current: null } as RefObject<HTMLInputElement>,
     searchRef: { current: null } as RefObject<HTMLInputElement>,
     rowRefs: { current: {} } as MutableRefObject<Record<string, HTMLButtonElement | null>>,
     onRefresh: vi.fn(),
-    onQuickAddChange: vi.fn(),
-    onQuickAddSubmit: vi.fn(),
     onKeywordChange: vi.fn(),
     onStatusChange: vi.fn(),
     onTagFilterChange: vi.fn(),
@@ -82,19 +77,9 @@ function createProps() {
 }
 
 describe("WorkspaceListPanel", () => {
-  it("handles quick add, filters, row selection, and complete action", () => {
+  it("handles filters, row selection, and complete action", () => {
     const props = createProps();
     render(<WorkspaceListPanel {...props} />);
-
-    fireEvent.change(screen.getByPlaceholderText(/单行快速新增到「全部标签」/), {
-      target: { value: "新的记录" },
-    });
-    expect(props.onQuickAddChange).toHaveBeenCalledWith("新的记录");
-
-    fireEvent.keyDown(screen.getByPlaceholderText(/单行快速新增到「全部标签」/), {
-      key: "Enter",
-    });
-    expect(props.onQuickAddSubmit).toHaveBeenCalledTimes(1);
 
     fireEvent.change(screen.getByPlaceholderText("模糊检索标题、正文、标签"), {
       target: { value: "周报" },

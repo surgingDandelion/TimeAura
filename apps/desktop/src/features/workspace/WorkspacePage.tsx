@@ -1,4 +1,5 @@
 import { CustomReminderSheet } from "./components/CustomReminderSheet";
+import { QuickAddSheet } from "./components/QuickAddSheet";
 import { ShortcutHelpSheet } from "./components/ShortcutHelpSheet";
 import { TagManagerSheet } from "./components/TagManagerSheet";
 import { WorkspaceDetailInspector } from "./components/WorkspaceDetailInspector";
@@ -16,6 +17,7 @@ export function WorkspacePage(props: WorkspacePageProps): JSX.Element {
     <div className={`workspace-layout${detailOpen ? " workspace-layout-detail-open" : ""}`}>
       <WorkspaceListPanel {...viewModel.listPanelProps} />
       {detailOpen ? <WorkspaceDetailInspector {...viewModel.detailInspectorProps} /> : null}
+      <QuickAddSheet {...viewModel.quickAddSheetProps} />
       <TagManagerSheet {...viewModel.tagManagerSheetProps} />
       <CustomReminderSheet {...viewModel.customReminderSheetProps} />
       <ShortcutHelpSheet {...viewModel.shortcutHelpProps} />

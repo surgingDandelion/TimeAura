@@ -26,7 +26,7 @@ export interface ConnectSqliteClientOptions {
 export class SqliteClient {
   private transactionDepth = 0;
   private transactionSequence = 0;
-  private transactionQueue: Promise<void> = Promise.resolve();
+  private mutationQueue: Promise<void> = Promise.resolve();
 
   constructor(private readonly database: SqliteDatabaseDriver) {}
 
@@ -36,6 +36,8 @@ export class SqliteClient {
     const client = new SqliteClient(database);
 
     try {
+      await client.initializeConnection();
+
       if (options.migrations?.length) {
         await client.migrate(options.migrations);
       }
@@ -53,6 +55,10 @@ export class SqliteClient {
   }
 
   async execute(query: string, bindValues: unknown[] = []): Promise<SqliteExecuteResult> {
+    if (this.transactionDepth === 0 && isMutationQuery(query)) {
+      return this.enqueueMutation(() => this.database.execute(query, bindValues));
+    }
+
     return this.database.execute(query, bindValues);
   }
 
@@ -65,7 +71,7 @@ export class SqliteClient {
       return this.runTransaction(run);
     }
 
-    return this.enqueueTransaction(() => this.runTransaction(run));
+    return this.enqueueMutation(() => this.runTransaction(run));
   }
 
   async migrate(migrations: SqliteMigration[]): Promise<void> {
@@ -103,10 +109,19 @@ export class SqliteClient {
     await this.database.close();
   }
 
-  private async enqueueTransaction<T>(run: () => Promise<T>): Promise<T> {
-    const previous = this.transactionQueue;
+  private async initializeConnection(): Promise<void> {
+    await this.enqueueMutation(async () => {
+      await this.database.execute("PRAGMA foreign_keys = ON");
+      await this.database.execute("PRAGMA busy_timeout = 5000");
+      await this.database.execute("PRAGMA journal_mode = WAL");
+      await this.database.execute("PRAGMA synchronous = NORMAL");
+    });
+  }
+
+  private async enqueueMutation<T>(run: () => Promise<T>): Promise<T> {
+    const previous = this.mutationQueue;
     let release!: () => void;
-    this.transactionQueue = new Promise<void>((resolve) => {
+    this.mutationQueue = new Promise<void>((resolve) => {
       release = resolve;
     });
 
@@ -210,4 +225,20 @@ function toErrorMessage(error: unknown): string {
 function shouldIgnoreRollbackFailure(error: unknown): boolean {
   const message = toErrorMessage(error).toLowerCase();
   return message.includes("no transaction is active") || message.includes("no such savepoint");
+}
+
+function isMutationQuery(query: string): boolean {
+  const normalized = query.trim().toUpperCase();
+
+  return [
+    "INSERT",
+    "UPDATE",
+    "DELETE",
+    "REPLACE",
+    "CREATE",
+    "ALTER",
+    "DROP",
+    "PRAGMA",
+    "VACUUM",
+  ].some((keyword) => normalized.startsWith(keyword));
 }

@@ -52,6 +52,17 @@ export interface ShortcutHelpSheetContract {
   onClose(): void;
 }
 
+export interface QuickAddSheetContract {
+  open: boolean;
+  currentTagName: string;
+  quickAdd: string;
+  quickAddSpotlight: boolean;
+  quickAddRef: RefObject<HTMLInputElement>;
+  onClose(): void;
+  onQuickAddChange: StringHandler;
+  onQuickAddSubmit(): void;
+}
+
 export interface ReminderBannerContract {
   reminder: ReminderSummary | null;
   activeReminderHits: ReminderHit[];
@@ -75,7 +86,6 @@ export interface WorkspaceListPanelContract {
   activeTagId: string;
   activeView: WorkspaceSystemView;
   currentTagName: string;
-  quickAdd: string;
   keyword: string;
   status: WorkspaceStatusFilter;
   sortBy: WorkspaceSort;
@@ -87,7 +97,6 @@ export interface WorkspaceListPanelContract {
   visibleSelectedCount: number;
   highlightedRecordId: string | null;
   loading: boolean;
-  quickAddActive: boolean;
   message: string | null;
   runtimeNoticeTone?: "info" | "warning";
   reminder: ReminderSummary | null;
@@ -99,12 +108,9 @@ export interface WorkspaceListPanelContract {
   visibleReminderSelectedCount: number;
   notificationDebugFeed: NotificationDebugEntry[];
   notificationDebugOpen: boolean;
-  quickAddRef: RefObject<HTMLInputElement>;
   searchRef: RefObject<HTMLInputElement>;
   rowRefs: MutableRefObject<Record<string, HTMLButtonElement | null>>;
   onRefresh(): void;
-  onQuickAddChange: StringHandler;
-  onQuickAddSubmit(): void;
   onKeywordChange: StringHandler;
   onStatusChange(value: WorkspaceStatusFilter): void;
   onTagFilterChange: TagIdHandler;

@@ -67,9 +67,11 @@ export function useWorkspaceViewModel({
     setSelectedIds,
     selectedCount,
     highlightedRecordId,
-    quickAddActive,
+    quickAddOpen,
+    quickAddSpotlight,
     visibleSelectedCount,
-    triggerQuickAddSpotlight,
+    openQuickAdd,
+    closeQuickAdd,
     toggleSelection,
     toggleSelectAllVisible,
     focusRecord,
@@ -262,7 +264,6 @@ export function useWorkspaceViewModel({
     visibleSelectedCount,
     highlightedRecordId,
     loading,
-    quickAddActive,
     message,
     runtimeNoticeTone: runtimeNotice?.tone,
     reminder,
@@ -291,6 +292,9 @@ export function useWorkspaceViewModel({
     onRefresh: () => {
       void runCommandSafely(loadWorkspace, "刷新工作台失败");
     },
+    quickAddOpen,
+    quickAddSpotlight,
+    onCloseQuickAdd: closeQuickAdd,
     onQuickAddChange: setQuickAdd,
     onQuickAddSubmit: () => {
       void runCommandSafely(handleQuickAdd, "新增记录失败");
@@ -362,7 +366,7 @@ export function useWorkspaceViewModel({
     onSubmitCustomReminder: () => {
       void runCommandSafely(submitCustomReminderReschedule, "自定义改期失败");
     },
-    onFocusQuickAdd: triggerQuickAddSpotlight,
+    onFocusQuickAdd: openQuickAdd,
   });
 }
 

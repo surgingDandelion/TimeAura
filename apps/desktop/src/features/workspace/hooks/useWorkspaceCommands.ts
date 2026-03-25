@@ -6,6 +6,7 @@ import type { RecordEntity, ReminderHit, ReminderSummary, TagEntity } from "@tim
 import type { ContentMode, NotificationDebugEntry, RecordDraft, TagEditorDraft, WorkspaceSort, WorkspaceStatusFilter } from "../types";
 import type {
   CustomReminderSheetContract,
+  QuickAddSheetContract,
   ShortcutHelpSheetContract,
   TagManagerSheetContract,
   WorkspaceDetailInspectorContract,
@@ -29,7 +30,8 @@ interface UseWorkspaceCommandsOptions {
   visibleSelectedCount: number;
   highlightedRecordId: string | null;
   loading: boolean;
-  quickAddActive: boolean;
+  quickAddOpen: boolean;
+  quickAddSpotlight: boolean;
   message: string | null;
   runtimeNoticeTone?: "info" | "warning";
   reminder: ReminderSummary | null;
@@ -56,6 +58,7 @@ interface UseWorkspaceCommandsOptions {
   searchRef: RefObject<HTMLInputElement>;
   rowRefs: MutableRefObject<Record<string, HTMLButtonElement | null>>;
   onRefresh(): void;
+  onCloseQuickAdd(): void;
   onQuickAddChange(value: string): void;
   onQuickAddSubmit(): void;
   onKeywordChange(value: string): void;
@@ -143,7 +146,6 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
       activeTagId: options.activeTagId,
       activeView: options.activeView,
       currentTagName: options.currentTagName,
-      quickAdd: options.quickAdd,
       keyword: options.keyword,
       status: options.status,
       sortBy: options.sortBy,
@@ -155,7 +157,6 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
       visibleSelectedCount: options.visibleSelectedCount,
       highlightedRecordId: options.highlightedRecordId,
       loading: options.loading,
-      quickAddActive: options.quickAddActive,
       message: options.message,
       runtimeNoticeTone: options.runtimeNoticeTone,
       reminder: options.reminder,
@@ -167,12 +168,9 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
       visibleReminderSelectedCount: options.visibleReminderSelectedCount,
       notificationDebugFeed: options.notificationDebugFeed,
       notificationDebugOpen: options.notificationDebugOpen,
-      quickAddRef: options.quickAddRef,
       searchRef: options.searchRef,
       rowRefs: options.rowRefs,
       onRefresh: options.onRefresh,
-      onQuickAddChange: options.onQuickAddChange,
-      onQuickAddSubmit: options.onQuickAddSubmit,
       onKeywordChange: options.onKeywordChange,
       onStatusChange: options.onStatusChange,
       onTagFilterChange: options.onTagFilterChange,
@@ -195,6 +193,17 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
       onSelectRecord: (recordId: string) => options.onSelectRecord(recordId),
       onToggleSelection: options.onToggleSelection,
       onCompleteRecord: options.onCompleteRecord,
+    };
+
+  const quickAddSheetProps: QuickAddSheetContract = {
+      open: options.quickAddOpen,
+      currentTagName: options.currentTagName,
+      quickAdd: options.quickAdd,
+      quickAddSpotlight: options.quickAddSpotlight,
+      quickAddRef: options.quickAddRef,
+      onClose: options.onCloseQuickAdd,
+      onQuickAddChange: options.onQuickAddChange,
+      onQuickAddSubmit: options.onQuickAddSubmit,
     };
 
   const detailInspectorProps: WorkspaceDetailInspectorContract = {
@@ -252,6 +261,7 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
 
   return {
     listPanelProps,
+    quickAddSheetProps,
     detailInspectorProps,
     tagManagerSheetProps,
     customReminderSheetProps,

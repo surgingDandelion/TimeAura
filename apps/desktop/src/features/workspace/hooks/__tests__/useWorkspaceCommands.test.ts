@@ -75,7 +75,8 @@ function createCommandsOptions() {
     visibleSelectedCount: 1,
     highlightedRecordId: record.id,
     loading: false,
-    quickAddActive: true,
+    quickAddOpen: true,
+    quickAddSpotlight: true,
     message: "已完成提醒命中改期",
     runtimeNoticeTone: "warning" as const,
     reminder,
@@ -115,6 +116,7 @@ function createCommandsOptions() {
     searchRef,
     rowRefs,
     onRefresh: vi.fn(),
+    onCloseQuickAdd: vi.fn(),
     onQuickAddChange: vi.fn(),
     onQuickAddSubmit: vi.fn(),
     onKeywordChange: vi.fn(),
@@ -173,8 +175,9 @@ describe("useWorkspaceCommands", () => {
     const { result } = renderHook(() => useWorkspaceCommands(options));
 
     expect(result.current.listPanelProps.activeView).toBe("today");
-    expect(result.current.listPanelProps.quickAddRef).toBe(options.quickAddRef);
     expect(result.current.listPanelProps.onBatchReschedule).toBe(options.onBatchReschedule);
+    expect(result.current.quickAddSheetProps.open).toBe(true);
+    expect(result.current.quickAddSheetProps.quickAddRef).toBe(options.quickAddRef);
     expect(result.current.detailInspectorProps.selectedRecord?.id).toBe("record-1");
     expect(result.current.detailInspectorProps.onSave).toBe(options.onSave);
     expect(result.current.tagManagerSheetProps.open).toBe(true);

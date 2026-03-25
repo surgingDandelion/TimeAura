@@ -42,7 +42,9 @@ describe("Desktop experience smoke", () => {
       expect(screen.getByText("统一记录列表")).toBeTruthy();
     });
 
-    const quickAddInput = screen.getByPlaceholderText(/单行快速新增到/);
+    fireEvent.click(screen.getAllByRole("button", { name: "快速新增" })[0] as HTMLElement);
+
+    const quickAddInput = await screen.findByPlaceholderText(/例如：明天 18:00 #工作 和设计评审/);
     fireEvent.change(quickAddInput, {
       target: {
         value: "Smoke 验收记录",

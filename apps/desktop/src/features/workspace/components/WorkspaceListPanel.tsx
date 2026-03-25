@@ -14,7 +14,6 @@ export function WorkspaceListPanel({
   activeTagId,
   activeView,
   currentTagName,
-  quickAdd,
   keyword,
   status,
   sortBy,
@@ -26,7 +25,6 @@ export function WorkspaceListPanel({
   visibleSelectedCount,
   highlightedRecordId,
   loading,
-  quickAddActive,
   message,
   runtimeNoticeTone,
   reminder,
@@ -38,12 +36,9 @@ export function WorkspaceListPanel({
   visibleReminderSelectedCount,
   notificationDebugFeed,
   notificationDebugOpen,
-  quickAddRef,
   searchRef,
   rowRefs,
   onRefresh,
-  onQuickAddChange,
-  onQuickAddSubmit,
   onKeywordChange,
   onStatusChange,
   onTagFilterChange,
@@ -74,17 +69,17 @@ export function WorkspaceListPanel({
   return (
     <section className="panel panel-list panel-list-shell">
       <div className="panel-header panel-header-list">
-        <div>
+        <div className="panel-header-list-copy">
           <div className="panel-kicker">备忘录</div>
-          <h1 className="panel-title">统一记录列表</h1>
-          <div className="channel-panel-subtitle">
+          <h1 className="panel-title panel-title-list">统一记录列表</h1>
+          <div className="panel-header-inline-note">
             {activeView === "today"
-              ? "聚焦今天、逾期和临近到期记录。"
+              ? "今天视图"
               : activeView === "plan"
-                ? "查看已排期的后续记录。"
+                ? "计划视图"
                 : activeView === "done"
-                  ? "浏览已完成与已归档记录。"
-                  : "在一个工作台里整理全部待办与备忘。"}
+                  ? "已完成视图"
+                  : `当前范围：${currentTagName}`}
           </div>
         </div>
         <button className="button-secondary" onClick={onRefresh}>
@@ -93,34 +88,6 @@ export function WorkspaceListPanel({
       </div>
 
       <div className="panel-list-body">
-        <div className={`quick-add-card${quickAddActive ? " quick-add-card-active" : ""}`}>
-          <div className="quick-add-row">
-            <input
-              ref={quickAddRef}
-              className={`input quick-add-input${quickAddActive ? " input-spotlight" : ""}`}
-              value={quickAdd}
-              onChange={(event) => onQuickAddChange(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  onQuickAddSubmit();
-                }
-              }}
-              placeholder={`单行快速新增到「${currentTagName}」：例如 明天 18:00 #工作 和设计评审`}
-            />
-            <button className="button-primary quick-add-submit" onClick={onQuickAddSubmit}>
-              新增
-            </button>
-          </div>
-          <div className="quick-add-meta">
-            <div className="quick-add-hints">
-              <span className="tag-chip">#标签</span>
-              <span className="tag-chip">!P1</span>
-              <span className="tag-chip">@明早 09:00</span>
-            </div>
-            <span>回车立即创建，连续记录不打断思路</span>
-          </div>
-        </div>
-
         <div className="workspace-toolbar">
           <label className="search-box">
             <SearchIcon />

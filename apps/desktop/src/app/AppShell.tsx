@@ -30,6 +30,7 @@ const UNCATEGORIZED_TAG_ID = "tag_uncategorized";
 
 export function AppShell(): JSX.Element {
   const { runtime, services } = useAppServices();
+  const [workspaceBootstrapping, setWorkspaceBootstrapping] = useState(!runtime);
   const [page, setPage] = useState<AppPage>("workspace");
   const [workspaceCounts, setWorkspaceCounts] = useState<WorkspaceSidebarCounts>({
     today: 0,
@@ -270,14 +271,23 @@ export function AppShell(): JSX.Element {
 
   useEffect(() => {
     if (runtime) {
+      setWorkspaceBootstrapping(false);
       return;
     }
 
     let cancelled = false;
 
-    void ensureDesktopExperienceData(services)
-      .then(async (result) => {
-        if (cancelled || !result.seeded) {
+    void (async () => {
+      try {
+        const seedResult = await ensureDesktopExperienceData(services);
+
+        if (cancelled) {
+          return;
+        }
+
+        const repairedCount = await repairWorkspaceRecordTags(services);
+
+        if (cancelled) {
           return;
         }
 
@@ -287,15 +297,23 @@ export function AppShell(): JSX.Element {
           return;
         }
 
-        presentRuntimeNotice("已自动准备演示数据，现在可以直接体验新增与提醒链路", "info");
-      })
-      .catch((error) => {
+        if (seedResult.seeded) {
+          presentRuntimeNotice("已自动准备演示数据，现在可以直接体验新增与提醒链路", "info");
+        } else if (repairedCount > 0) {
+          presentRuntimeNotice(`已修复 ${repairedCount} 条历史记录的标签关联`, "info");
+        }
+      } catch (error) {
         if (cancelled) {
           return;
         }
 
-        reportShellFailure("演示数据准备失败", "首次体验数据准备失败，请稍后重试", error);
-      });
+        reportShellFailure("工作台初始化失败", "工作台初始化失败，请稍后重试", error);
+      } finally {
+        if (!cancelled) {
+          setWorkspaceBootstrapping(false);
+        }
+      }
+    })();
 
     return () => {
       cancelled = true;
@@ -303,44 +321,18 @@ export function AppShell(): JSX.Element {
   }, [handleWorkspaceChanged, presentRuntimeNotice, reportShellFailure, runtime, services]);
 
   useEffect(() => {
-    if (runtime) {
+    if (workspaceBootstrapping) {
       return;
     }
 
-    let cancelled = false;
-
-    void repairWorkspaceRecordTags(services)
-      .then(async (repairedCount) => {
-        if (cancelled || repairedCount === 0) {
-          return;
-        }
-
-        await handleWorkspaceChanged();
-
-        if (cancelled) {
-          return;
-        }
-
-        presentRuntimeNotice(`已修复 ${repairedCount} 条历史记录的标签关联`, "info");
-      })
-      .catch((error) => {
-        if (cancelled) {
-          return;
-        }
-
-        reportShellFailure("工作台数据修复失败", "工作台历史数据修复失败，请稍后重试", error);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [handleWorkspaceChanged, presentRuntimeNotice, reportShellFailure, runtime, services]);
-
-  useEffect(() => {
     void loadSidebarData();
-  }, [loadSidebarData]);
+  }, [loadSidebarData, workspaceBootstrapping]);
 
   useEffect(() => {
+    if (workspaceBootstrapping) {
+      return;
+    }
+
     void scheduleReminderNotifications();
 
     const interval = window.setInterval(() => {
@@ -348,7 +340,7 @@ export function AppShell(): JSX.Element {
     }, 60_000);
 
     return () => window.clearInterval(interval);
-  }, [scheduleReminderNotifications]);
+  }, [scheduleReminderNotifications, workspaceBootstrapping]);
 
   useEffect(() => {
     if (!isTauriRuntime()) {
@@ -430,6 +422,12 @@ export function AppShell(): JSX.Element {
   }
 
   function triggerQuickAdd(): void {
+    if (workspaceBootstrapping) {
+      setPage("workspace");
+      presentRuntimeNotice("正在准备工作台数据，请稍候再试", "info");
+      return;
+    }
+
     setPage("workspace");
     setWorkspaceView("all");
     setWorkspaceTagId("all");
@@ -521,6 +519,7 @@ export function AppShell(): JSX.Element {
               onClick={triggerQuickAdd}
               title="快速新增"
               aria-label="快速新增"
+              disabled={workspaceBootstrapping}
             >
               <QuickAddIcon />
             </button>
@@ -534,7 +533,7 @@ export function AppShell(): JSX.Element {
             <div className="panel-kicker">{shellTitle.kicker}</div>
             <div className="desktop-main-title">{shellTitle.title}</div>
           </div>
-          <button className="button-secondary" onClick={triggerQuickAdd}>
+          <button className="button-secondary" onClick={triggerQuickAdd} disabled={workspaceBootstrapping}>
             快速新增
           </button>
         </div>

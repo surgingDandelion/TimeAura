@@ -29,7 +29,7 @@ describe("ShortcutHelpSheet", () => {
 
     expect(screen.getByText("工作台键盘操作")).toBeTruthy();
     expect(screen.getByText("⌘/Ctrl + N")).toBeTruthy();
-    expect(screen.getByText("聚焦顶部快速新增，并选中现有输入内容。")).toBeTruthy();
+    expect(screen.getByText("打开快速新增弹层，并聚焦单行输入框。")).toBeTruthy();
 
     fireEvent.click(screen.getByText("关闭"));
     fireEvent.click(container.firstChild as HTMLElement);

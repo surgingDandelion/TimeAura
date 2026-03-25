@@ -9,7 +9,7 @@ export const WORKSPACE_SHORTCUT_ITEMS: WorkspaceShortcutItem[] = [
   {
     id: "quick-add",
     keys: "⌘/Ctrl + N",
-    description: "聚焦顶部快速新增，并选中现有输入内容。",
+    description: "打开快速新增弹层，并聚焦单行输入框。",
   },
   {
     id: "search",

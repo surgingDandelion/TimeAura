@@ -45,7 +45,7 @@ describe("useWorkspaceSelection", () => {
     unmount();
   });
 
-  it("activates quick add spotlight and clears current inspector selection", () => {
+  it("opens quick add sheet and clears current inspector selection", () => {
     const records = [createWorkspaceRecordEntity({ id: "record-1" })];
     const onTagFilterChange = vi.fn();
     const onResetListContext = vi.fn();
@@ -77,13 +77,20 @@ describe("useWorkspaceSelection", () => {
     expect(onTagFilterChange).toHaveBeenCalledWith("all");
     expect(onQuickAddRequested.mock.calls.length).toBeGreaterThanOrEqual(1);
     expect(result.current.selectedId).toBeNull();
-    expect(result.current.quickAddActive).toBe(true);
+    expect(result.current.quickAddOpen).toBe(true);
+    expect(result.current.quickAddSpotlight).toBe(true);
 
     act(() => {
       rerender({ quickAddNonce: 2 });
     });
 
     expect(onQuickAddRequested).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      result.current.closeQuickAdd();
+    });
+
+    expect(result.current.quickAddOpen).toBe(false);
 
     unmount();
   });

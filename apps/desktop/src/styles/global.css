@@ -227,17 +227,17 @@ body {
 
 .desktop-main-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 6px 4px 0;
+  padding: 2px 4px 0;
   flex: 0 0 auto;
 }
 
 .desktop-main-title {
-  margin-top: 8px;
+  margin-top: 6px;
   color: #223244;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 650;
   letter-spacing: -0.03em;
 }
@@ -279,10 +279,10 @@ body {
 
 .panel-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .panel-kicker {
@@ -298,6 +298,12 @@ body {
   font-size: 28px;
   line-height: 1.08;
   letter-spacing: -0.03em;
+}
+
+.panel-title-list {
+  margin-top: 4px;
+  font-size: 22px;
+  line-height: 1.14;
 }
 
 .panel-title-small {
@@ -323,7 +329,20 @@ body {
   flex: 1;
   min-height: 0;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
+}
+
+.panel-header-list-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.panel-header-inline-note {
+  color: #6f8193;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .panel-detail,
@@ -393,7 +412,7 @@ body {
 .workspace-toolbar {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .search-box {
@@ -1299,6 +1318,49 @@ body {
   width: min(640px, 100%);
 }
 
+.quick-add-sheet {
+  width: min(620px, 100%);
+}
+
+.quick-add-sheet-input-wrap {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 248, 252, 0.94));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.quick-add-sheet-input-wrap-active {
+  border-color: rgba(95, 143, 220, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 0 0 3px rgba(95, 143, 220, 0.08);
+}
+
+.quick-add-sheet-input {
+  flex: 1;
+  min-width: 0;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.quick-add-sheet-submit {
+  min-width: 76px;
+}
+
+.quick-add-sheet-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  color: #6c7d8d;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .debug-panel {
   margin-bottom: 14px;
   border: 1px solid rgba(15, 23, 42, 0.06);
@@ -1702,6 +1764,7 @@ textarea:focus-visible {
   }
 
   .quick-add-row,
+  .quick-add-sheet-input-wrap,
   .filters-row,
   .field-inline-group,
   .report-toolbar,

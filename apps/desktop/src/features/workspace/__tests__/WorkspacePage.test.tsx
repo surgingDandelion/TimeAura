@@ -6,6 +6,7 @@ import { WorkspacePage } from "../WorkspacePage";
 const hookSpy = vi.fn();
 const listPanelSpy = vi.fn();
 const detailSpy = vi.fn();
+const quickAddSpy = vi.fn();
 const tagManagerSpy = vi.fn();
 const customReminderSpy = vi.fn();
 const shortcutSpy = vi.fn();
@@ -25,6 +26,13 @@ vi.mock("../components/WorkspaceDetailInspector", () => ({
   WorkspaceDetailInspector: (props: unknown) => {
     detailSpy(props);
     return <div data-testid="workspace-detail-panel">detail-panel</div>;
+  },
+}));
+
+vi.mock("../components/QuickAddSheet", () => ({
+  QuickAddSheet: (props: unknown) => {
+    quickAddSpy(props);
+    return <div data-testid="workspace-quick-add-sheet">quick-add-sheet</div>;
   },
 }));
 
@@ -54,6 +62,7 @@ describe("WorkspacePage", () => {
     hookSpy.mockReset();
     listPanelSpy.mockReset();
     detailSpy.mockReset();
+    quickAddSpy.mockReset();
     tagManagerSpy.mockReset();
     customReminderSpy.mockReset();
     shortcutSpy.mockReset();
@@ -83,6 +92,7 @@ describe("WorkspacePage", () => {
 
     const viewModel = {
       listPanelProps: { currentTagName: "工作" },
+      quickAddSheetProps: { open: false },
       detailInspectorProps: { selectedRecord: null },
       tagManagerSheetProps: { open: false },
       customReminderSheetProps: { open: false },
@@ -95,11 +105,13 @@ describe("WorkspacePage", () => {
     expect(container.querySelector(".workspace-layout")).toBeTruthy();
     expect(hookSpy).toHaveBeenCalledWith(pageProps);
     expect(listPanelSpy).toHaveBeenCalledWith(viewModel.listPanelProps);
+    expect(quickAddSpy).toHaveBeenCalledWith(viewModel.quickAddSheetProps);
     expect(tagManagerSpy).toHaveBeenCalledWith(viewModel.tagManagerSheetProps);
     expect(customReminderSpy).toHaveBeenCalledWith(viewModel.customReminderSheetProps);
     expect(shortcutSpy).toHaveBeenCalledWith(viewModel.shortcutHelpProps);
     expect(screen.getByTestId("workspace-list-panel")).toBeTruthy();
     expect(screen.queryByTestId("workspace-detail-panel")).toBeNull();
+    expect(screen.getByTestId("workspace-quick-add-sheet")).toBeTruthy();
     expect(screen.getByTestId("workspace-tag-sheet")).toBeTruthy();
     expect(screen.getByTestId("workspace-reminder-sheet")).toBeTruthy();
     expect(screen.getByTestId("workspace-shortcut-sheet")).toBeTruthy();
@@ -119,6 +131,7 @@ describe("WorkspacePage", () => {
     };
     const viewModel = {
       listPanelProps: { currentTagName: "全部" },
+      quickAddSheetProps: { open: false },
       detailInspectorProps: { selectedRecord: { id: "record-1" } },
       tagManagerSheetProps: { open: false },
       customReminderSheetProps: { open: false },
