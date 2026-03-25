@@ -24,6 +24,34 @@ describe("useWorkspaceNotificationDebugActions", () => {
     expect(onMessage).not.toHaveBeenCalled();
   });
 
+  it("returns noop when there is no notification debug entry to clear", async () => {
+    const { seams, state } = createWorkspaceTestFixtureBundle();
+    const onMessage = vi.fn();
+    const onClearNotificationDebug = vi.fn(async () => undefined);
+
+    const { result } = renderHook(() =>
+      useWorkspaceNotificationDebugActions({
+        notificationDebugEntries: [],
+        onClearNotificationDebug,
+        onMessage,
+        seams,
+      }),
+    );
+
+    let commandResult: Awaited<ReturnType<typeof result.current.handleClearNotificationDebugPanel>> | undefined;
+
+    await act(async () => {
+      commandResult = await result.current.handleClearNotificationDebugPanel();
+    });
+
+    expect(commandResult).toEqual({
+      status: "noop",
+    });
+    expect(state.confirmMessages).toEqual([]);
+    expect(onClearNotificationDebug).not.toHaveBeenCalled();
+    expect(onMessage).not.toHaveBeenCalled();
+  });
+
   it("exports notification debug payload through seams", () => {
     const { seams, state } = createWorkspaceTestFixtureBundle();
     const onMessage = vi.fn();

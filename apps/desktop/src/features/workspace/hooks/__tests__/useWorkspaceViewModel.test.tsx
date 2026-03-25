@@ -20,6 +20,7 @@ function Wrapper({ children }: { children: ReactNode }) {
 describe("useWorkspaceViewModel", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it("assembles list, inspector, reminder, tag manager, and notification state from workspace hooks", async () => {
@@ -247,5 +248,180 @@ describe("useWorkspaceViewModel", () => {
 
     expect(result.current.listPanelProps.reminderSelectedIds).toEqual([]);
     expect(result.current.listPanelProps.reminderSelectedOnly).toBe(false);
+  });
+
+  it("completes custom reminder reschedule flow with validation and selected-only targeting", async () => {
+    const listRecords = vi.fn(async () => ({
+      items: [
+        createWorkspaceRecordEntity({
+          id: "record-1",
+          title: "整理周报",
+          dueAt: "2026-01-02T09:00:00.000Z",
+        }),
+      ],
+      total: 1,
+    }));
+    const batchReschedule = vi.fn(async () => []);
+    const container = createWorkspaceAppContainerDouble({
+      recordService: {
+        listRecords,
+        batchReschedule,
+      },
+      tagService: {
+        listTags: vi.fn(async () => []),
+      },
+      reminderService: {
+        getReminderSummary: vi.fn(async () =>
+          createWorkspaceReminderSummary({
+            kind: "overdue",
+            title: "有任务已逾期",
+            recordIds: ["record-1"],
+          }),
+        ),
+        listReminderHits: vi.fn(async () => [
+          createWorkspaceReminderHit({
+            id: "record-1",
+            title: "整理周报",
+            reminderKind: "overdue",
+            dueAt: "2026-01-02T09:00:00.000Z",
+          }),
+        ]),
+      },
+    });
+
+    vi.spyOn(createDesktopAppServicesModule, "createDesktopAppServices").mockResolvedValue(container);
+
+    const { result } = renderHook(
+      () =>
+        useWorkspaceViewModel({
+          activeTagId: "all",
+          activeView: "today",
+          focusTarget: null,
+          quickAddTarget: null,
+          runtimeNotice: null,
+          notificationDebugEntries: [],
+          onClearNotificationDebug: vi.fn(async () => undefined),
+          onTagFilterChange: vi.fn(),
+          onWorkspaceChanged: vi.fn(),
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => {
+      expect(result.current.listPanelProps.activeReminderHits).toHaveLength(1);
+    });
+
+    act(() => {
+      result.current.listPanelProps.onToggleReminderSelection("record-1");
+      result.current.listPanelProps.onToggleReminderSelectedOnly();
+      result.current.listPanelProps.onOpenCustomReminderReschedule();
+    });
+
+    await waitFor(() => {
+      expect(result.current.customReminderSheetProps.open).toBe(true);
+      expect(result.current.customReminderSheetProps.reminderSelectedOnly).toBe(true);
+    });
+
+    act(() => {
+      result.current.customReminderSheetProps.onChangeDueAt("2000-01-01T08:30");
+    });
+
+    await waitFor(() => {
+      expect(result.current.customReminderSheetProps.customReminderDueAt).toBe("2000-01-01T08:30");
+    });
+
+    act(() => {
+      result.current.customReminderSheetProps.onSubmit();
+    });
+
+    await waitFor(() => {
+      expect(result.current.listPanelProps.message).toBe("新的截止时间需晚于当前时间。");
+    });
+
+    expect(batchReschedule).not.toHaveBeenCalled();
+
+    act(() => {
+      result.current.customReminderSheetProps.onChangeDueAt("2099-01-02T09:00");
+    });
+
+    await waitFor(() => {
+      expect(result.current.customReminderSheetProps.customReminderDueAt).toBe("2099-01-02T09:00");
+    });
+
+    act(() => {
+      result.current.customReminderSheetProps.onSubmit();
+    });
+
+    await waitFor(() => {
+      expect(batchReschedule).toHaveBeenCalledWith(["record-1"], {
+        preset: "custom",
+        customAt: new Date("2099-01-02T09:00").toISOString(),
+      });
+      expect(result.current.listPanelProps.message).toBe("已完成自定义改期");
+    });
+
+    expect(result.current.customReminderSheetProps.open).toBe(false);
+    expect(result.current.listPanelProps.reminderSelectedIds).toEqual([]);
+    expect(result.current.listPanelProps.reminderSelectedOnly).toBe(false);
+  });
+
+  it("clears notification debug entries through the integrated notification actions", async () => {
+    const onClearNotificationDebug = vi.fn(async () => undefined);
+    const container = createWorkspaceAppContainerDouble({
+      recordService: {
+        listRecords: vi.fn(async () => ({
+          items: [],
+          total: 0,
+        })),
+      },
+      tagService: {
+        listTags: vi.fn(async () => []),
+      },
+      reminderService: {
+        getReminderSummary: vi.fn(async () => null),
+        listReminderHits: vi.fn(async () => []),
+      },
+    });
+
+    vi.stubGlobal("confirm", vi.fn(() => true));
+    vi.spyOn(createDesktopAppServicesModule, "createDesktopAppServices").mockResolvedValue(container);
+
+    const { result } = renderHook(
+      () =>
+        useWorkspaceViewModel({
+          activeTagId: "all",
+          activeView: "today",
+          focusTarget: null,
+          quickAddTarget: null,
+          runtimeNotice: null,
+          notificationDebugEntries: [
+            {
+              id: "debug-1",
+              at: "2026-01-01T09:20:00.000Z",
+              source: "action",
+              level: "info",
+              title: "提醒已扫描",
+              detail: "存在 1 条待清理通知日志",
+            },
+          ],
+          onClearNotificationDebug,
+          onTagFilterChange: vi.fn(),
+          onWorkspaceChanged: vi.fn(),
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => {
+      expect(result.current.listPanelProps.loading).toBe(false);
+    });
+
+    act(() => {
+      result.current.listPanelProps.onClearNotificationDebug();
+    });
+
+    await waitFor(() => {
+      expect(onClearNotificationDebug).toHaveBeenCalledTimes(1);
+      expect(result.current.listPanelProps.message).toBe("通知调试记录已清空");
+    });
   });
 });
