@@ -213,4 +213,63 @@ describe("useWorkspaceCommands", () => {
 
     expect(result.current.shortcutHelpProps.open).toBe(false);
   });
+
+  it("keeps shortcut callbacks stable when focus refs are unavailable", () => {
+    const options = {
+      ...createCommandsOptions(),
+      quickAddRef: { current: null } as RefObject<HTMLInputElement>,
+      searchRef: { current: null } as RefObject<HTMLInputElement>,
+    };
+
+    renderHook(() => useWorkspaceCommands(options));
+    const keyboardOptions = keyboardShortcutsSpy.mock.calls.at(-1)?.[0] as {
+      onFocusSearch(): void;
+      onOpenShortcutHelp(): void;
+      onCloseShortcutHelp(): void;
+    };
+
+    expect(() => {
+      act(() => {
+        keyboardOptions.onFocusSearch();
+        keyboardOptions.onOpenShortcutHelp();
+        keyboardOptions.onCloseShortcutHelp();
+      });
+    }).not.toThrow();
+  });
+
+  it("assembles stable empty-state contracts when no record is selected", () => {
+    const options = {
+      ...createCommandsOptions(),
+      tags: [],
+      records: [],
+      selectedId: null,
+      selectedIds: [],
+      selectedCount: 0,
+      visibleSelectedCount: 0,
+      highlightedRecordId: null,
+      message: null,
+      reminder: null,
+      activeReminderHits: [],
+      activeReminderTargetIds: [],
+      reminderExpanded: false,
+      reminderSelectedIds: [],
+      reminderSelectedOnly: false,
+      visibleReminderSelectedCount: 0,
+      selectedRecord: null,
+      draft: null,
+      editingTag: null,
+      tagManagerOpen: false,
+      customReminderTimeOpen: false,
+    };
+
+    const { result } = renderHook(() => useWorkspaceCommands(options));
+
+    expect(result.current.listPanelProps.records).toEqual([]);
+    expect(result.current.listPanelProps.selectedId).toBeNull();
+    expect(result.current.detailInspectorProps.selectedRecord).toBeNull();
+    expect(result.current.detailInspectorProps.draft).toBeNull();
+    expect(result.current.tagManagerSheetProps.open).toBe(false);
+    expect(result.current.customReminderSheetProps.open).toBe(false);
+    expect(result.current.shortcutHelpProps.open).toBe(false);
+  });
 });
