@@ -73,6 +73,14 @@
   - 已整合 PRD、线框、原型的核心约束
   - 适合直接复制使用
 
+### 3.5 桌面端验收清单
+
+- 文件：`/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/docs/TimeAura-Desktop-Acceptance-Checklist.md`
+- 作用：
+  - 给产品、设计、开发或你自己做第一轮桌面体验验收时直接使用
+  - 定义建议启动方式、最短体验路径、重点关注页面和已知说明
+  - 适合作为“现在是否可以开始试用”的统一判断入口
+
 ---
 
 ## 4. 建议给不同对象的发包方式
