@@ -40,41 +40,59 @@ export class TauriNotificationDriver implements NotificationDriver {
       }
     }
 
-    const notification = await import("@tauri-apps/plugin-notification");
-    let permissionGranted = await notification.isPermissionGranted();
+    try {
+      const notification = await import("@tauri-apps/plugin-notification");
+      let permissionGranted = await notification.isPermissionGranted();
 
-    if (!permissionGranted) {
-      const permission = await notification.requestPermission();
-      permissionGranted = permission === "granted";
-    }
+      if (!permissionGranted) {
+        const permission = await notification.requestPermission();
+        permissionGranted = permission === "granted";
+      }
 
-    if (!permissionGranted) {
-      emitNotificationDebug({
-        level: "warning",
-        title: "系统通知未发送",
-        detail: `通知权限未授予，标题：${input.title}`,
+      if (!permissionGranted) {
+        emitNotificationDebug({
+          level: "warning",
+          title: "系统通知未发送",
+          detail: `通知权限未授予，标题：${input.title}`,
+        });
+        return;
+      }
+
+      await notification.sendNotification({
+        id: createNotificationId(input.id),
+        title: input.title,
+        body: input.body,
+        largeBody: input.body,
+        autoCancel: true,
+        extra: input.extra,
       });
-      return;
+      emitNotificationDebug({
+        level: "info",
+        title: "普通系统通知已发送",
+        detail: `通知标题：${input.title}`,
+      });
+    } catch (error) {
+      emitNotificationDebug({
+        level: "error",
+        title: "系统通知发送失败",
+        detail: `通知标题：${input.title}，原因：${toErrorMessage(error)}`,
+      });
+      throw new Error(`发送系统通知失败：${toErrorMessage(error)}`);
     }
-
-    notification.sendNotification({
-      id: createNotificationId(input.id),
-      title: input.title,
-      body: input.body,
-      largeBody: input.body,
-      autoCancel: true,
-      extra: input.extra,
-    });
-    emitNotificationDebug({
-      level: "info",
-      title: "普通系统通知已发送",
-      detail: `通知标题：${input.title}`,
-    });
   }
 
   async cancel(id: string): Promise<void> {
-    const notification = await import("@tauri-apps/plugin-notification");
-    await notification.cancel([createNotificationId(id)]);
+    try {
+      const notification = await import("@tauri-apps/plugin-notification");
+      await notification.cancel([createNotificationId(id)]);
+    } catch (error) {
+      emitNotificationDebug({
+        level: "warning",
+        title: "系统通知取消失败",
+        detail: `通知 ID：${id}，原因：${toErrorMessage(error)}`,
+      });
+      throw new Error(`取消系统通知失败：${toErrorMessage(error)}`);
+    }
   }
 }
 

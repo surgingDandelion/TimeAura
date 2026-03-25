@@ -13,19 +13,27 @@ export async function createDesktopAppServices(): Promise<AppContainer> {
   const strongholdPassword =
     import.meta.env.VITE_TIMEAURA_STRONGHOLD_PASSWORD ?? "timeaura-dev-password";
 
-  return createAppServices({
-    mode,
-    sqliteOptions: {
-      databaseUrl: import.meta.env.VITE_TIMEAURA_DB_URL ?? "sqlite:timeaura.db",
-      aiGateway: new RoutingAIProviderGateway(),
-      credentialVault: new StrongholdCredentialVault({
-        password: strongholdPassword,
-        snapshotPath: import.meta.env.VITE_TIMEAURA_STRONGHOLD_PATH ?? "timeaura.stronghold",
-        clientName: "timeaura-desktop",
-      }),
-      notificationDriver: new TauriNotificationDriver(),
-    },
-  });
+  try {
+    return await createAppServices({
+      mode,
+      sqliteOptions: {
+        databaseUrl: import.meta.env.VITE_TIMEAURA_DB_URL ?? "sqlite:timeaura.db",
+        aiGateway: new RoutingAIProviderGateway(),
+        credentialVault: new StrongholdCredentialVault({
+          password: strongholdPassword,
+          snapshotPath: import.meta.env.VITE_TIMEAURA_STRONGHOLD_PATH ?? "timeaura.stronghold",
+          clientName: "timeaura-desktop",
+        }),
+        notificationDriver: new TauriNotificationDriver(),
+      },
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`初始化桌面服务失败（${mode}）：${error.message}`);
+    }
+
+    throw new Error(`初始化桌面服务失败（${mode}）`);
+  }
 }
 
 function isTauriRuntime(): boolean {

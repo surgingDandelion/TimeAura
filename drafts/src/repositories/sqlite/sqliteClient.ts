@@ -31,11 +31,16 @@ export class SqliteClient {
     const database = await loadDatabase(options.databaseUrl);
     const client = new SqliteClient(database);
 
-    if (options.migrations?.length) {
-      await client.migrate(options.migrations);
-    }
+    try {
+      if (options.migrations?.length) {
+        await client.migrate(options.migrations);
+      }
 
-    return client;
+      return client;
+    } catch (error) {
+      await database.close().catch(() => undefined);
+      throw error;
+    }
   }
 
   async execute(query: string, bindValues: unknown[] = []): Promise<SqliteExecuteResult> {

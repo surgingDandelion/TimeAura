@@ -38,26 +38,38 @@ export class StrongholdCredentialVault implements CredentialVault {
   }
 
   async getSecret(ref: string): Promise<string | null> {
-    const runtime = await this.getRuntime();
-    const value = await runtime.store.get(ref);
+    try {
+      const runtime = await this.getRuntime();
+      const value = await runtime.store.get(ref);
 
-    if (!value) {
-      return null;
+      if (!value) {
+        return null;
+      }
+
+      return new TextDecoder().decode(value instanceof Uint8Array ? value : Uint8Array.from(value));
+    } catch (error) {
+      throw wrapStrongholdError(error, "读取 Stronghold 凭证失败");
     }
-
-    return new TextDecoder().decode(value instanceof Uint8Array ? value : Uint8Array.from(value));
   }
 
   async setSecret(ref: string, value: string): Promise<void> {
-    const runtime = await this.getRuntime();
-    await runtime.store.insert(ref, Array.from(new TextEncoder().encode(value)));
-    await runtime.stronghold.save();
+    try {
+      const runtime = await this.getRuntime();
+      await runtime.store.insert(ref, Array.from(new TextEncoder().encode(value)));
+      await runtime.stronghold.save();
+    } catch (error) {
+      throw wrapStrongholdError(error, "写入 Stronghold 凭证失败");
+    }
   }
 
   async removeSecret(ref: string): Promise<void> {
-    const runtime = await this.getRuntime();
-    await runtime.store.remove(ref);
-    await runtime.stronghold.save();
+    try {
+      const runtime = await this.getRuntime();
+      await runtime.store.remove(ref);
+      await runtime.stronghold.save();
+    } catch (error) {
+      throw wrapStrongholdError(error, "删除 Stronghold 凭证失败");
+    }
   }
 
   async dispose(): Promise<void> {
@@ -65,9 +77,15 @@ export class StrongholdCredentialVault implements CredentialVault {
       return;
     }
 
-    const runtime = await this.strongholdPromise;
-    await runtime.stronghold.unload();
+    const runtimePromise = this.strongholdPromise;
     this.strongholdPromise = null;
+
+    try {
+      const runtime = await runtimePromise;
+      await runtime.stronghold.unload();
+    } catch (error) {
+      throw wrapStrongholdError(error, "释放 Stronghold 失败");
+    }
   }
 
   private async getRuntime(): Promise<StrongholdRuntime> {
@@ -76,6 +94,9 @@ export class StrongholdCredentialVault implements CredentialVault {
         snapshotPath: this.snapshotPath,
         password: this.options.password,
         clientName: this.clientName,
+      }).catch((error) => {
+        this.strongholdPromise = null;
+        throw error;
       });
     }
 
@@ -112,4 +133,12 @@ async function createStrongholdRuntime(
     stronghold,
     store: client.getStore(),
   };
+}
+
+function wrapStrongholdError(error: unknown, fallback: string): Error {
+  if (error instanceof Error) {
+    return new Error(`${fallback}：${error.message}`);
+  }
+
+  return new Error(fallback);
 }

@@ -65,50 +65,57 @@ export async function createSqliteAppServices(
   const aiGateway = options.aiGateway ?? new UnavailableAIProviderGateway();
   const credentialVault: CredentialVault = options.credentialVault ?? new MemoryCredentialVault();
   const notificationDriver = options.notificationDriver ?? new NoopNotificationDriver();
-  const reminderService = new DefaultReminderService(repositories.recordRepository, now);
-  const aiService = new DefaultAIService(
-    repositories.recordRepository,
-    repositories.channelRepository,
-    repositories.settingsRepository,
-    aiGateway,
-    credentialVault,
-  );
 
-  const services: AppServices = {
-    aiService,
-    channelService: new DefaultChannelService(
+  try {
+    const reminderService = new DefaultReminderService(repositories.recordRepository, now);
+    const aiService = new DefaultAIService(
+      repositories.recordRepository,
       repositories.channelRepository,
       repositories.settingsRepository,
       aiGateway,
       credentialVault,
-      now,
-    ),
-    notificationService: new DefaultNotificationService(notificationDriver, reminderService),
-    recordService: new DefaultRecordService(repositories.recordRepository, now),
-    reminderService,
-    reportService: new DefaultReportService(
-      repositories.recordRepository,
-      repositories.reportTemplateRepository,
-      repositories.reportHistoryRepository,
-      aiService,
-      now,
-    ),
-    settingsService: new DefaultSettingsService(repositories.settingsRepository, now),
-    tagService: new DefaultTagService(
-      repositories.tagRepository,
-      repositories.recordRepository,
-      repositories.recordTagRepository,
-      now,
-    ),
-    templateService: new DefaultTemplateService(repositories.reportTemplateRepository, now),
-  };
+    );
 
-  return {
-    repositories,
-    services,
-    dispose: async () => {
-      await credentialVault.dispose?.();
-      await client.close();
-    },
-  };
+    const services: AppServices = {
+      aiService,
+      channelService: new DefaultChannelService(
+        repositories.channelRepository,
+        repositories.settingsRepository,
+        aiGateway,
+        credentialVault,
+        now,
+      ),
+      notificationService: new DefaultNotificationService(notificationDriver, reminderService),
+      recordService: new DefaultRecordService(repositories.recordRepository, now),
+      reminderService,
+      reportService: new DefaultReportService(
+        repositories.recordRepository,
+        repositories.reportTemplateRepository,
+        repositories.reportHistoryRepository,
+        aiService,
+        now,
+      ),
+      settingsService: new DefaultSettingsService(repositories.settingsRepository, now),
+      tagService: new DefaultTagService(
+        repositories.tagRepository,
+        repositories.recordRepository,
+        repositories.recordTagRepository,
+        now,
+      ),
+      templateService: new DefaultTemplateService(repositories.reportTemplateRepository, now),
+    };
+
+    return {
+      repositories,
+      services,
+      dispose: async () => {
+        await credentialVault.dispose?.();
+        await client.close();
+      },
+    };
+  } catch (error) {
+    await credentialVault.dispose?.().catch(() => undefined);
+    await client.close().catch(() => undefined);
+    throw error;
+  }
 }
