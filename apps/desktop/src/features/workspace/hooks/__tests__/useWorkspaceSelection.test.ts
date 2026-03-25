@@ -79,6 +79,12 @@ describe("useWorkspaceSelection", () => {
     expect(result.current.selectedId).toBeNull();
     expect(result.current.quickAddActive).toBe(true);
 
+    act(() => {
+      rerender({ quickAddNonce: 2 });
+    });
+
+    expect(onQuickAddRequested).toHaveBeenCalledTimes(1);
+
     unmount();
   });
 

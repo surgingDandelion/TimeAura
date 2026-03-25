@@ -24,6 +24,10 @@ export interface ConnectSqliteClientOptions {
 }
 
 export class SqliteClient {
+  private transactionDepth = 0;
+  private transactionSequence = 0;
+  private transactionQueue: Promise<void> = Promise.resolve();
+
   constructor(private readonly database: SqliteDatabaseDriver) {}
 
   static async connect(options: ConnectSqliteClientOptions): Promise<SqliteClient> {
@@ -57,21 +61,11 @@ export class SqliteClient {
   }
 
   async transaction<T>(run: (client: SqliteClient) => Promise<T>): Promise<T> {
-    await this.execute("BEGIN");
-
-    try {
-      const result = await run(this);
-      await this.execute("COMMIT");
-      return result;
-    } catch (error) {
-      try {
-        await this.execute("ROLLBACK");
-      } catch (rollbackError) {
-        throw new Error(`SQLite 事务失败：${toErrorMessage(error)}；回滚失败：${toErrorMessage(rollbackError)}`);
-      }
-
-      throw normalizeError(error, "SQLite 事务失败");
+    if (this.transactionDepth > 0) {
+      return this.runTransaction(run);
     }
+
+    return this.enqueueTransaction(() => this.runTransaction(run));
   }
 
   async migrate(migrations: SqliteMigration[]): Promise<void> {
@@ -107,6 +101,50 @@ export class SqliteClient {
 
   async close(): Promise<void> {
     await this.database.close();
+  }
+
+  private async enqueueTransaction<T>(run: () => Promise<T>): Promise<T> {
+    const previous = this.transactionQueue;
+    let release!: () => void;
+    this.transactionQueue = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    await previous;
+
+    try {
+      return await run();
+    } finally {
+      release();
+    }
+  }
+
+  private async runTransaction<T>(run: (client: SqliteClient) => Promise<T>): Promise<T> {
+    const isNested = this.transactionDepth > 0;
+    const savepointName = `timeaura_tx_${++this.transactionSequence}`;
+    this.transactionDepth += 1;
+
+    try {
+      await this.database.execute(isNested ? `SAVEPOINT ${savepointName}` : "BEGIN");
+      const result = await run(this);
+      await this.database.execute(isNested ? `RELEASE SAVEPOINT ${savepointName}` : "COMMIT");
+      return result;
+    } catch (error) {
+      try {
+        if (isNested) {
+          await this.database.execute(`ROLLBACK TO SAVEPOINT ${savepointName}`);
+          await this.database.execute(`RELEASE SAVEPOINT ${savepointName}`);
+        } else {
+          await this.database.execute("ROLLBACK");
+        }
+      } catch (rollbackError) {
+        throw new Error(`SQLite 事务失败：${toErrorMessage(error)}；回滚失败：${toErrorMessage(rollbackError)}`);
+      }
+
+      throw normalizeError(error, "SQLite 事务失败");
+    } finally {
+      this.transactionDepth -= 1;
+    }
   }
 }
 

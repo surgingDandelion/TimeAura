@@ -10,10 +10,12 @@ import type {
 
 export function WorkspacePage(props: WorkspacePageProps): JSX.Element {
   const viewModel = useWorkspaceViewModel(props);
+  const detailOpen = Boolean(viewModel.detailInspectorProps.selectedRecord);
+
   return (
-    <div className="workspace-layout">
+    <div className={`workspace-layout${detailOpen ? " workspace-layout-detail-open" : ""}`}>
       <WorkspaceListPanel {...viewModel.listPanelProps} />
-      <WorkspaceDetailInspector {...viewModel.detailInspectorProps} />
+      {detailOpen ? <WorkspaceDetailInspector {...viewModel.detailInspectorProps} /> : null}
       <TagManagerSheet {...viewModel.tagManagerSheetProps} />
       <CustomReminderSheet {...viewModel.customReminderSheetProps} />
       <ShortcutHelpSheet {...viewModel.shortcutHelpProps} />

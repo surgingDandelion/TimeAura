@@ -188,8 +188,6 @@ describe("AppShell", () => {
     });
 
     expect(screen.getByTestId("workspace-view").textContent).toBe("all");
-    expect(screen.getByText("Mock Runtime")).toBeTruthy();
-    expect(screen.getByText("已就绪")).toBeTruthy();
     expect(container.services.notificationService.scheduleReminderNotifications).toHaveBeenCalledTimes(1);
     expect(ensureDesktopExperienceDataSpy).not.toHaveBeenCalled();
 
@@ -213,7 +211,7 @@ describe("AppShell", () => {
     expect(screen.getByTestId("workspace-quick-add-target").textContent).toBe("true");
   });
 
-  it("renders sqlite runtime label and fallback service status when optional runtime services are absent", async () => {
+  it("prepares sqlite first-run flow even when optional runtime services are absent", async () => {
     const container = createContainer();
     container.runtime = undefined;
     container.services.channelService = null as unknown as typeof container.services.channelService;
@@ -222,8 +220,7 @@ describe("AppShell", () => {
     render(<AppShell />);
 
     await waitFor(() => {
-      expect(screen.getByText("SQLite Runtime")).toBeTruthy();
-      expect(screen.getByText("未就绪")).toBeTruthy();
+      expect(screen.getByTestId("workspace-page")).toBeTruthy();
     });
 
     expect(ensureDesktopExperienceDataSpy).toHaveBeenCalledTimes(1);

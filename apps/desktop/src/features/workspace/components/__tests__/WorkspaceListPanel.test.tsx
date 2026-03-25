@@ -86,25 +86,25 @@ describe("WorkspaceListPanel", () => {
     const props = createProps();
     render(<WorkspaceListPanel {...props} />);
 
-    fireEvent.change(screen.getByPlaceholderText("单行快速新增到「全部标签」"), {
+    fireEvent.change(screen.getByPlaceholderText(/单行快速新增到「全部标签」/), {
       target: { value: "新的记录" },
     });
     expect(props.onQuickAddChange).toHaveBeenCalledWith("新的记录");
 
-    fireEvent.keyDown(screen.getByPlaceholderText("单行快速新增到「全部标签」"), {
+    fireEvent.keyDown(screen.getByPlaceholderText(/单行快速新增到「全部标签」/), {
       key: "Enter",
     });
     expect(props.onQuickAddSubmit).toHaveBeenCalledTimes(1);
 
-    fireEvent.change(screen.getByPlaceholderText("模糊检索标题或内容"), {
+    fireEvent.change(screen.getByPlaceholderText("模糊检索标题、正文、标签"), {
       target: { value: "周报" },
     });
     expect(props.onKeywordChange).toHaveBeenCalledWith("周报");
 
     const selects = screen.getAllByRole("combobox");
-    fireEvent.change(selects[0]!, { target: { value: "all" } });
-    fireEvent.change(selects[1]!, { target: { value: "tag_work" } });
-    fireEvent.change(selects[2]!, { target: { value: "priority" } });
+    fireEvent.click(screen.getByText("全部"));
+    fireEvent.change(selects[0]!, { target: { value: "tag_work" } });
+    fireEvent.change(selects[1]!, { target: { value: "priority" } });
 
     expect(props.onStatusChange).toHaveBeenCalledWith("all");
     expect(props.onTagFilterChange).toHaveBeenCalledWith("tag_work");
@@ -164,10 +164,8 @@ describe("WorkspaceListPanel", () => {
     const { rerender } = render(<WorkspaceListPanel {...props} />);
 
     expect(screen.getByText("正在加载记录…")).toBeTruthy();
-
-    const statusSelect = screen.getAllByRole("combobox")[0] as HTMLSelectElement;
-    expect(statusSelect.disabled).toBe(true);
-    expect(statusSelect.value).toBe("done");
+    expect((screen.getByRole("button", { name: "已完成" }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: "未完成" }) as HTMLButtonElement).disabled).toBe(true);
 
     rerender(
       <WorkspaceListPanel

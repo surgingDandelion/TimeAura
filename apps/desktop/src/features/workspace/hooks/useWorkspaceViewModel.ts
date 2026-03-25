@@ -51,6 +51,14 @@ export function useWorkspaceViewModel({
     activeView,
     services,
   });
+  const handleResetListContext = useCallback(() => {
+    setKeyword("");
+    setStatus("todo");
+  }, [setKeyword, setStatus]);
+  const handleQuickAddRequested = useCallback(() => {
+    quickAddRef.current?.focus();
+    quickAddRef.current?.select();
+  }, []);
 
   const {
     selectedId,
@@ -72,14 +80,8 @@ export function useWorkspaceViewModel({
     focusTarget,
     quickAddTarget,
     onTagFilterChange,
-    onResetListContext: () => {
-      setKeyword("");
-      setStatus("todo");
-    },
-    onQuickAddRequested: () => {
-      quickAddRef.current?.focus();
-      quickAddRef.current?.select();
-    },
+    onResetListContext: handleResetListContext,
+    onQuickAddRequested: handleQuickAddRequested,
   });
 
   const selectedRecord = useMemo(

@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { WorkspacePage } from "../WorkspacePage";
 
@@ -50,7 +50,16 @@ vi.mock("../components/ShortcutHelpSheet", () => ({
 }));
 
 describe("WorkspacePage", () => {
-  it("assembles view model contracts into the page layout", () => {
+  beforeEach(() => {
+    hookSpy.mockReset();
+    listPanelSpy.mockReset();
+    detailSpy.mockReset();
+    tagManagerSpy.mockReset();
+    customReminderSpy.mockReset();
+    shortcutSpy.mockReset();
+  });
+
+  it("assembles view model contracts into the page layout and keeps inspector collapsed by default", () => {
     const pageProps = {
       activeTagId: "tag_work",
       activeView: "today" as const,
@@ -86,14 +95,40 @@ describe("WorkspacePage", () => {
     expect(container.querySelector(".workspace-layout")).toBeTruthy();
     expect(hookSpy).toHaveBeenCalledWith(pageProps);
     expect(listPanelSpy).toHaveBeenCalledWith(viewModel.listPanelProps);
-    expect(detailSpy).toHaveBeenCalledWith(viewModel.detailInspectorProps);
     expect(tagManagerSpy).toHaveBeenCalledWith(viewModel.tagManagerSheetProps);
     expect(customReminderSpy).toHaveBeenCalledWith(viewModel.customReminderSheetProps);
     expect(shortcutSpy).toHaveBeenCalledWith(viewModel.shortcutHelpProps);
     expect(screen.getByTestId("workspace-list-panel")).toBeTruthy();
-    expect(screen.getByTestId("workspace-detail-panel")).toBeTruthy();
+    expect(screen.queryByTestId("workspace-detail-panel")).toBeNull();
     expect(screen.getByTestId("workspace-tag-sheet")).toBeTruthy();
     expect(screen.getByTestId("workspace-reminder-sheet")).toBeTruthy();
     expect(screen.getByTestId("workspace-shortcut-sheet")).toBeTruthy();
+  });
+
+  it("renders the detail inspector only after a record is selected", () => {
+    const pageProps = {
+      activeTagId: "all",
+      activeView: "all" as const,
+      focusTarget: null,
+      quickAddTarget: null,
+      runtimeNotice: null,
+      notificationDebugEntries: [],
+      onClearNotificationDebug: vi.fn(),
+      onTagFilterChange: vi.fn(),
+      onWorkspaceChanged: vi.fn(),
+    };
+    const viewModel = {
+      listPanelProps: { currentTagName: "全部" },
+      detailInspectorProps: { selectedRecord: { id: "record-1" } },
+      tagManagerSheetProps: { open: false },
+      customReminderSheetProps: { open: false },
+      shortcutHelpProps: { open: false },
+    };
+    hookSpy.mockReturnValue(viewModel);
+
+    render(<WorkspacePage {...pageProps} />);
+
+    expect(detailSpy).toHaveBeenCalledWith(viewModel.detailInspectorProps);
+    expect(screen.getByTestId("workspace-detail-panel")).toBeTruthy();
   });
 });

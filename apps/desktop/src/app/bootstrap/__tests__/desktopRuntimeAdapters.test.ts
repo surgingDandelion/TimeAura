@@ -253,6 +253,79 @@ describe("desktop runtime adapters", () => {
     expect(executedStatements).toEqual(["BEGIN", "ROLLBACK"]);
   });
 
+  it("serializes concurrent sqlite transactions on the same client", async () => {
+    const executedStatements: string[] = [];
+    let releaseFirstTransaction!: () => void;
+    const firstTransactionGate = new Promise<void>((resolve) => {
+      releaseFirstTransaction = resolve;
+    });
+    const client = new SqliteClient({
+      execute: async (query: string) => {
+        executedStatements.push(query);
+        return {
+          rowsAffected: 0,
+          lastInsertId: null,
+        };
+      },
+      select: async () => [],
+      close: async () => undefined,
+    });
+
+    const firstTransaction = client.transaction(async () => {
+      executedStatements.push("first-run");
+      await firstTransactionGate;
+      executedStatements.push("first-finish");
+    });
+    const secondTransaction = client.transaction(async () => {
+      executedStatements.push("second-run");
+    });
+
+    await Promise.resolve();
+
+    expect(executedStatements[0]).toBe("BEGIN");
+    expect(executedStatements.filter((statement) => statement === "BEGIN")).toHaveLength(1);
+    expect(executedStatements).not.toContain("second-run");
+
+    releaseFirstTransaction();
+    await Promise.all([firstTransaction, secondTransaction]);
+
+    expect(executedStatements).toEqual([
+      "BEGIN",
+      "first-run",
+      "first-finish",
+      "COMMIT",
+      "BEGIN",
+      "second-run",
+      "COMMIT",
+    ]);
+  });
+
+  it("uses savepoints for nested sqlite transactions", async () => {
+    const executedStatements: string[] = [];
+    const client = new SqliteClient({
+      execute: async (query: string) => {
+        executedStatements.push(query);
+        return {
+          rowsAffected: 0,
+          lastInsertId: null,
+        };
+      },
+      select: async () => [],
+      close: async () => undefined,
+    });
+
+    await client.transaction(async (outer) => {
+      await outer.transaction(async () => undefined);
+    });
+
+    expect(executedStatements).toEqual([
+      "BEGIN",
+      "SAVEPOINT timeaura_tx_2",
+      "RELEASE SAVEPOINT timeaura_tx_2",
+      "COMMIT",
+    ]);
+  });
+
   it("combines sqlite migration and close errors during connect", async () => {
     const closeSpy = vi.fn(async () => {
       throw new Error("close failed");

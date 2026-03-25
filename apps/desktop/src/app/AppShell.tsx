@@ -367,14 +367,6 @@ export function AppShell(): JSX.Element {
     };
   }, [handleNotificationAction, reportShellFailure]);
 
-  const sidebarSummary = useMemo(
-    () => ({
-      runtimeLabel: runtime ? "Mock Runtime" : "SQLite Runtime",
-      serviceReady: services.channelService ? "已就绪" : "未就绪",
-    }),
-    [runtime, services.channelService],
-  );
-
   const shellTitle = useMemo(() => {
     if (page === "reports") {
       return {
@@ -497,11 +489,6 @@ export function AppShell(): JSX.Element {
               <QuickAddIcon />
             </button>
           </div>
-
-          <div className="sidebar-foot-label">当前环境</div>
-          <div className="sidebar-foot-value">{sidebarSummary.runtimeLabel}</div>
-          <div className="sidebar-foot-label">服务接线</div>
-          <div className="sidebar-foot-value">{sidebarSummary.serviceReady}</div>
         </div>
       </aside>
 

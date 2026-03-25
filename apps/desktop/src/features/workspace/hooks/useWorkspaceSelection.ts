@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { RecordEntity } from "@timeaura-core";
 
@@ -25,6 +25,8 @@ export function useWorkspaceSelection({
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [highlightedRecordId, setHighlightedRecordId] = useState<string | null>(null);
   const [quickAddActive, setQuickAddActive] = useState(false);
+  const handledFocusNonceRef = useRef<number | null>(null);
+  const handledQuickAddNonceRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (selectedId && !records.some((record) => record.id === selectedId)) {
@@ -37,15 +39,16 @@ export function useWorkspaceSelection({
   }, [records]);
 
   useEffect(() => {
-    if (!focusTarget?.recordId) {
+    if (!focusTarget?.recordId || handledFocusNonceRef.current === focusTarget.nonce) {
       return;
     }
 
+    handledFocusNonceRef.current = focusTarget.nonce;
     onResetListContext();
     onTagFilterChange("all");
     setSelectedId(focusTarget.recordId);
     setHighlightedRecordId(focusTarget.recordId);
-  }, [focusTarget, onResetListContext, onTagFilterChange]);
+  }, [focusTarget?.nonce, focusTarget?.recordId, onResetListContext, onTagFilterChange]);
 
   useEffect(() => {
     if (!highlightedRecordId) {
@@ -60,15 +63,16 @@ export function useWorkspaceSelection({
   }, [highlightedRecordId]);
 
   useEffect(() => {
-    if (!quickAddTarget) {
+    if (!quickAddTarget || handledQuickAddNonceRef.current === quickAddTarget.nonce) {
       return;
     }
 
+    handledQuickAddNonceRef.current = quickAddTarget.nonce;
     onResetListContext();
     onTagFilterChange("all");
     setSelectedId(null);
     triggerQuickAddSpotlight();
-  }, [onResetListContext, onTagFilterChange, quickAddTarget]);
+  }, [onResetListContext, onTagFilterChange, quickAddTarget?.nonce]);
 
   useEffect(() => {
     if (!quickAddActive) {
