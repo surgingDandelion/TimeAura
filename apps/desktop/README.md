@@ -1,5 +1,7 @@
 # TimeAura Desktop Scaffold
 
+[![Desktop CI](https://github.com/surgingDandelion/TimeAura/actions/workflows/desktop-ci.yml/badge.svg?branch=main)](https://github.com/surgingDandelion/TimeAura/actions/workflows/desktop-ci.yml)
+
 该目录是 TimeAura 的真实桌面工程落位目录草稿，面向：
 
 - `Tauri 2`
@@ -22,6 +24,8 @@
 
 - `npm install`
 - `npm run build`
+- `npm run test`
+- `npm run test:coverage`
 - `cargo check`（`apps/desktop/src-tauri`）
 - `npm run tauri:dev`
 
@@ -41,6 +45,20 @@
 - `VITE_TIMEAURA_DB_URL=sqlite:timeaura.db`
 - `VITE_TIMEAURA_STRONGHOLD_PASSWORD=<your-dev-password>`
 - `VITE_TIMEAURA_STRONGHOLD_PATH=timeaura.stronghold`
+
+CI / 覆盖率说明：
+
+- GitHub Actions 工作流：`Desktop CI`
+- 当前默认启用 `npm` 依赖缓存，加快重复安装速度
+- 每次 CI 会执行：
+  - `npm run test:coverage`
+  - `npm run build`
+- 产物会上传 `desktop-coverage` artifact，包含：
+  - HTML 覆盖率报告
+  - `lcov.info`
+  - `coverage-summary.json`
+- PR 会自动回写一条桌面端测试 / 构建 / 覆盖率摘要评论
+- Job Summary 会同步展示本次构建状态与覆盖率总览
 
 AI 通道页当前支持：
 

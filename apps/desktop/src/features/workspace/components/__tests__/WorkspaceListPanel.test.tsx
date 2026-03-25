@@ -145,4 +145,82 @@ describe("WorkspaceListPanel", () => {
     expect(props.onBatchReschedule).toHaveBeenNthCalledWith(2, "today_18");
     expect(props.onBatchReschedule).toHaveBeenNthCalledWith(3, "tomorrow_09");
   });
+
+  it("renders loading and empty states, and disables status filter in system views", () => {
+    const props = {
+      ...createProps(),
+      activeView: "done" as const,
+      records: [],
+      selectedId: null,
+      selectedIds: [],
+      selectedCount: 0,
+      visibleSelectedCount: 0,
+      highlightedRecordId: null,
+      loading: true,
+      reminder: null,
+      message: null,
+    };
+
+    const { rerender } = render(<WorkspaceListPanel {...props} />);
+
+    expect(screen.getByText("正在加载记录…")).toBeTruthy();
+
+    const statusSelect = screen.getAllByRole("combobox")[0] as HTMLSelectElement;
+    expect(statusSelect.disabled).toBe(true);
+    expect(statusSelect.value).toBe("done");
+
+    rerender(
+      <WorkspaceListPanel
+        {...props}
+        loading={false}
+      />,
+    );
+
+    expect(screen.getByText("当前没有符合筛选条件的记录。")).toBeTruthy();
+  });
+
+  it("wires notification panel actions and renders completed rows without complete action", () => {
+    const props = {
+      ...createProps(),
+      records: [
+        createWorkspaceRecordEntity({
+          id: "record-1",
+          title: "整理周报",
+          status: "已完成",
+        }),
+      ],
+      selectedId: "record-1",
+      selectedIds: [],
+      selectedCount: 0,
+      visibleSelectedCount: 0,
+      notificationDebugOpen: true,
+      notificationDebugFeed: [
+        {
+          id: "debug-1",
+          at: "2026-01-01T09:20:00.000Z",
+          source: "action" as const,
+          level: "info" as const,
+          title: "提醒已触发",
+          detail: "任务已被桌面通知命中",
+        },
+      ],
+      message: "提醒已刷新",
+      runtimeNoticeTone: "warning" as const,
+      reminder: null,
+    };
+
+    render(<WorkspaceListPanel {...props} />);
+
+    expect(screen.getByText("提醒已刷新").className).toContain("inline-message-warning");
+    expect(screen.getAllByText("已完成")).toHaveLength(3);
+    expect(screen.queryByText("完成")).toBeNull();
+
+    fireEvent.click(screen.getByText("导出"));
+    fireEvent.click(screen.getByText("清空"));
+    fireEvent.click(screen.getByText("收起调试"));
+
+    expect(props.onExportNotificationDebug).toHaveBeenCalledTimes(1);
+    expect(props.onClearNotificationDebug).toHaveBeenCalledTimes(1);
+    expect(props.onToggleNotificationDebug).toHaveBeenCalledTimes(1);
+  });
 });
