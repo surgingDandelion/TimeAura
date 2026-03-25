@@ -109,13 +109,52 @@ export async function createSqliteAppServices(
       repositories,
       services,
       dispose: async () => {
-        await credentialVault.dispose?.();
-        await client.close();
+        await disposeSqliteResources(credentialVault, client);
       },
     };
   } catch (error) {
-    await credentialVault.dispose?.().catch(() => undefined);
-    await client.close().catch(() => undefined);
-    throw error;
+    try {
+      await disposeSqliteResources(credentialVault, client);
+    } catch (cleanupError) {
+      throw new Error(`创建 SQLite 应用服务失败：${toErrorMessage(error)}；清理资源失败：${toErrorMessage(cleanupError)}`);
+    }
+
+    throw normalizeError(error, "创建 SQLite 应用服务失败");
   }
+}
+
+async function disposeSqliteResources(credentialVault: CredentialVault, client: SqliteClient): Promise<void> {
+  const cleanupErrors: string[] = [];
+
+  try {
+    await credentialVault.dispose?.();
+  } catch (error) {
+    cleanupErrors.push(`凭证库释放失败：${toErrorMessage(error)}`);
+  }
+
+  try {
+    await client.close();
+  } catch (error) {
+    cleanupErrors.push(`SQLite 连接关闭失败：${toErrorMessage(error)}`);
+  }
+
+  if (cleanupErrors.length > 0) {
+    throw new Error(cleanupErrors.join("；"));
+  }
+}
+
+function normalizeError(error: unknown, fallback: string): Error {
+  if (error instanceof Error) {
+    return error;
+  }
+
+  return new Error(`${fallback}：${toErrorMessage(error)}`);
+}
+
+function toErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return String(error);
 }

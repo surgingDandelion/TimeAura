@@ -38,8 +38,13 @@ export class SqliteClient {
 
       return client;
     } catch (error) {
-      await database.close().catch(() => undefined);
-      throw error;
+      try {
+        await database.close();
+      } catch (closeError) {
+        throw new Error(`SQLite 初始化失败：${toErrorMessage(error)}；关闭连接失败：${toErrorMessage(closeError)}`);
+      }
+
+      throw normalizeError(error, "SQLite 初始化失败");
     }
   }
 
@@ -59,8 +64,13 @@ export class SqliteClient {
       await this.execute("COMMIT");
       return result;
     } catch (error) {
-      await this.execute("ROLLBACK");
-      throw error;
+      try {
+        await this.execute("ROLLBACK");
+      } catch (rollbackError) {
+        throw new Error(`SQLite 事务失败：${toErrorMessage(error)}；回滚失败：${toErrorMessage(rollbackError)}`);
+      }
+
+      throw normalizeError(error, "SQLite 事务失败");
     }
   }
 
@@ -137,4 +147,20 @@ function splitSqlStatements(sql: string): string[] {
   }
 
   return statements;
+}
+
+function normalizeError(error: unknown, fallback: string): Error {
+  if (error instanceof Error) {
+    return error;
+  }
+
+  return new Error(`${fallback}：${toErrorMessage(error)}`);
+}
+
+function toErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return String(error);
 }

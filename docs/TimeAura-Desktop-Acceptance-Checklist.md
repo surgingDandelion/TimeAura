@@ -8,9 +8,10 @@
 
 - 桌面壳可编译
 - React 页面可跑通
+- `src-tauri` 命令级 smoke 测试已补齐
 - 工作台、提醒、通知、快捷键、标签管理已有覆盖
 - AI 通道配置页与 AI 报告页关键交互已补测试
-- 当前桌面端测试与覆盖率已通过
+- 当前桌面端前端测试、Tauri Rust 测试与覆盖率检查已通过
 
 ---
 
@@ -140,6 +141,7 @@ npm run tauri:dev
 - `npm run build`
 - `npm run test`
 - `npm run test:coverage`
+- `cargo test`
 
 ### 4.2 当前重点覆盖
 
@@ -150,6 +152,10 @@ npm run tauri:dev
 - WorkspaceDetailInspector / CustomReminderSheet
 - AI 通道配置页关键交互
 - AI 报告页关键交互
+- Tauri `show_actionable_notification` IPC 命令 smoke
+- SQLite 事务回滚 / 连接关闭失败语义
+- Stronghold 初始化重试 / 卸载失败后的恢复路径
+- Notification 原生动作降级 / 发送取消失败路径
 
 ---
 
@@ -168,7 +174,7 @@ npm run tauri:dev
 
 ## 6. 验收前的已知说明
 
-- `AppServicesProvider` 的 guard 测试在 Vitest 输出中仍会打印预期错误堆栈，但不影响通过结果
-- 当前覆盖率已经显著提升，但还没有开始做端到端自动化
-- 真正的桌面通知体验建议以 `tauri:dev` 为准，浏览器壳只能验证页面交互
-
+- `AppServicesProvider` 的 guard 测试噪音已清掉，当前测试输出相对干净
+- 当前已经具备前端 smoke 与 Tauri 命令级 smoke，但仍未进入完整桌面端 E2E 自动化
+- 真正的桌面通知体验仍建议以 `tauri:dev` 为准，浏览器壳主要用于验证页面交互
+- SQLite / Stronghold / Notification 的更深异常态已开始补齐，下一轮更适合聚焦真实体验反馈和细节修整

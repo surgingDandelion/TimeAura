@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  SqliteClient,
   StrongholdCredentialVault,
   TauriNotificationDriver,
   createSqliteAppServices,
@@ -97,6 +98,57 @@ describe("desktop runtime adapters", () => {
     expect(unloadSpy).toHaveBeenCalledTimes(1);
   });
 
+  it("allows Stronghold to reinitialize after unload failure", async () => {
+    const firstStore = {
+      get: vi.fn(async () => null),
+      insert: vi.fn(async () => undefined),
+      remove: vi.fn(async () => null),
+    };
+    const secondStore = {
+      get: vi.fn(async () => null),
+      insert: vi.fn(async () => undefined),
+      remove: vi.fn(async () => null),
+    };
+
+    strongholdLoadSpy
+      .mockResolvedValueOnce({
+        loadClient: vi.fn(async () => ({
+          getStore: () => firstStore,
+        })),
+        createClient: vi.fn(async () => ({
+          getStore: () => firstStore,
+        })),
+        save: vi.fn(async () => undefined),
+        unload: vi.fn(async () => {
+          throw new Error("unload failed");
+        }),
+      })
+      .mockResolvedValueOnce({
+        loadClient: vi.fn(async () => ({
+          getStore: () => secondStore,
+        })),
+        createClient: vi.fn(async () => ({
+          getStore: () => secondStore,
+        })),
+        save: vi.fn(async () => undefined),
+        unload: vi.fn(async () => undefined),
+      });
+
+    const vault = new StrongholdCredentialVault({
+      password: "desktop-secret",
+      snapshotPath: "desktop.stronghold",
+      clientName: "timeaura-desktop",
+    });
+
+    await expect(vault.setSecret("cred://main", "first")).resolves.toBeUndefined();
+    await expect(vault.dispose()).rejects.toThrow("释放 Stronghold 失败：unload failed");
+    await expect(vault.setSecret("cred://main", "second")).resolves.toBeUndefined();
+
+    expect(strongholdLoadSpy).toHaveBeenCalledTimes(2);
+    expect(firstStore.insert).toHaveBeenCalledTimes(1);
+    expect(secondStore.insert).toHaveBeenCalledTimes(1);
+  });
+
   it("falls back from actionable notifications and surfaces send/cancel failures", async () => {
     const debugEvents: Array<{ title: string; detail: string; level: string }> = [];
     window.addEventListener("timeaura:notification-debug", ((event: Event) => {
@@ -171,5 +223,96 @@ describe("desktop runtime adapters", () => {
 
     expect(closeSpy).toHaveBeenCalledTimes(1);
     expect(disposeSpy).toHaveBeenCalledTimes(0);
+  });
+
+  it("reports sqlite transaction rollback failures with the original error", async () => {
+    const executedStatements: string[] = [];
+    const client = new SqliteClient({
+      execute: async (query: string) => {
+        executedStatements.push(query);
+
+        if (query === "ROLLBACK") {
+          throw new Error("rollback unavailable");
+        }
+
+        return {
+          rowsAffected: 0,
+          lastInsertId: null,
+        };
+      },
+      select: async () => [],
+      close: async () => undefined,
+    });
+
+    await expect(
+      client.transaction(async () => {
+        throw new Error("write failed");
+      }),
+    ).rejects.toThrow("SQLite 事务失败：write failed；回滚失败：rollback unavailable");
+
+    expect(executedStatements).toEqual(["BEGIN", "ROLLBACK"]);
+  });
+
+  it("combines sqlite migration and close errors during connect", async () => {
+    const closeSpy = vi.fn(async () => {
+      throw new Error("close failed");
+    });
+
+    await expect(
+      SqliteClient.connect({
+        databaseUrl: "sqlite:test.db",
+        loadDatabase: async () => ({
+          execute: async (query: string) => {
+            if (query.includes("broken_table")) {
+              throw new Error("migration failed");
+            }
+
+            return {
+              rowsAffected: 0,
+              lastInsertId: null,
+            };
+          },
+          select: async () => [],
+          close: closeSpy,
+        }),
+        migrations: [
+          {
+            version: "1",
+            description: "broken migration",
+            sql: "CREATE TABLE broken_table (id TEXT PRIMARY KEY);",
+          },
+        ],
+      }),
+    ).rejects.toThrow("SQLite 初始化失败：migration failed；关闭连接失败：close failed");
+
+    expect(closeSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("still closes sqlite when vault disposal fails during app container cleanup", async () => {
+    const closeSpy = vi.fn(async () => undefined);
+
+    const container = await createSqliteAppServices({
+      loadDatabase: async () => ({
+        execute: async () => ({
+          rowsAffected: 0,
+          lastInsertId: null,
+        }),
+        select: async () => [],
+        close: closeSpy,
+      }),
+      credentialVault: {
+        getSecret: async () => null,
+        setSecret: async () => undefined,
+        removeSecret: async () => undefined,
+        dispose: async () => {
+          throw new Error("vault busy");
+        },
+      },
+      migrations: [],
+    });
+
+    expect(container.dispose).toBeDefined();
+    await expect(container.dispose?.()).rejects.toThrow("凭证库释放失败：vault busy");
+    expect(closeSpy).toHaveBeenCalledTimes(1);
   });
 });
