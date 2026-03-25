@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "test": "vitest run",
+    "test": "node ./scripts/run-vitest-sequential.mjs",
     "test:watch": "vitest",
     "preview": "vite preview",
     "tauri:dev": "tauri dev",

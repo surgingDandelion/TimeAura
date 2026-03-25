@@ -24,11 +24,14 @@
 ## 2. 当前测试基础
 
 - 当前 `apps/desktop/package.json` 已包含 `test` 与 `test:watch` 脚本
+- 当前 `npm run test` 采用逐文件顺序执行 `Vitest`，用于规避当前本地 Node 25 环境下的 worker 内存溢出问题
 - 当前 `apps/desktop/vite.config.ts` 已包含最小 `Vitest` 配置
 - 当前已经落地的首批测试文件：
   - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/apps/desktop/src/features/workspace/hooks/__tests__/useWorkspaceNotificationDebugActions.test.ts`
   - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/apps/desktop/src/features/workspace/hooks/__tests__/useWorkspaceQuickAddActions.test.ts`
   - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/apps/desktop/src/features/workspace/hooks/__tests__/useWorkspaceRecordActions.test.ts`
+  - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/apps/desktop/src/features/workspace/hooks/__tests__/useWorkspaceTagManagerActions.test.ts`
+  - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/apps/desktop/src/features/workspace/hooks/__tests__/useWorkspaceViewModel.test.tsx`
 - 当前已经具备的可测前提：
   - `workspace contracts`
   - `workspace test seams`
@@ -190,3 +193,26 @@ apps/desktop/src/features/workspace/
 - 所有带确认弹窗的 hooks 都有 `cancelled` 用例
 - 所有导出类 hooks 都验证文件名与 payload
 - `WorkspaceViewModel` 至少有 1 个 smoke test，验证关键 props 已装配完成
+
+## 9. 当前已覆盖范围
+
+- `useWorkspaceNotificationDebugActions`
+  - 空数据导出
+  - 导出 payload
+  - 清空确认
+  - runtime notification 并入 feed
+- `useWorkspaceQuickAddActions`
+  - 空输入 `noop`
+  - 创建记录成功链路
+- `useWorkspaceRecordActions`
+  - 删除取消
+  - 删除成功
+  - 批量改期 `noop / success`
+- `useWorkspaceTagManagerActions`
+  - 空标签名
+  - 新建标签
+  - 更新标签
+  - 删除标签
+- `useWorkspaceViewModel`
+  - list / inspector / tag manager / notification smoke
+  - reminder 改期与延后提醒的集成动作链路

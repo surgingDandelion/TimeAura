@@ -10,7 +10,9 @@ describe("useWorkspaceRecordActions", () => {
     const { seams, state } = createWorkspaceTestFixtureBundle({ confirmResult: false });
     const deleteRecord = vi.fn(async (_recordId: string) => undefined);
     const services = createWorkspaceAppServicesDouble({
-      deleteRecord,
+      recordService: {
+        deleteRecord,
+      },
     });
     const clearSelection = vi.fn();
     const setSelectedId = vi.fn();
@@ -51,7 +53,9 @@ describe("useWorkspaceRecordActions", () => {
     const { seams, state } = createWorkspaceTestFixtureBundle({ confirmResult: true });
     const deleteRecord = vi.fn(async (_recordId: string) => undefined);
     const services = createWorkspaceAppServicesDouble({
-      deleteRecord,
+      recordService: {
+        deleteRecord,
+      },
     });
     let selectedIdsState = ["record-1", "record-2"];
     const clearSelection = vi.fn();
@@ -131,7 +135,9 @@ describe("useWorkspaceRecordActions", () => {
   it("batch reschedules selected records and returns affected count", async () => {
     const batchReschedule = vi.fn(async (_ids: string[], _strategy: { preset: "plus_1_hour" | "tomorrow_09" | "today_18" }) => []);
     const services = createWorkspaceAppServicesDouble({
-      batchReschedule,
+      recordService: {
+        batchReschedule,
+      },
     });
     const clearSelection = vi.fn();
     const setSelectedId = vi.fn();

@@ -52,6 +52,12 @@ apps/desktop/src/features/workspace/hooks/__tests__/
 - `apps/desktop/src/test/setup.ts`
   - 统一执行 `cleanup`
 
+补充说明：
+
+- 当前本地 Node 25 + Vitest 组合在一次性聚合执行所有 workspace hook tests 时存在 worker 内存溢出问题
+- 因此 `npm run test` 已切换为逐文件顺序执行的轻量 runner
+- `test:watch` 仍保留原生 `vitest`，便于单文件迭代开发
+
 ## 4. 第一份 hook 单测骨架
 
 下面这份示例建议作为第一批真实测试的起点，目标 hook 为：

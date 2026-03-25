@@ -45,7 +45,9 @@ describe("useWorkspaceQuickAddActions", () => {
       }),
     );
     const services = createWorkspaceAppServicesDouble({
-      createRecord,
+      recordService: {
+        createRecord,
+      },
     });
     const onSelectCreatedRecord = vi.fn();
     const syncWorkspace = vi.fn(async (_afterMessage?: string) => undefined);
