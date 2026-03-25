@@ -32,53 +32,42 @@ export function QuickAddSheet({
   }
 
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
+    <div className="quick-add-layer" onClick={onClose}>
       <div
-        className="sheet-panel sheet-panel-compact quick-add-sheet"
+        className={`quick-add-modal${quickAddSpotlight ? " quick-add-modal-spotlight" : ""}`}
         onClick={(event) => {
           event.stopPropagation();
         }}
       >
-        <div className="sheet-header">
-          <div>
-            <div className="panel-kicker">快速新增</div>
-            <h3 className="panel-title panel-title-small">单行记录输入</h3>
-            <div className="channel-panel-subtitle">
-              默认写入到「{currentTagName}」。支持 `#标签`、`!P1`、`@明早 09:00` 这样的轻量记法。
-            </div>
-          </div>
-          <button className="button-ghost" onClick={onClose}>
-            关闭
+        <div className="quick-add-modal-header">
+          <div className="quick-add-prefix">快速录入</div>
+          <div className="quick-add-tip">支持 `#标签`、`!P1`、`@明天 18:00`，回车立即创建并保留焦点。</div>
+          <button className="quick-add-close" onClick={onClose} aria-label="关闭快速新增">
+            ×
           </button>
         </div>
 
-        <div className="sheet-section">
-          <div className={`quick-add-sheet-input-wrap${quickAddSpotlight ? " quick-add-sheet-input-wrap-active" : ""}`}>
-            <input
-              ref={quickAddRef}
-              className={`input quick-add-sheet-input${quickAddSpotlight ? " input-spotlight" : ""}`}
-              value={quickAdd}
-              onChange={(event) => onQuickAddChange(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  onQuickAddSubmit();
-                }
-              }}
-              placeholder={`例如：明天 18:00 #工作 和设计评审`}
-            />
-            <button className="button-primary quick-add-sheet-submit" onClick={onQuickAddSubmit}>
-              新增
-            </button>
-          </div>
+        <div className="quick-add-modal-row">
+          <input
+            ref={quickAddRef}
+            className="quick-add-input"
+            value={quickAdd}
+            onChange={(event) => onQuickAddChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                onQuickAddSubmit();
+              }
+            }}
+            placeholder="例如：明天下午 3 点 #工作 !P1 和设计评审"
+          />
+          <button className="button-primary quick-add-submit-btn" onClick={onQuickAddSubmit}>
+            新增
+          </button>
+        </div>
 
-          <div className="quick-add-sheet-meta">
-            <div className="quick-add-hints">
-              <span className="tag-chip">#标签</span>
-              <span className="tag-chip">!P1</span>
-              <span className="tag-chip">@明早 09:00</span>
-            </div>
-            <span>回车立即创建，支持连续录入。</span>
-          </div>
+        <div className="quick-add-meta">
+          <span>默认写入「{currentTagName}」，适合连续补记。</span>
+          <span>回车立即创建，创建后保留输入焦点。</span>
         </div>
       </div>
     </div>

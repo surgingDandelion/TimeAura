@@ -2,8 +2,9 @@ import type { RecordPriority, RecordStatus } from "@timeaura-core";
 
 export type WorkspaceSystemView = "today" | "plan" | "all" | "done";
 export type WorkspaceStatusFilter = "all" | "todo" | "done";
+export type WorkspacePriorityFilter = "all" | RecordPriority;
 export type WorkspaceSort = "smart" | "due" | "priority" | "updated";
-export type ContentMode = "edit" | "preview";
+export type ContentMode = "edit" | "split" | "preview";
 export type ReminderPreset =
   | "plus_1_hour"
   | "today_18"

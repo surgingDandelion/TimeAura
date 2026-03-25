@@ -79,6 +79,7 @@ describe("useWorkspaceData", () => {
       view: "today",
       keyword: undefined,
       status: "todo",
+      priority: "all",
       tagId: "tag_work",
       sortBy: "smart",
     });
@@ -120,6 +121,7 @@ describe("useWorkspaceData", () => {
     act(() => {
       result.current.setKeyword("周报");
       result.current.setStatus("all");
+      result.current.setPriority("P1");
       result.current.setSortBy("priority");
     });
 
@@ -128,6 +130,7 @@ describe("useWorkspaceData", () => {
         view: "all",
         keyword: "周报",
         status: "all",
+        priority: "P1",
         tagId: "all",
         sortBy: "priority",
       });

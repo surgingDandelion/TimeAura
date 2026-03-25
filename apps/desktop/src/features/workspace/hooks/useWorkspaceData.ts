@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { AppServices, RecordEntity, ReminderHit, ReminderSummary, TagEntity } from "@timeaura-core";
 
-import type { WorkspaceSort, WorkspaceStatusFilter } from "../types";
+import type { WorkspacePriorityFilter, WorkspaceSort, WorkspaceStatusFilter } from "../types";
 
 interface UseWorkspaceDataOptions {
   activeTagId: string;
@@ -19,6 +19,7 @@ export function useWorkspaceData({
   const [tags, setTags] = useState<TagEntity[]>([]);
   const [keyword, setKeyword] = useState("");
   const [status, setStatus] = useState<WorkspaceStatusFilter>("todo");
+  const [priority, setPriority] = useState<WorkspacePriorityFilter>("all");
   const [sortBy, setSortBy] = useState<WorkspaceSort>("smart");
   const [reminder, setReminder] = useState<ReminderSummary | null>(null);
   const [reminderHits, setReminderHits] = useState<ReminderHit[]>([]);
@@ -33,6 +34,7 @@ export function useWorkspaceData({
           view: activeView,
           keyword: keyword.trim() || undefined,
           status: activeView === "done" ? "done" : status,
+          priority,
           tagId: activeTagId,
           sortBy,
         }),
@@ -69,7 +71,7 @@ export function useWorkspaceData({
     } finally {
       setLoading(false);
     }
-  }, [activeTagId, activeView, keyword, services.recordService, services.reminderService, services.tagService, sortBy, status]);
+  }, [activeTagId, activeView, keyword, priority, services.recordService, services.reminderService, services.tagService, sortBy, status]);
 
   useEffect(() => {
     void loadWorkspace();
@@ -89,6 +91,8 @@ export function useWorkspaceData({
     setKeyword,
     status,
     setStatus,
+    priority,
+    setPriority,
     sortBy,
     setSortBy,
     reminder,

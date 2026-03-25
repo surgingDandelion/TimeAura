@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { WorkspaceDetailInspector } from "../WorkspaceDetailInspector";
@@ -82,17 +82,17 @@ describe("WorkspaceDetailInspector", () => {
     expect(screen.getByText("点击左侧记录后，在这里查看和编辑详情。")).toBeTruthy();
   });
 
-  it("wires header actions, field changes, segmented controls, and preview toggle", () => {
+  it("wires header actions, field changes, selects, and preview toggle", () => {
     const props = createProps();
     const { container } = render(<WorkspaceDetailInspector {...props} />);
 
     fireEvent.click(screen.getByRole("button", { name: "AI 摘要" }));
-    fireEvent.click(screen.getByRole("button", { name: "AI 润色" }));
-    fireEvent.click(screen.getByRole("button", { name: "管理标签" }));
+    fireEvent.click(screen.getByRole("button", { name: "润色" }));
     fireEvent.click(screen.getByRole("button", { name: "归档" }));
     fireEvent.click(screen.getByRole("button", { name: "删除" }));
     fireEvent.click(screen.getByRole("button", { name: "收起" }));
     fireEvent.click(screen.getByRole("button", { name: "保存" }));
+    fireEvent.click(screen.getByRole("button", { name: "管理标签" }));
 
     expect(props.onGenerateSummary).toHaveBeenCalledTimes(1);
     expect(props.onPolishMarkdown).toHaveBeenCalledTimes(1);
@@ -111,13 +111,17 @@ describe("WorkspaceDetailInspector", () => {
       title: "整理周报 v2",
     });
 
-    fireEvent.click(screen.getByText("进行中"));
+    fireEvent.change(screen.getByDisplayValue("未开始"), {
+      target: { value: "进行中" },
+    });
     expect(props.onDraftChange).toHaveBeenCalledWith({
       ...props.draft,
       status: "进行中",
     });
 
-    fireEvent.click(screen.getByText("P1"));
+    fireEvent.change(screen.getByDisplayValue("P3 常规"), {
+      target: { value: "P1" },
+    });
     expect(props.onDraftChange).toHaveBeenCalledWith({
       ...props.draft,
       priority: "P1",
@@ -151,8 +155,10 @@ describe("WorkspaceDetailInspector", () => {
       contentMarkdown: "## 新内容",
     });
 
+    fireEvent.click(screen.getByText("分栏"));
     fireEvent.click(screen.getByText("预览"));
-    expect(props.onContentModeChange).toHaveBeenCalledWith("preview");
+    expect(props.onContentModeChange).toHaveBeenNthCalledWith(1, "split");
+    expect(props.onContentModeChange).toHaveBeenNthCalledWith(2, "preview");
   });
 
   it("renders preview mode and disabled save state", () => {
@@ -171,7 +177,6 @@ describe("WorkspaceDetailInspector", () => {
     const saveButton = screen.getByText("保存中…") as HTMLButtonElement;
     expect(saveButton.disabled).toBe(true);
 
-    const header = screen.getByText("状态").closest(".inspector-row");
-    expect(within(header as HTMLElement).getByText("未开始")).toBeTruthy();
+    expect(screen.getByDisplayValue("未开始")).toBeTruthy();
   });
 });

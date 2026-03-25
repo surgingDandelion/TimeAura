@@ -8,6 +8,7 @@ import type {
   RecordDraft,
   ReminderPreset,
   TagEditorDraft,
+  WorkspacePriorityFilter,
   WorkspaceShortcutItem,
   WorkspaceSort,
   WorkspaceStatusFilter,
@@ -88,6 +89,7 @@ export interface WorkspaceListPanelContract {
   currentTagName: string;
   keyword: string;
   status: WorkspaceStatusFilter;
+  priority: WorkspacePriorityFilter;
   sortBy: WorkspaceSort;
   tags: TagEntity[];
   records: RecordEntity[];
@@ -113,6 +115,7 @@ export interface WorkspaceListPanelContract {
   onRefresh(): void;
   onKeywordChange: StringHandler;
   onStatusChange(value: WorkspaceStatusFilter): void;
+  onPriorityChange(value: WorkspacePriorityFilter): void;
   onTagFilterChange: TagIdHandler;
   onSortByChange(value: WorkspaceSort): void;
   onOpenShortcutHelp(): void;

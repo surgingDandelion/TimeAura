@@ -39,6 +39,8 @@ export function useWorkspaceViewModel({
     setKeyword,
     status,
     setStatus,
+    priority,
+    setPriority,
     sortBy,
     setSortBy,
     reminder,
@@ -54,7 +56,8 @@ export function useWorkspaceViewModel({
   const handleResetListContext = useCallback(() => {
     setKeyword("");
     setStatus("todo");
-  }, [setKeyword, setStatus]);
+    setPriority("all");
+  }, [setKeyword, setPriority, setStatus]);
   const handleQuickAddRequested = useCallback(() => {
     quickAddRef.current?.focus();
     quickAddRef.current?.select();
@@ -255,6 +258,7 @@ export function useWorkspaceViewModel({
     quickAdd,
     keyword,
     status,
+    priority,
     sortBy,
     tags,
     records,
@@ -301,6 +305,7 @@ export function useWorkspaceViewModel({
     },
     onKeywordChange: setKeyword,
     onStatusChange: setStatus,
+    onPriorityChange: setPriority,
     onTagFilterChange,
     onSortByChange: setSortBy,
     onToggleSelectAllVisible: toggleSelectAllVisible,

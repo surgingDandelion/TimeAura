@@ -3,7 +3,15 @@ import type { MutableRefObject, RefObject } from "react";
 
 import type { RecordEntity, ReminderHit, ReminderSummary, TagEntity } from "@timeaura-core";
 
-import type { ContentMode, NotificationDebugEntry, RecordDraft, TagEditorDraft, WorkspaceSort, WorkspaceStatusFilter } from "../types";
+import type {
+  ContentMode,
+  NotificationDebugEntry,
+  RecordDraft,
+  TagEditorDraft,
+  WorkspacePriorityFilter,
+  WorkspaceSort,
+  WorkspaceStatusFilter,
+} from "../types";
 import type {
   CustomReminderSheetContract,
   QuickAddSheetContract,
@@ -21,6 +29,7 @@ interface UseWorkspaceCommandsOptions {
   quickAdd: string;
   keyword: string;
   status: WorkspaceStatusFilter;
+  priority: WorkspacePriorityFilter;
   sortBy: WorkspaceSort;
   tags: TagEntity[];
   records: RecordEntity[];
@@ -63,6 +72,7 @@ interface UseWorkspaceCommandsOptions {
   onQuickAddSubmit(): void;
   onKeywordChange(value: string): void;
   onStatusChange(value: WorkspaceStatusFilter): void;
+  onPriorityChange(value: WorkspacePriorityFilter): void;
   onTagFilterChange(tagId: string): void;
   onSortByChange(value: WorkspaceSort): void;
   onToggleSelectAllVisible(): void;
@@ -148,6 +158,7 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
       currentTagName: options.currentTagName,
       keyword: options.keyword,
       status: options.status,
+      priority: options.priority,
       sortBy: options.sortBy,
       tags: options.tags,
       records: options.records,
@@ -173,6 +184,7 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
       onRefresh: options.onRefresh,
       onKeywordChange: options.onKeywordChange,
       onStatusChange: options.onStatusChange,
+      onPriorityChange: options.onPriorityChange,
       onTagFilterChange: options.onTagFilterChange,
       onSortByChange: options.onSortByChange,
       onOpenShortcutHelp: openShortcutHelp,

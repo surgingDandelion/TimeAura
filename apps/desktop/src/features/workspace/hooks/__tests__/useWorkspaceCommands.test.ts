@@ -66,6 +66,7 @@ function createCommandsOptions() {
     quickAdd: "补充周报",
     keyword: "周报",
     status: "todo" as WorkspaceStatusFilter,
+    priority: "all" as const,
     sortBy: "smart" as WorkspaceSort,
     tags: [tag],
     records: [record],
@@ -121,6 +122,7 @@ function createCommandsOptions() {
     onQuickAddSubmit: vi.fn(),
     onKeywordChange: vi.fn(),
     onStatusChange: vi.fn(),
+    onPriorityChange: vi.fn(),
     onTagFilterChange: vi.fn(),
     onSortByChange: vi.fn(),
     onToggleSelectAllVisible: vi.fn(),
@@ -175,6 +177,7 @@ describe("useWorkspaceCommands", () => {
     const { result } = renderHook(() => useWorkspaceCommands(options));
 
     expect(result.current.listPanelProps.activeView).toBe("today");
+    expect(result.current.listPanelProps.priority).toBe("all");
     expect(result.current.listPanelProps.onBatchReschedule).toBe(options.onBatchReschedule);
     expect(result.current.quickAddSheetProps.open).toBe(true);
     expect(result.current.quickAddSheetProps.quickAddRef).toBe(options.quickAddRef);
