@@ -1995,7 +1995,7 @@ textarea:focus-visible {
 
 .workspace-toolbar-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 14px;
   align-items: center;
   min-width: 0;
@@ -2004,8 +2004,8 @@ textarea:focus-visible {
 .workspace-toolbar-row-secondary {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px 14px;
+  justify-content: flex-start;
+  gap: 10px 12px;
   flex-wrap: wrap;
   min-width: 0;
 }
@@ -2081,7 +2081,12 @@ textarea:focus-visible {
 }
 
 .workspace-filter-group-priority {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.workspace-filter-group-tag {
+  flex: 0 0 auto;
   min-width: 0;
 }
 
@@ -2089,16 +2094,6 @@ textarea:focus-visible {
   color: #6d8093;
   font-size: 11px;
   font-weight: 600;
-}
-
-.workspace-toolbar-selects {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  flex: 0 1 auto;
-  min-width: 0;
-  flex-wrap: wrap;
 }
 
 .filter-chip {
@@ -2172,8 +2167,8 @@ textarea:focus-visible {
 }
 
 .workspace-filter-select {
-  width: min(100%, 184px);
-  min-width: 152px;
+  width: min(100%, 156px);
+  min-width: 124px;
   min-height: 44px;
   border-radius: 14px;
   border-color: rgba(67, 90, 121, 0.12);
@@ -2195,8 +2190,8 @@ textarea:focus-visible {
 }
 
 .workspace-filter-select-tag {
-  width: min(100%, 198px);
-  min-width: 168px;
+  width: min(100%, 164px);
+  min-width: 148px;
 }
 
 .workspace-filter-select:hover {
@@ -2207,7 +2202,8 @@ textarea:focus-visible {
 }
 
 .workspace-filter-select-sort {
-  width: min(100%, 168px);
+  width: min(100%, 132px);
+  min-width: 124px;
 }
 
 .reminder-banner {
@@ -2828,11 +2824,6 @@ textarea:focus-visible {
 
   .workspace-toolbar-row-secondary {
     align-items: flex-start;
-  }
-
-  .workspace-toolbar-selects {
-    width: 100%;
-    justify-content: flex-start;
   }
 
   .workspace-list-card-toolbar {
@@ -3672,7 +3663,7 @@ body[data-theme="dark"] .workspace-search-box svg {
   stroke: #9fb0c8;
 }
 
-body[data-theme="dark"] .workspace-toolbar-selects .workspace-filter-select {
+body[data-theme="dark"] .workspace-filter-select {
   color: #d7e3f3;
 }
 
@@ -5914,8 +5905,14 @@ body[data-theme="dark"] .reminder-hit-row-active {
   }
 
   .workspace-filter-group-status,
-  .workspace-toolbar-selects {
+  .workspace-filter-group-tag {
     justify-content: flex-start;
+  }
+
+  .workspace-filter-select-sort,
+  .workspace-filter-select-tag {
+    width: 100%;
+    min-width: 0;
   }
 
   .reminder-bar-actions {

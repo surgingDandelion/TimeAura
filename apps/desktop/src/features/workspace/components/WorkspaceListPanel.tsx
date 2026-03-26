@@ -120,6 +120,17 @@ export function WorkspaceListPanel({
               </button>
             ))}
           </div>
+
+          <select
+            className="select workspace-filter-select workspace-filter-select-sort"
+            value={sortBy}
+            onChange={(event) => onSortByChange(event.target.value as WorkspaceSort)}
+          >
+            <option value="smart">智能排序</option>
+            <option value="due">截止时间</option>
+            <option value="priority">优先级</option>
+            <option value="updated">更新时间</option>
+          </select>
         </div>
 
         <div className="workspace-toolbar-row workspace-toolbar-row-secondary">
@@ -137,18 +148,8 @@ export function WorkspaceListPanel({
             ))}
           </div>
 
-          <div className="workspace-toolbar-selects">
-            <select
-              className="select workspace-filter-select workspace-filter-select-sort"
-              value={sortBy}
-              onChange={(event) => onSortByChange(event.target.value as WorkspaceSort)}
-            >
-              <option value="smart">智能排序</option>
-              <option value="due">截止时间</option>
-              <option value="priority">优先级</option>
-              <option value="updated">更新时间</option>
-            </select>
-
+          <div className="workspace-filter-group workspace-filter-group-tag">
+            <span className="workspace-filter-label">标签</span>
             <select
               className="select workspace-filter-select workspace-filter-select-tag"
               value={activeTagId}
