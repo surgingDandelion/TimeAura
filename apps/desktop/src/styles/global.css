@@ -1985,6 +1985,7 @@ textarea:focus-visible {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 14px;
   align-items: center;
+  min-width: 0;
 }
 
 .workspace-toolbar-row-secondary {
@@ -1996,6 +1997,9 @@ textarea:focus-visible {
 }
 
 .workspace-search-box {
+  display: block;
+  width: 100%;
+  min-width: 0;
   position: relative;
   min-height: 0;
   padding: 0;
@@ -2016,6 +2020,9 @@ textarea:focus-visible {
 }
 
 .workspace-search-box input {
+  display: block;
+  width: 100%;
+  min-width: 0;
   min-height: 44px;
   padding: 11px 13px 11px 42px;
   border: 1px solid rgba(67, 90, 121, 0.12);
@@ -2056,6 +2063,7 @@ textarea:focus-visible {
 .workspace-filter-group-status {
   justify-content: flex-end;
   flex: 0 0 auto;
+  min-width: 0;
 }
 
 .workspace-filter-group-priority {
@@ -2071,8 +2079,11 @@ textarea:focus-visible {
 .workspace-toolbar-selects {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .filter-chip {
@@ -2098,8 +2109,8 @@ textarea:focus-visible {
 }
 
 .workspace-filter-select {
-  width: auto;
-  min-width: 164px;
+  width: min(100%, 184px);
+  min-width: 152px;
   min-height: 44px;
   border-radius: 14px;
   border-color: rgba(67, 90, 121, 0.12);
@@ -2121,7 +2132,8 @@ textarea:focus-visible {
 }
 
 .workspace-filter-select-tag {
-  min-width: 198px;
+  width: min(100%, 198px);
+  min-width: 168px;
 }
 
 .workspace-filter-select:hover {
@@ -2132,7 +2144,7 @@ textarea:focus-visible {
 }
 
 .workspace-filter-select-sort {
-  min-width: 152px;
+  width: min(100%, 168px);
 }
 
 .reminder-banner {
@@ -4809,7 +4821,8 @@ body[data-theme="dark"] .tag-action-btn.delete:hover:not(:disabled) {
 }
 
 .reminder-banner {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
@@ -4874,11 +4887,14 @@ body[data-theme="dark"] .tag-action-btn.delete:hover:not(:disabled) {
 .reminder-bar-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
-  flex: 0 0 auto;
+  min-width: 0;
+  flex: 0 1 auto;
 }
 
 .reminder-bar-actions .button-mini {
+  flex: 0 0 auto;
   min-height: 34px;
   padding: 0 12px;
   border-radius: 12px;
@@ -5140,7 +5156,7 @@ body[data-theme="dark"] .reminder-hit-row-active {
   background: linear-gradient(180deg, rgba(124, 164, 236, 0.1), rgba(124, 164, 236, 0.06));
 }
 
-@media (max-width: 1440px) {
+@media (max-width: 1180px) {
   .reminder-banner,
   .reminder-flyout-head,
   .reminder-flyout-foot {
@@ -5148,12 +5164,27 @@ body[data-theme="dark"] .reminder-hit-row-active {
   }
 
   .reminder-banner {
-    flex-direction: column;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .reminder-bar-actions,
   .reminder-flyout-actions,
   .reminder-flyout-foot {
     flex-wrap: wrap;
+  }
+
+  .reminder-bar-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 920px) {
+  .workspace-toolbar-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace-filter-group-status,
+  .workspace-toolbar-selects {
+    justify-content: flex-start;
   }
 }
