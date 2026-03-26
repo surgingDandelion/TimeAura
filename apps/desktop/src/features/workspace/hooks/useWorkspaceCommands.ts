@@ -239,6 +239,8 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
 
   const tagManagerSheetProps: TagManagerSheetContract = {
       open: options.tagManagerOpen,
+      selectedRecord: options.selectedRecord,
+      records: options.records,
       tags: options.tags,
       draft: options.draft,
       tagEditor: options.tagEditor,

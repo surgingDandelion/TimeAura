@@ -78,12 +78,13 @@ export function useWorkspaceRecordDraft({
       await services.recordService.updateRecord(selectedRecord.id, {
         title: normalizedDraft.title,
         status: normalizedDraft.status,
-        priority: normalizedDraft.priority,
-        dueAt: fromInputValue(normalizedDraft.dueAt),
-        plannedAt: fromInputValue(normalizedDraft.plannedAt),
-        contentMarkdown: normalizedDraft.contentMarkdown,
-        tags: normalizedDraft.tags,
-        isPinned: normalizedDraft.isPinned,
+      priority: normalizedDraft.priority,
+      dueAt: fromInputValue(normalizedDraft.dueAt),
+      plannedAt: fromInputValue(normalizedDraft.plannedAt),
+      completedAt: fromInputValue(normalizedDraft.completedAt),
+      contentMarkdown: normalizedDraft.contentMarkdown,
+      tags: normalizedDraft.tags,
+      isPinned: normalizedDraft.isPinned,
       });
 
       setPersistedDraft(normalizedDraft);
@@ -135,7 +136,7 @@ export function useWorkspaceRecordDraft({
         contentMarkdown: result.content,
       });
       setContentMode("preview");
-      onMessage("内容已完成 AI 润色，正在自动保存");
+      onMessage("内容已完成 AI 润色");
     } finally {
       setSaving(false);
     }
@@ -196,6 +197,7 @@ function createDraftFromRecord(record: RecordEntity): RecordDraft {
     priority: record.priority,
     dueAt: toInputValue(record.dueAt),
     plannedAt: toInputValue(record.plannedAt),
+    completedAt: toInputValue(record.completedAt),
     contentMarkdown: record.contentMarkdown,
     tags: record.tags,
     isPinned: record.isPinned,
@@ -209,6 +211,7 @@ function sameDraft(left: RecordDraft, right: RecordDraft): boolean {
     left.priority === right.priority &&
     left.dueAt === right.dueAt &&
     left.plannedAt === right.plannedAt &&
+    left.completedAt === right.completedAt &&
     left.contentMarkdown === right.contentMarkdown &&
     left.isPinned === right.isPinned &&
     sameTags(left.tags, right.tags)

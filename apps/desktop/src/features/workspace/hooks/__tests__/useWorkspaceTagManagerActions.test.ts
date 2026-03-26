@@ -16,6 +16,7 @@ function createDraft(overrides: Partial<RecordDraft> = {}): RecordDraft {
     priority: "P3",
     dueAt: "",
     plannedAt: "",
+    completedAt: "",
     contentMarkdown: "",
     tags: ["tag_uncategorized"],
     isPinned: false,

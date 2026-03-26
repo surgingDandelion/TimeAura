@@ -19,7 +19,7 @@ export const WORKSPACE_SHORTCUT_ITEMS: WorkspaceShortcutItem[] = [
   {
     id: "save",
     keys: "⌘/Ctrl + S",
-    description: "当右侧详情仍在等待自动保存时，立即触发一次同步。",
+    description: "立即同步当前详情改动。",
   },
   {
     id: "help",

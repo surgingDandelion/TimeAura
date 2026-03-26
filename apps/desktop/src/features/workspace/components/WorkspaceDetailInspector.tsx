@@ -11,7 +11,6 @@ export function WorkspaceDetailInspector({
   tags,
   contentMode,
   saving,
-  draftDirty,
   onGenerateSummary,
   onPolishMarkdown,
   onOpenTagManager,
@@ -30,17 +29,18 @@ export function WorkspaceDetailInspector({
     );
   }
 
+  const currentTags = draft.tags
+    .map((tagId) => tags.find((tag) => tag.id === tagId) ?? null)
+    .filter((tag): tag is NonNullable<typeof tag> => tag !== null);
+
   return (
     <section className="panel panel-detail workspace-detail-panel">
       <div className="workspace-detail-header">
         <div className="workspace-detail-header-copy">
           <span className="workspace-detail-kicker">Inspector</span>
-          <h2 className="workspace-detail-title">{selectedRecord.title}</h2>
+          <h2 className="workspace-detail-title">{draft.title}</h2>
           <div className="workspace-detail-subtitle">
-            {selectedRecord.status === "已完成" ? "当前记录已完成，可继续补充复盘与总结。" : "维护属性、正文与标签，保持列表视图里的节奏感。"}
-          </div>
-          <div className="workspace-detail-autosave-note">
-            {saving ? "正在自动保存…" : draftDirty ? "等待自动保存…" : "所有修改都会自动保存"}
+            {draft.status === "已完成" ? "这条记录已经完成，你仍然可以在这里回看内容、标签与完成时间。" : "通过右侧属性和正文区，持续把这条记录整理成可追踪、可交付的内容。"}
           </div>
         </div>
 
@@ -62,7 +62,7 @@ export function WorkspaceDetailInspector({
           <div className="detail-section-head">
             <div className="detail-section-title">
               <strong>属性</strong>
-              <span>在这里维护状态、优先级、时间与标签信息。</span>
+              <span>在这里维护状态、优先级、标签和关键时间信息。</span>
             </div>
           </div>
 
@@ -114,21 +114,17 @@ export function WorkspaceDetailInspector({
             <div className="inspector-field-row stack">
               <label>标签</label>
               <div className="inspector-field-control wrap">
-                <div className="tag-selector">
-                  {tags.map((tag) => (
-                    <label key={tag.id} className={`tag-toggle${draft.tags.includes(tag.id) ? " tag-toggle-active" : ""}`}>
-                      <input
-                        type="checkbox"
-                        checked={draft.tags.includes(tag.id)}
-                        onChange={() => onToggleTag(tag.id)}
-                      />
-                      <span className="tag-dot" style={{ backgroundColor: tag.color }} />
+                <div className={`tag-editor${currentTags.length === 0 ? " empty" : ""}`}>
+                  {currentTags.length > 0 ? currentTags.map((tag) => (
+                    <span key={tag.id} className="tag-inline">
+                      <i style={{ backgroundColor: tag.color }} />
                       <span>{tag.name}</span>
-                    </label>
-                  ))}
+                    </span>
+                  )) : "当前记录的标签会展示在这里。"}
                 </div>
 
-                <button className="button-ghost inspector-action-btn inspector-action-btn-quiet" onClick={onOpenTagManager}>
+                <button type="button" className="inspector-action-btn inspector-action-btn-quiet" onClick={onOpenTagManager}>
+                  <EditIcon />
                   管理标签
                 </button>
               </div>
@@ -158,28 +154,14 @@ export function WorkspaceDetailInspector({
             </div>
 
             <div className="inspector-field-row">
-              <label>计划时间</label>
+              <label>完成时间</label>
               <div className="inspector-field-control">
                 <input
                   className="input field-date"
                   type="datetime-local"
-                  value={draft.plannedAt}
-                  onChange={(event) => onDraftChange({ ...draft, plannedAt: event.target.value })}
+                  value={draft.completedAt}
+                  onChange={(event) => onDraftChange({ ...draft, completedAt: event.target.value })}
                 />
-              </div>
-            </div>
-
-            <div className="inspector-field-row">
-              <label>置顶</label>
-              <div className="inspector-field-control">
-                <label className="toggle-chip">
-                  <input
-                    type="checkbox"
-                    checked={draft.isPinned}
-                    onChange={(event) => onDraftChange({ ...draft, isPinned: event.target.checked })}
-                  />
-                  <span>{draft.isPinned ? "已置顶" : "普通排序"}</span>
-                </label>
               </div>
             </div>
           </div>
@@ -287,6 +269,15 @@ function formatInputDateLabel(value: string): string {
   }
 
   return formatDateLabel(new Date(value).toISOString());
+}
+
+function EditIcon(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 20h4l10-10-4-4L4 16v4z" />
+      <path d="M13 7l4 4" />
+    </svg>
+  );
 }
 
 function CloseIcon(): JSX.Element {

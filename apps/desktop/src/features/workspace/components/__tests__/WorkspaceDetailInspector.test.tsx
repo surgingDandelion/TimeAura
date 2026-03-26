@@ -35,6 +35,7 @@ function createProps() {
       priority: record.priority,
       dueAt: "",
       plannedAt: "",
+      completedAt: "",
       contentMarkdown: record.contentMarkdown,
       tags: record.tags,
       isPinned: false,
@@ -125,12 +126,6 @@ describe("WorkspaceDetailInspector", () => {
       priority: "P1",
     });
 
-    fireEvent.click(screen.getByText("普通排序"));
-    expect(props.onDraftChange).toHaveBeenCalledWith({
-      ...props.draft,
-      isPinned: true,
-    });
-
     const dateInputs = container.querySelectorAll('input[type="datetime-local"]');
     fireEvent.change(dateInputs[0] as HTMLInputElement, {
       target: { value: "2026-01-03T12:30" },
@@ -140,9 +135,7 @@ describe("WorkspaceDetailInspector", () => {
       dueAt: "2026-01-03T12:30",
     });
 
-    const tagCheckboxes = container.querySelectorAll('.tag-selector input[type="checkbox"]');
-    fireEvent.click(tagCheckboxes[0] as HTMLInputElement);
-    expect(props.onToggleTag).toHaveBeenCalledWith("tag_work");
+    expect(screen.getByText("工作")).toBeTruthy();
 
     const textarea = container.querySelector("textarea") as HTMLTextAreaElement;
     fireEvent.change(textarea, {
@@ -159,7 +152,7 @@ describe("WorkspaceDetailInspector", () => {
     expect(props.onContentModeChange).toHaveBeenNthCalledWith(2, "preview");
   });
 
-  it("renders preview mode and autosave hint state", () => {
+  it("renders preview mode with synced draft header and tag chips", () => {
     const props = {
       ...createProps(),
       contentMode: "preview" as const,
@@ -171,8 +164,8 @@ describe("WorkspaceDetailInspector", () => {
 
     expect(screen.getByText("当前记录已有 AI 摘要。")).toBeTruthy();
     expect(screen.getByText("已完成架构梳理")).toBeTruthy();
-    expect(screen.getByText("正在自动保存…")).toBeTruthy();
     expect(screen.getByRole("button", { name: "关闭详情" })).toBeTruthy();
     expect(screen.getByDisplayValue("未开始")).toBeTruthy();
+    expect(screen.getByText("截止时间 · 未设置")).toBeTruthy();
   });
 });

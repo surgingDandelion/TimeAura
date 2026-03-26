@@ -71,6 +71,7 @@ export interface RecordDraft {
   priority: RecordPriority;
   dueAt: string;
   plannedAt: string;
+  completedAt: string;
   contentMarkdown: string;
   tags: string[];
   isPinned: boolean;

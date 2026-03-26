@@ -100,6 +100,7 @@ function createCommandsOptions() {
       priority: record.priority,
       dueAt: "",
       plannedAt: "",
+      completedAt: "",
       contentMarkdown: record.contentMarkdown,
       tags: record.tags,
       isPinned: record.isPinned,

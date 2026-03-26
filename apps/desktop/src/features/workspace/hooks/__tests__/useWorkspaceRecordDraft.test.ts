@@ -34,6 +34,7 @@ describe("useWorkspaceRecordDraft", () => {
       priority: "P3",
       dueAt: toInputValue("2026-01-02T09:00:00.000Z"),
       plannedAt: toInputValue("2026-01-01T18:00:00.000Z"),
+      completedAt: "",
       contentMarkdown: "",
       tags: ["tag_uncategorized"],
       isPinned: false,
@@ -93,6 +94,7 @@ describe("useWorkspaceRecordDraft", () => {
         title: "  新标题  ",
         dueAt: "2026-01-03T12:30",
         plannedAt: "2026-01-02T10:15",
+        completedAt: "2026-01-04T19:05",
         isPinned: true,
       });
     });
@@ -112,6 +114,7 @@ describe("useWorkspaceRecordDraft", () => {
       priority: "P3",
       dueAt: fromInputValue("2026-01-03T12:30"),
       plannedAt: fromInputValue("2026-01-02T10:15"),
+      completedAt: fromInputValue("2026-01-04T19:05"),
       contentMarkdown: "",
       tags: ["tag_work"],
       isPinned: true,
@@ -226,7 +229,7 @@ describe("useWorkspaceRecordDraft", () => {
     });
 
     expect(result.current.contentMode).toBe("preview");
-    expect(onMessage).toHaveBeenCalledWith("内容已完成 AI 润色，正在自动保存");
+    expect(onMessage).toHaveBeenCalledWith("内容已完成 AI 润色");
     expect(result.current.saving).toBe(false);
   });
 });

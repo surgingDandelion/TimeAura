@@ -159,6 +159,8 @@ export interface WorkspaceDetailInspectorContract {
 
 export interface TagManagerSheetContract {
   open: boolean;
+  selectedRecord: RecordEntity | null;
+  records: RecordEntity[];
   tags: TagEntity[];
   draft: RecordDraft | null;
   tagEditor: TagEditorDraft;
