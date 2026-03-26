@@ -544,11 +544,11 @@ export function ChannelStudioPage(): JSX.Element {
                 <div className="inspector-row inspector-row-stack">
                   <div className="inspector-row-label">协议</div>
                   <div className="inspector-row-content">
-                    <div className="segmented-group segmented-group-wrap">
+                    <div className="segmented-group segmented-group-wrap channel-provider-segmented">
                       {providerOptions.map((option) => (
                         <button
                           key={option.type}
-                          className={`segmented-item${draft.providerType === option.type ? " segmented-item-active" : ""}`}
+                          className={`segmented-item channel-provider-segmented-item${draft.providerType === option.type ? " segmented-item-active channel-provider-segmented-item-active" : ""}`}
                           onClick={() => handleProviderTypeChange(option.type)}
                           type="button"
                         >
