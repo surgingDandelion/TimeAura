@@ -2093,6 +2093,10 @@ textarea:focus-visible {
   min-width: 0;
 }
 
+.workspace-filter-group-tag .workspace-filter-label {
+  white-space: nowrap;
+}
+
 .workspace-filter-label {
   color: #6d8093;
   font-size: 11px;
