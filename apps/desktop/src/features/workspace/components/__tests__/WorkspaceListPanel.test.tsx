@@ -166,7 +166,7 @@ describe("WorkspaceListPanel", () => {
     expect(screen.getByText("当前没有符合筛选条件的记录。")).toBeTruthy();
   });
 
-  it("wires notification panel actions and renders completed rows without complete action", () => {
+  it("renders completed rows without complete action and keeps warning message styling", () => {
     const props = {
       ...createProps(),
       records: [
@@ -180,17 +180,6 @@ describe("WorkspaceListPanel", () => {
       selectedIds: [],
       selectedCount: 0,
       visibleSelectedCount: 0,
-      notificationDebugOpen: true,
-      notificationDebugFeed: [
-        {
-          id: "debug-1",
-          at: "2026-01-01T09:20:00.000Z",
-          source: "action" as const,
-          level: "info" as const,
-          title: "提醒已触发",
-          detail: "任务已被桌面通知命中",
-        },
-      ],
       message: "提醒已刷新",
       runtimeNoticeTone: "warning" as const,
       reminder: null,
@@ -201,13 +190,5 @@ describe("WorkspaceListPanel", () => {
     expect(screen.getByText("提醒已刷新").className).toContain("inline-message-warning");
     expect(screen.getAllByText("已完成").length).toBeGreaterThanOrEqual(3);
     expect(screen.queryByText("完成")).toBeNull();
-
-    fireEvent.click(screen.getByText("导出"));
-    fireEvent.click(screen.getByText("清空"));
-    fireEvent.click(screen.getByText("收起调试"));
-
-    expect(props.onExportNotificationDebug).toHaveBeenCalledTimes(1);
-    expect(props.onClearNotificationDebug).toHaveBeenCalledTimes(1);
-    expect(props.onToggleNotificationDebug).toHaveBeenCalledTimes(1);
   });
 });

@@ -3,7 +3,6 @@ import type { RecordEntity, TagEntity } from "@timeaura-core";
 import type { WorkspaceListPanelContract } from "../contracts";
 import type { WorkspacePriorityFilter, WorkspaceSort, WorkspaceStatusFilter } from "../types";
 import { formatDateLabel } from "../utils";
-import { NotificationDebugPanel } from "./NotificationDebugPanel";
 import { ReminderBanner } from "./ReminderBanner";
 
 export type WorkspaceListPanelProps = WorkspaceListPanelContract;
@@ -35,8 +34,6 @@ export function WorkspaceListPanel({
   reminderSelectedIds,
   reminderSelectedOnly,
   visibleReminderSelectedCount,
-  notificationDebugFeed,
-  notificationDebugOpen,
   searchRef,
   rowRefs,
   onRefresh,
@@ -49,9 +46,6 @@ export function WorkspaceListPanel({
   onToggleSelectAllVisible,
   onClearSelection,
   onBatchReschedule,
-  onToggleNotificationDebug,
-  onExportNotificationDebug,
-  onClearNotificationDebug,
   onToggleReminderExpanded,
   onToggleReminderSelectedOnly,
   onSnoozeReminder,
@@ -191,15 +185,6 @@ export function WorkspaceListPanel({
       />
 
       {message ? <div className={`inline-message${runtimeNoticeTone === "warning" ? " inline-message-warning" : ""}`}>{message}</div> : null}
-
-      <NotificationDebugPanel
-        entries={notificationDebugFeed}
-        open={notificationDebugOpen}
-        onToggleOpen={onToggleNotificationDebug}
-        onExport={onExportNotificationDebug}
-        onClear={onClearNotificationDebug}
-      />
-
       <div className="card workspace-task-list-card">
         <div className="workspace-list-card-toolbar">
           <div className="list-toolbar-meta">
