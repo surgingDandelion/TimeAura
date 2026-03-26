@@ -464,14 +464,14 @@ export function ChannelStudioPage(): JSX.Element {
                   <button className="button-ghost" onClick={() => void handleTestChannel()} disabled={testing}>
                     {testing ? "测试中…" : "测试连接"}
                   </button>
+                  <button
+                    className="button-primary channel-save-btn"
+                    onClick={() => void handleSaveChannel()}
+                    disabled={draftParseResult.errors.length > 0}
+                  >
+                    保存配置
+                  </button>
                 </div>
-                <button
-                  className="button-primary channel-save-btn"
-                  onClick={() => void handleSaveChannel()}
-                  disabled={draftParseResult.errors.length > 0}
-                >
-                  保存配置
-                </button>
               </div>
             </div>
 
