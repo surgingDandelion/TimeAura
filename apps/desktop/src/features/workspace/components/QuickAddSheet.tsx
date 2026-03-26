@@ -25,7 +25,7 @@ export function QuickAddSheet({
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [open, quickAddRef, quickAddSpotlight]);
+  }, [open, quickAddRef]);
 
   if (!open) {
     return null;

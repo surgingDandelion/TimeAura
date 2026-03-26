@@ -414,6 +414,30 @@ export function ChannelStudioPage(): JSX.Element {
             );
           })}
         </div>
+
+        <div className="stack-card channel-mapping-card">
+          <h4>能力映射</h4>
+          <div className="mapping-grid channel-mapping-grid">
+            {abilityOptions.map((ability) => (
+              <label key={ability.key} className="detail-field mapping-card">
+                <span className="field-label">{ability.label}</span>
+                <select
+                  className="select"
+                  value={mappings[ability.key] ?? ""}
+                  onChange={(event) => void handleUpdateAbility(ability.key, event.target.value)}
+                >
+                  <option value="">未指定</option>
+                  {channels.map((channel) => (
+                    <option key={channel.id} value={channel.id}>
+                      {channel.name}
+                      {channel.enabled ? "" : "（停用）"}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ))}
+          </div>
+        </div>
       </section>
 
       <section className="panel panel-detail channel-form-wrap">
@@ -426,17 +450,10 @@ export function ChannelStudioPage(): JSX.Element {
                 <h2>{selectedChannel.name}</h2>
                 <p>{currentProviderOption.description}</p>
               </div>
-              <div className="detail-header-actions channel-form-actions">
-                <button className="button-ghost" onClick={() => void handleDuplicateChannel()}>
-                  复制
-                </button>
-                <button
-                  className="button-ghost"
-                  onClick={() => void handleSetDefaultChannel()}
-                  disabled={!draft.enabled || selectedChannel.id === defaultChannelId}
-                >
-                  {selectedChannel.id === defaultChannelId ? "默认通道" : "设为默认"}
-                </button>
+              <div className="settings-inline channel-form-actions">
+                <span className="switch">
+                  自动回退：{draft.allowFallback ? "开启" : "关闭"}
+                </span>
                 <button className="button-ghost" onClick={() => void handleTestChannel()} disabled={testing}>
                   {testing ? "测试中…" : "测试连接"}
                 </button>
@@ -447,10 +464,23 @@ export function ChannelStudioPage(): JSX.Element {
                 >
                   保存配置
                 </button>
-                <button className="button-ghost button-danger-soft" onClick={() => void handleDeleteChannel()}>
-                  删除
-                </button>
               </div>
+            </div>
+
+            <div className="channel-secondary-actions">
+              <button className="button-ghost button-ghost-compact" onClick={() => void handleDuplicateChannel()}>
+                复制
+              </button>
+              <button
+                className="button-ghost button-ghost-compact"
+                onClick={() => void handleSetDefaultChannel()}
+                disabled={!draft.enabled || selectedChannel.id === defaultChannelId}
+              >
+                {selectedChannel.id === defaultChannelId ? "默认通道" : "设为默认"}
+              </button>
+              <button className="button-ghost button-ghost-compact button-danger-soft" onClick={() => void handleDeleteChannel()}>
+                删除
+              </button>
             </div>
 
             {message ? <div className="inline-message">{message}</div> : null}
@@ -745,49 +775,6 @@ export function ChannelStudioPage(): JSX.Element {
         )}
       </section>
 
-      <section className="panel panel-report-history channel-mapping-wrap">
-        <div className="panel-title report-panel-title">
-          <h2>AI 功能路由</h2>
-          <p>为不同能力指定默认通道，保持稳定与可解释的模型分工。</p>
-        </div>
-
-        <div className="mapping-panel">
-          {abilityOptions.map((ability) => {
-            const mappedChannel = channels.find((channel) => channel.id === mappings[ability.key]);
-
-            return (
-              <div key={ability.key} className="mapping-card">
-                <div className="mapping-header">
-                  <div className="mapping-title">{ability.label}</div>
-                  <div className={`mapping-status${mappedChannel ? " mapping-status-ready" : ""}`}>
-                    {mappedChannel ? "已指定" : "未指定"}
-                  </div>
-                </div>
-
-                <select
-                  className="select"
-                  value={mappings[ability.key] ?? ""}
-                  onChange={(event) => void handleUpdateAbility(ability.key, event.target.value)}
-                >
-                  <option value="">未指定</option>
-                  {channels.map((channel) => (
-                    <option key={channel.id} value={channel.id}>
-                      {channel.name}
-                      {channel.enabled ? "" : "（停用）"}
-                    </option>
-                  ))}
-                </select>
-
-                <div className="mapping-help">
-                  {mappedChannel
-                    ? `${mappedChannel.name} · ${providerOptions.find((item) => item.type === mappedChannel.providerType)?.shortLabel ?? mappedChannel.providerType}`
-                    : `未绑定时会回退到当前第一个已启用通道${enabledChannels[0] ? `：${enabledChannels[0].name}` : ""}`}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
     </div>
   );
 }

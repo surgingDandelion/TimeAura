@@ -25,7 +25,7 @@ export function TagManagerSheet({
   return (
     <div className="sheet-backdrop" onClick={onClose}>
       <div
-        className="sheet-panel"
+        className="sheet-panel tag-manager-sheet"
         onClick={(event) => {
           event.stopPropagation();
         }}
@@ -37,7 +37,7 @@ export function TagManagerSheet({
             <div className="channel-panel-subtitle">先处理当前记录标签，再在标签库里新增、编辑或清理标签。</div>
           </div>
           <div className="sheet-header-actions">
-            <button className="button-mini" onClick={onResetEditor}>
+            <button className="text-btn" onClick={onResetEditor}>
               新建标签
             </button>
             <button className="button-ghost" onClick={onClose}>
@@ -46,7 +46,7 @@ export function TagManagerSheet({
           </div>
         </div>
 
-        <div className="sheet-section">
+        <div className="sheet-section sheet-section-soft">
           <div className="sheet-section-title">当前记录标签</div>
           <div className="tag-selector">
             {tags.map((tag) => (
@@ -64,7 +64,7 @@ export function TagManagerSheet({
         </div>
 
         <div className="sheet-section sheet-section-grid">
-          <div>
+          <div className="sheet-column-panel">
             <div className="sheet-section-title">标签库</div>
             <div className="sheet-tag-library">
               {tags.map((tag) => (
@@ -83,7 +83,7 @@ export function TagManagerSheet({
             </div>
           </div>
 
-          <div>
+          <div className="sheet-column-panel">
             <div className="sheet-section-title">{editingTag ? "编辑标签" : "新建标签"}</div>
             <div className="sheet-form">
               <label className="field">

@@ -219,7 +219,7 @@ describe("ReportStudioPage", () => {
     fireEvent.change(screen.getByLabelText("结束时间"), {
       target: { value: "2026-03-17" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "生成草稿" }));
+    fireEvent.click(screen.getByRole("button", { name: "生成报告" }));
 
     await waitFor(() => {
       expect(reportService.generateReport).toHaveBeenCalledTimes(1);
@@ -246,10 +246,10 @@ describe("ReportStudioPage", () => {
     render(<ReportStudioPage />);
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: "生成草稿" })).toBeTruthy();
+      expect(screen.getByRole("button", { name: "生成报告" })).toBeTruthy();
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "生成草稿" }));
+    fireEvent.click(screen.getByRole("button", { name: "生成报告" }));
 
     await waitFor(() => {
       expect((screen.getByRole("button", { name: "保存历史" }) as HTMLButtonElement).disabled).toBe(false);
@@ -263,7 +263,7 @@ describe("ReportStudioPage", () => {
       expect(screen.getByText("2026 第 12 周周报草稿")).toBeTruthy();
     });
 
-    fireEvent.click(screen.getAllByRole("button", { name: "存为记录" })[1] as HTMLButtonElement);
+    fireEvent.click(screen.getByRole("button", { name: "存为记录" }));
 
     await waitFor(() => {
       expect(reportService.saveReportAsRecord).toHaveBeenCalledWith("history-2");

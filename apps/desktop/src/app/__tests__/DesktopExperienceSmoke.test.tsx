@@ -62,7 +62,7 @@ describe("Desktop experience smoke", () => {
       expect(screen.getByRole("heading", { name: "AI 报告" })).toBeTruthy();
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "生成草稿" }));
+    fireEvent.click(screen.getByRole("button", { name: "生成报告" }));
 
     await waitFor(() => {
       expect(screen.getByText("报告草稿已生成")).toBeTruthy();
