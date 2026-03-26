@@ -1915,8 +1915,16 @@ textarea:focus-visible {
 }
 
 .workspace-page-header {
+  display: flex;
   align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 14px;
+}
+
+.workspace-page-header-copy {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .workspace-page-title {
@@ -1938,6 +1946,8 @@ textarea:focus-visible {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  justify-content: flex-end;
+  align-self: flex-start;
 }
 
 .summary-pill {
@@ -1972,8 +1982,8 @@ textarea:focus-visible {
 
 .workspace-toolbar-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
   align-items: center;
 }
 
@@ -1981,7 +1991,7 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px 14px;
+  gap: 10px 14px;
   flex-wrap: wrap;
 }
 
@@ -2043,18 +2053,26 @@ textarea:focus-visible {
   flex-wrap: wrap;
 }
 
-.workspace-filter-group-priority {
-  flex: 1 1 auto;
+.workspace-filter-group-status {
+  justify-content: flex-end;
+  flex: 0 0 auto;
 }
 
-.workspace-filter-group-tag {
-  flex: 0 0 auto;
+.workspace-filter-group-priority {
+  flex: 1 1 auto;
 }
 
 .workspace-filter-label {
   color: #6d8093;
   font-size: 11px;
   font-weight: 600;
+}
+
+.workspace-toolbar-selects {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
 }
 
 .filter-chip {
@@ -2081,8 +2099,8 @@ textarea:focus-visible {
 
 .workspace-filter-select {
   width: auto;
-  min-width: 150px;
-  min-height: 42px;
+  min-width: 164px;
+  min-height: 44px;
   border-radius: 14px;
   border-color: rgba(67, 90, 121, 0.12);
   background-color: rgba(255, 255, 255, 0.82);
@@ -2092,13 +2110,18 @@ textarea:focus-visible {
   background-repeat: no-repeat, no-repeat;
   background-position: left top, right 12px center;
   background-size: auto, 14px 14px;
+  padding: 11px 36px 11px 14px;
+  color: #425367;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.72),
     inset 0 0 0 0.5px rgba(67, 90, 121, 0.04);
 }
 
 .workspace-filter-select-tag {
-  min-width: 180px;
+  min-width: 198px;
 }
 
 .workspace-filter-select:hover {
@@ -2109,7 +2132,7 @@ textarea:focus-visible {
 }
 
 .workspace-filter-select-sort {
-  min-width: 156px;
+  min-width: 152px;
 }
 
 .reminder-banner {
@@ -2848,6 +2871,12 @@ body[data-theme="dark"] .sidebar-brand .tagline {
   gap: 8px;
 }
 
+.desktop-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
 .nav-item,
 .sidebar-tag-item {
   width: 100%;
@@ -2864,11 +2893,25 @@ body[data-theme="dark"] .sidebar-brand .tagline {
   transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
 }
 
+.nav-item-card {
+  min-height: 78px;
+  padding: 11px 11px 10px;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 12px;
+  text-align: left;
+}
+
 .nav-item:hover,
 .sidebar-tag-item:hover {
   background: rgba(255, 255, 255, 0.72);
   border-color: rgba(67, 90, 121, 0.08);
   transform: translateX(1px);
+}
+
+.nav-item-card:hover {
+  transform: translateY(-1px);
 }
 
 .nav-item-active,
@@ -2906,6 +2949,28 @@ body[data-theme="dark"] .sidebar-tag-item-active {
   min-width: 0;
 }
 
+.nav-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.nav-card-foot {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.nav-item-card .nav-item-left {
+  flex: 1 1 auto;
+  width: auto;
+  gap: 0;
+}
+
 .nav-item-title,
 .tag-item-title {
   min-width: 0;
@@ -2915,6 +2980,12 @@ body[data-theme="dark"] .sidebar-tag-item-active {
   font-size: 14px;
   font-weight: 600;
   line-height: 1.3;
+}
+
+.nav-item-card .nav-item-title {
+  font-size: 13px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
 .nav-icon,
@@ -2952,9 +3023,49 @@ body[data-theme="dark"] .sidebar-tag-item-active {
   text-align: center;
 }
 
+.nav-item-card .badge-count {
+  min-width: 22px;
+  padding: 4px 6px;
+  font-size: 10px;
+}
+
+.nav-card-accent {
+  width: 30px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(95, 143, 220, 0.24);
+}
+
+.nav-card-meta {
+  color: #75889a;
+  font-size: 10px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.nav-card-accent-today {
+  background: linear-gradient(135deg, #76a8e7, #5f8fdc);
+}
+
+.nav-card-accent-plan {
+  background: linear-gradient(135deg, #ff9f43, #ff7b61);
+}
+
+.nav-card-accent-all {
+  background: linear-gradient(135deg, #7d8796, #5c6678);
+}
+
+.nav-card-accent-done {
+  background: linear-gradient(135deg, #7cd9b2, #31ba7c);
+}
+
 body[data-theme="dark"] .badge-count {
   background: rgba(255, 255, 255, 0.08);
   color: #c4d1e4;
+}
+
+body[data-theme="dark"] .nav-card-meta {
+  color: #8fa4bf;
 }
 
 .nav-item-active .badge-count,
@@ -2963,10 +3074,18 @@ body[data-theme="dark"] .badge-count {
   color: #3a638d;
 }
 
+.nav-item-active .nav-card-meta {
+  color: #5a6c80;
+}
+
 body[data-theme="dark"] .nav-item-active .badge-count,
 body[data-theme="dark"] .sidebar-tag-item-active .badge-count {
   background: rgba(124, 164, 236, 0.12);
   color: #cfdcf1;
+}
+
+body[data-theme="dark"] .nav-item-active .nav-card-meta {
+  color: #cbd9eb;
 }
 
 .sidebar-section {
@@ -3325,6 +3444,10 @@ body[data-theme="dark"] .workspace-search-box svg {
   stroke: #9fb0c8;
 }
 
+body[data-theme="dark"] .workspace-toolbar-selects .workspace-filter-select {
+  color: #d7e3f3;
+}
+
 body[data-theme="dark"] .workspace-search-box input {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.04));
   border-color: rgba(173, 192, 219, 0.12);
@@ -3478,6 +3601,22 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
 
   .main-body {
     flex-direction: column;
+  }
+
+  .desktop-nav-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .nav-item-card {
+    min-height: 70px;
+  }
+
+  .nav-item-card .nav-item-title {
+    font-size: 12px;
+  }
+
+  .nav-card-meta {
+    font-size: 9.5px;
   }
 }
 

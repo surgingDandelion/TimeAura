@@ -27,6 +27,18 @@ interface WorkspaceSidebarCounts {
   done: number;
 }
 
+const WORKSPACE_VIEW_CARDS: Array<{
+  id: WorkspaceSystemView;
+  label: string;
+  meta: string;
+  accentClass: string;
+}> = [
+  { id: "today", label: "今天", meta: "今日焦点", accentClass: "nav-card-accent-today" },
+  { id: "plan", label: "计划", meta: "提前排期", accentClass: "nav-card-accent-plan" },
+  { id: "all", label: "全部", meta: "统一总览", accentClass: "nav-card-accent-all" },
+  { id: "done", label: "已完成", meta: "完成沉淀", accentClass: "nav-card-accent-done" },
+];
+
 const UNCATEGORIZED_TAG_ID = "tag_uncategorized";
 
 export function AppShell(): JSX.Element {
@@ -494,23 +506,24 @@ export function AppShell(): JSX.Element {
 
           <div className="nav-section">
             <div className="nav-label">视图</div>
-            <nav className="desktop-nav">
-          {[
-            { id: "today", label: "今天", count: workspaceCounts.today, dotClass: "nav-item-dot-today" },
-            { id: "plan", label: "计划", count: workspaceCounts.plan, dotClass: "nav-item-dot-plan" },
-            { id: "all", label: "全部", count: workspaceCounts.all, dotClass: "nav-item-dot-all" },
-            { id: "done", label: "已完成", count: workspaceCounts.done, dotClass: "nav-item-dot-done" },
-          ].map((item) => (
+            <nav className="desktop-nav desktop-nav-grid">
+          {WORKSPACE_VIEW_CARDS.map((item) => (
             <button
               key={item.id}
-              className={`nav-item${page === "workspace" && workspaceView === item.id ? " nav-item-active" : ""}`}
-              onClick={() => openWorkspaceView(item.id as WorkspaceSystemView)}
+              type="button"
+              className={`nav-item nav-item-card${page === "workspace" && workspaceView === item.id ? " nav-item-active" : ""}`}
+              onClick={() => openWorkspaceView(item.id)}
             >
-              <span className="nav-item-left">
-                <span className={`nav-icon ${item.dotClass}`} />
-                <span className="nav-item-title">{item.label}</span>
+              <span className="nav-card-head">
+                <span className="nav-item-left">
+                  <span className="nav-item-title">{item.label}</span>
+                </span>
+                <span className="badge-count">{workspaceCounts[item.id]}</span>
               </span>
-              <span className="badge-count">{item.count}</span>
+              <span className="nav-card-foot">
+                <span className={`nav-card-accent ${item.accentClass}`} />
+                <span className="nav-card-meta">{item.meta}</span>
+              </span>
             </button>
           ))}
             </nav>

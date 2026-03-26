@@ -75,7 +75,7 @@ export function WorkspaceListPanel({
   return (
     <section className="panel panel-list panel-list-shell workspace-list-pane">
       <div className="page-header workspace-page-header">
-        <div>
+        <div className="workspace-page-header-copy">
           <h1 className="workspace-page-title">{titleCopy.title}</h1>
           <p className="workspace-page-subtitle">{titleCopy.subtitle}</p>
         </div>
@@ -126,17 +126,6 @@ export function WorkspaceListPanel({
               </button>
             ))}
           </div>
-
-          <select
-            className="select workspace-filter-select workspace-filter-select-sort"
-            value={sortBy}
-            onChange={(event) => onSortByChange(event.target.value as WorkspaceSort)}
-          >
-            <option value="smart">智能排序</option>
-            <option value="due">截止时间</option>
-            <option value="priority">优先级</option>
-            <option value="updated">更新时间</option>
-          </select>
         </div>
 
         <div className="workspace-toolbar-row workspace-toolbar-row-secondary">
@@ -154,8 +143,18 @@ export function WorkspaceListPanel({
             ))}
           </div>
 
-          <div className="workspace-filter-group workspace-filter-group-tag">
-            <span className="workspace-filter-label">标签</span>
+          <div className="workspace-toolbar-selects">
+            <select
+              className="select workspace-filter-select workspace-filter-select-sort"
+              value={sortBy}
+              onChange={(event) => onSortByChange(event.target.value as WorkspaceSort)}
+            >
+              <option value="smart">智能排序</option>
+              <option value="due">截止时间</option>
+              <option value="priority">优先级</option>
+              <option value="updated">更新时间</option>
+            </select>
+
             <select
               className="select workspace-filter-select workspace-filter-select-tag"
               value={activeTagId}
