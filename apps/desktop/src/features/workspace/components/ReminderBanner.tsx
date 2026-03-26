@@ -26,64 +26,52 @@ export function ReminderBanner({
   }
 
   return (
-    <>
+    <div className="reminder-shell">
       <div className="reminder-banner">
-        <div className="reminder-main">
-          <div className="reminder-title">{reminder.title}</div>
-          <div className="reminder-text">{reminder.description}</div>
-          <div className="reminder-meta">桌面提醒会持续扫描；点击系统通知会直接回到对应记录。</div>
-          <div className="reminder-expand-row">
-            <button className="button-mini" onClick={onToggleExpanded}>
-              {reminderExpanded ? "收起命中任务" : `展开命中任务（${activeReminderHits.length}）`}
-            </button>
-            <span className="reminder-selection-meta">
-              已选 {visibleReminderSelectedCount} / 命中 {activeReminderHits.length}
-            </span>
-            <button
-              className={`button-mini${reminderSelectedOnly ? " button-mini-active" : ""}`}
-              disabled={visibleReminderSelectedCount === 0}
-              onClick={onToggleSelectedOnly}
-            >
-              仅改选中
-            </button>
+        <div className="reminder-bar-main">
+          <div className="warning-badge">时间提醒</div>
+          <div className="reminder-bar-copy">
+            <div className="reminder-title">{reminder.title}</div>
+            <div className="reminder-text">{reminder.description}</div>
           </div>
         </div>
-        <div className="reminder-actions">
-          <button className="button-ghost" onClick={() => onSnoozeReminder(30)}>
-            30 分钟后提醒
-          </button>
-          <button className="button-ghost" onClick={() => onReschedule("plus_1_hour")}>
+
+        <div className="reminder-bar-actions">
+          <button className="button-mini" onClick={() => onReschedule("plus_1_hour")}>
             顺延 1 小时
           </button>
-          <button className="button-ghost" onClick={() => onReschedule("today_18")}>
-            改到今晚 18:00
+          <button className="button-mini button-mini-active" onClick={() => onReschedule("tomorrow_09")}>
+            改到明早
           </button>
-          <button className="button-ghost" onClick={onOpenCustom}>
-            自定义时间
-          </button>
-          <button className="button-primary" onClick={() => onReschedule("tomorrow_09")}>
-            改到明早 09:00
+          <button className="button-mini" onClick={onToggleExpanded}>
+            {reminderExpanded ? "收起" : `展开 ${activeReminderHits.length}`}
           </button>
         </div>
       </div>
 
       {reminderExpanded ? (
-        <div className="reminder-hit-panel">
-          <div className="list-toolbar reminder-hit-toolbar">
-            <div className="list-toolbar-meta">
-              <span>当前提醒类型：{formatReminderKind(reminder.kind)}</span>
+        <div className="reminder-flyout">
+          <div className="reminder-flyout-head">
+            <div className="reminder-flyout-meta">
+              <strong>已选 {visibleReminderSelectedCount} / 命中 {activeReminderHits.length}</strong>
               <span>{reminderSelectedOnly ? "当前快捷操作仅作用于已勾选命中项" : "当前快捷操作默认作用于全部命中项"}</span>
             </div>
-            <div className="list-toolbar-actions">
-              <button className="button-mini" onClick={onToggleSelectAll}>
+            <div className="reminder-flyout-actions">
+              <button className="text-btn" onClick={onToggleSelectAll}>
                 {visibleReminderSelectedCount === activeReminderTargetIds.length && activeReminderTargetIds.length > 0
-                  ? "清空命中选择"
-                  : "全选命中任务"}
+                  ? "清空"
+                  : "全选"}
+              </button>
+              <button className="text-btn" onClick={() => onSnoozeReminder(30)}>
+                稍后提醒
+              </button>
+              <button className="text-btn" onClick={onToggleExpanded}>
+                关闭
               </button>
             </div>
           </div>
 
-          <div className="reminder-hit-list">
+          <div className="reminder-hit-list reminder-hit-list-flyout">
             {activeReminderHits.map((hit) => (
               <button
                 key={hit.id}
@@ -120,8 +108,27 @@ export function ReminderBanner({
               </button>
             ))}
           </div>
+
+          <div className="reminder-flyout-foot">
+            <button
+              className={`button-mini${reminderSelectedOnly ? " button-mini-active" : ""}`}
+              disabled={visibleReminderSelectedCount === 0}
+              onClick={onToggleSelectedOnly}
+            >
+              仅改选中
+            </button>
+            <button className="button-mini" onClick={() => onReschedule("today_18")}>
+              改到今晚 18:00
+            </button>
+            <button className="button-mini" onClick={() => onReschedule("plus_1_hour")}>
+              全部顺延
+            </button>
+            <button className="button-mini" onClick={onOpenCustom}>
+              自定义时间
+            </button>
+          </div>
         </div>
       ) : null}
-    </>
+    </div>
   );
 }

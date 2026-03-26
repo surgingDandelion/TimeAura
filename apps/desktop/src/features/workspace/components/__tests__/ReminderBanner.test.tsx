@@ -70,19 +70,19 @@ describe("ReminderBanner", () => {
 
     render(<ReminderBanner {...props} />);
 
-    fireEvent.click(screen.getByText("30 分钟后提醒"));
+    fireEvent.click(screen.getByText("收起"));
+    fireEvent.click(screen.getByText("稍后提醒"));
     fireEvent.click(screen.getByText("顺延 1 小时"));
     fireEvent.click(screen.getByText("改到今晚 18:00"));
-    fireEvent.click(screen.getByText("改到明早 09:00"));
     fireEvent.click(screen.getByText("自定义时间"));
-    fireEvent.click(screen.getByText("清空命中选择"));
+    fireEvent.click(screen.getByText("清空"));
     fireEvent.click(screen.getByText("整理周报"));
     fireEvent.click(screen.getByRole("checkbox"));
 
+    expect(props.onToggleExpanded).toHaveBeenCalledTimes(1);
     expect(props.onSnoozeReminder).toHaveBeenCalledWith(30);
     expect(props.onReschedule).toHaveBeenNthCalledWith(1, "plus_1_hour");
     expect(props.onReschedule).toHaveBeenNthCalledWith(2, "today_18");
-    expect(props.onReschedule).toHaveBeenNthCalledWith(3, "tomorrow_09");
     expect(props.onOpenCustom).toHaveBeenCalledTimes(1);
     expect(props.onToggleSelectAll).toHaveBeenCalledTimes(1);
     expect(props.onFocusRecord).toHaveBeenCalledWith("record-1");
@@ -100,15 +100,12 @@ describe("ReminderBanner", () => {
 
     const { container } = render(<ReminderBanner {...props} />);
 
-    expect(screen.getByText("展开命中任务（1）")).toBeTruthy();
-    expect(screen.getByText("已选 0 / 命中 1")).toBeTruthy();
+    expect(screen.getByText("展开 1")).toBeTruthy();
+    expect(screen.queryByText("已选 0 / 命中 1")).toBeNull();
     expect(screen.queryByText("当前快捷操作默认作用于全部命中项")).toBeNull();
-    expect(container.querySelector(".reminder-hit-panel")).toBeNull();
+    expect(container.querySelector(".reminder-flyout")).toBeNull();
 
-    const selectedOnlyButton = screen.getByText("仅改选中") as HTMLButtonElement;
-    expect(selectedOnlyButton.disabled).toBe(true);
-
-    fireEvent.click(screen.getByText("展开命中任务（1）"));
+    fireEvent.click(screen.getByText("展开 1"));
 
     expect(props.onToggleExpanded).toHaveBeenCalledTimes(1);
     expect(props.onToggleSelectedOnly).not.toHaveBeenCalled();
@@ -138,7 +135,7 @@ describe("ReminderBanner", () => {
 
     const { container } = render(<ReminderBanner {...props} />);
 
-    expect(screen.getByText("清空命中选择")).toBeTruthy();
+    expect(screen.getByText("清空")).toBeTruthy();
 
     const hitRows = container.querySelectorAll(".reminder-hit-row");
     expect(hitRows[1]?.className).toContain("reminder-hit-row-active");
