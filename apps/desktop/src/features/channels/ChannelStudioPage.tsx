@@ -437,9 +437,9 @@ export function ChannelStudioPage(): JSX.Element {
           <div className="mapping-grid channel-mapping-grid">
             {abilityOptions.map((ability) => (
               <label key={ability.key} className="detail-field mapping-card">
-                <span className="field-label">{ability.label}</span>
+                <span className="field-label channel-mapping-label">{ability.label}</span>
                 <select
-                  className="select"
+                  className="select channel-mapping-select"
                   value={mappings[ability.key] ?? ""}
                   onChange={(event) => void handleUpdateAbility(ability.key, event.target.value)}
                 >

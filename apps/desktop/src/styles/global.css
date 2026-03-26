@@ -4294,10 +4294,41 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
 
 .channel-mapping-card {
   margin-top: auto;
+  padding: 16px 16px 14px;
 }
 
 .channel-mapping-grid {
   grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+.channel-mapping-card h4 {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.channel-mapping-label {
+  color: #61758a;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.channel-mapping-select {
+  min-height: 40px;
+  padding: 9px 34px 9px 12px;
+  border-radius: 14px;
+  background-color: rgba(251, 252, 254, 0.96);
+  font-size: 12px;
+  font-weight: 600;
+  color: #33475b;
+}
+
+.channel-mapping-card.mapping-card {
+  gap: 5px;
+  padding: 12px 12px 11px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(248, 250, 253, 0.98), rgba(244, 247, 251, 0.96));
+  border-color: rgba(15, 23, 42, 0.05);
 }
 
 .channel-list-card {
@@ -4305,13 +4336,13 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 10px;
 }
 
 .channel-list-card-head,
 .channel-list-card-body {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 14px;
   min-width: 0;
@@ -4321,49 +4352,43 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 14px;
   flex: 1 1 auto;
 }
 
 .channel-provider-mark {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  border: 1px solid rgba(95, 143, 220, 0.12);
-  background: linear-gradient(180deg, rgba(245, 249, 255, 0.98), rgba(237, 244, 253, 0.92));
+  border: 1px solid rgba(194, 211, 233, 0.72);
+  background: linear-gradient(180deg, rgba(250, 252, 255, 0.98), rgba(242, 247, 253, 0.96));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.82),
-    0 6px 12px rgba(15, 23, 42, 0.04);
-  color: #426a95;
-  font-size: 10.5px;
+    0 4px 10px rgba(15, 23, 42, 0.03);
+  color: #4a6d95;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.04em;
 }
 
 .channel-provider-mark-anthropic {
-  color: #8d6236;
-  border-color: rgba(184, 130, 78, 0.14);
-  background: linear-gradient(180deg, rgba(252, 246, 239, 0.98), rgba(247, 237, 226, 0.94));
+  color: #5b708a;
 }
 
 .channel-provider-mark-azure-openai {
-  color: #225e91;
+  color: #4a6d95;
 }
 
 .channel-provider-mark-local-gateway {
-  color: #326955;
-  border-color: rgba(70, 142, 108, 0.14);
-  background: linear-gradient(180deg, rgba(241, 249, 245, 0.98), rgba(232, 244, 238, 0.94));
+  color: #57717d;
 }
 
 .channel-provider-mark-aggregator {
-  color: #6f538f;
-  border-color: rgba(136, 108, 183, 0.14);
-  background: linear-gradient(180deg, rgba(247, 243, 252, 0.98), rgba(240, 234, 249, 0.94));
+  color: #66708b;
 }
 
 .channel-list-card-title-wrap {
@@ -4380,30 +4405,34 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   flex-wrap: wrap;
   justify-content: flex-end;
   flex: 0 0 auto;
-  padding-top: 1px;
+  padding-top: 0;
 }
 
 .channel-list-provider {
-  font-size: 11px;
+  color: #73859a;
+  font-size: 10.5px;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .channel-list-target {
-  max-width: 218px;
+  max-width: 176px;
   text-align: right;
-  line-height: 1.38;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  color: #6f8298;
+  font-size: 11.5px;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   overflow: hidden;
 }
 
 .channel-list-card-chips {
-  gap: 5px;
+  gap: 6px;
   min-width: 0;
   flex: 1 1 auto;
+  align-items: center;
 }
 
 .channel-list-card-chips .tag-chip,
@@ -4411,19 +4440,43 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
 .channel-list-card-badges .priority-pill {
   min-height: 24px;
   padding: 0 9px;
-  font-size: 11px;
+  font-size: 10.5px;
   line-height: 1;
 }
 
+.channel-list-card-badges .tag-chip {
+  background: rgba(223, 236, 250, 0.88);
+  color: #5e83ad;
+}
+
 .channel-list-card-badges .priority-pill {
+  background: rgba(98, 152, 228, 0.14);
+  border: 1px solid rgba(112, 160, 226, 0.08);
+  color: #4f86c8;
   font-weight: 700;
 }
 
 .channel-list-card-chips .tag-chip {
   max-width: 148px;
+  background: rgba(242, 245, 249, 0.96);
+  color: #607286;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.channel-list-row.record-row-active .channel-list-card-badges .tag-chip {
+  background: rgba(222, 236, 252, 0.94);
+}
+
+.channel-list-row.record-row-active .channel-list-card-badges .priority-pill {
+  background: rgba(98, 152, 228, 0.18);
+  color: #467bb8;
+}
+
+.channel-list-row.record-row-active .channel-provider-mark {
+  border-color: rgba(178, 201, 230, 0.9);
+  background: linear-gradient(180deg, rgba(251, 253, 255, 0.98), rgba(239, 245, 252, 0.96));
 }
 
 .channel-form-wrap .channel-test-panel {
@@ -4564,27 +4617,59 @@ body[data-theme="dark"] .channel-form-wrap .panel-title p {
 }
 
 body[data-theme="dark"] .channel-provider-mark {
-  border-color: rgba(124, 164, 236, 0.14);
-  background: linear-gradient(180deg, rgba(124, 164, 236, 0.1), rgba(124, 164, 236, 0.06));
+  border-color: rgba(173, 192, 219, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.04));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 8px 14px rgba(1, 6, 13, 0.14);
-  color: #d7e5fb;
+    0 6px 12px rgba(1, 6, 13, 0.12);
+  color: #d1ddec;
 }
 
 body[data-theme="dark"] .channel-provider-mark-anthropic {
-  border-color: rgba(195, 145, 92, 0.16);
-  background: linear-gradient(180deg, rgba(195, 145, 92, 0.14), rgba(195, 145, 92, 0.08));
+  color: #cfd9e7;
 }
 
 body[data-theme="dark"] .channel-provider-mark-local-gateway {
-  border-color: rgba(87, 170, 132, 0.16);
-  background: linear-gradient(180deg, rgba(87, 170, 132, 0.14), rgba(87, 170, 132, 0.08));
+  color: #cfdae3;
 }
 
 body[data-theme="dark"] .channel-provider-mark-aggregator {
-  border-color: rgba(154, 125, 204, 0.18);
-  background: linear-gradient(180deg, rgba(154, 125, 204, 0.14), rgba(154, 125, 204, 0.08));
+  color: #d6d9eb;
+}
+
+body[data-theme="dark"] .channel-list-provider,
+body[data-theme="dark"] .channel-list-target {
+  color: #9caec4;
+}
+
+body[data-theme="dark"] .channel-list-card-badges .tag-chip {
+  background: rgba(124, 164, 236, 0.12);
+  color: #cfe0ff;
+}
+
+body[data-theme="dark"] .channel-list-card-badges .priority-pill {
+  background: rgba(124, 164, 236, 0.16);
+  border-color: rgba(124, 164, 236, 0.12);
+  color: #d7e5ff;
+}
+
+body[data-theme="dark"] .channel-list-card-chips .tag-chip {
+  background: rgba(255, 255, 255, 0.05);
+  color: #b3c3d6;
+}
+
+body[data-theme="dark"] .channel-mapping-label {
+  color: #9fb0c8;
+}
+
+body[data-theme="dark"] .channel-mapping-card.mapping-card {
+  background: rgba(255, 255, 255, 0.038);
+  border-color: rgba(173, 192, 219, 0.08);
+}
+
+body[data-theme="dark"] .channel-mapping-select {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #e1ebf8;
 }
 
 body[data-theme="dark"] .report-history-row,
