@@ -26,7 +26,7 @@ export function ReminderBanner({
   }
 
   return (
-    <div className="reminder-shell">
+    <div className={`reminder-shell${reminderExpanded ? " reminder-shell-expanded" : ""}`}>
       <div className="reminder-banner">
         <div className="reminder-bar-main">
           <div className="warning-badge">时间提醒</div>
@@ -37,13 +37,13 @@ export function ReminderBanner({
         </div>
 
         <div className="reminder-bar-actions">
-          <button className="button-mini" onClick={() => onReschedule("plus_1_hour")}>
+          <button className="button-mini reminder-btn-muted" onClick={() => onReschedule("plus_1_hour")}>
             顺延 1 小时
           </button>
-          <button className="button-mini button-mini-active" onClick={() => onReschedule("tomorrow_09")}>
+          <button className="button-mini reminder-btn-strong" onClick={() => onReschedule("tomorrow_09")}>
             改到明早
           </button>
-          <button className="button-mini" onClick={onToggleExpanded}>
+          <button className="button-mini reminder-btn-quiet" onClick={onToggleExpanded}>
             {reminderExpanded ? "收起" : `展开 ${activeReminderHits.length}`}
           </button>
         </div>
@@ -111,19 +111,19 @@ export function ReminderBanner({
 
           <div className="reminder-flyout-foot">
             <button
-              className={`button-mini${reminderSelectedOnly ? " button-mini-active" : ""}`}
+              className={`button-mini reminder-btn-strong${reminderSelectedOnly ? " button-mini-active" : ""}`}
               disabled={visibleReminderSelectedCount === 0}
               onClick={onToggleSelectedOnly}
             >
               仅改选中
             </button>
-            <button className="button-mini" onClick={() => onReschedule("today_18")}>
+            <button className="button-mini reminder-btn-muted" onClick={() => onReschedule("today_18")}>
               改到今晚 18:00
             </button>
-            <button className="button-mini" onClick={() => onReschedule("plus_1_hour")}>
+            <button className="button-mini reminder-btn-quiet" onClick={() => onReschedule("plus_1_hour")}>
               全部顺延
             </button>
-            <button className="button-mini" onClick={onOpenCustom}>
+            <button className="button-mini reminder-btn-quiet" onClick={onOpenCustom}>
               自定义时间
             </button>
           </div>
