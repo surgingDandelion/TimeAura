@@ -3217,7 +3217,7 @@ body[data-theme="dark"] .nav-item-active .nav-card-meta {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 12px 2px 2px;
+  padding: 8px 0 0;
   border-top: 1px solid rgba(15, 23, 42, 0.05);
 }
 
@@ -3383,16 +3383,16 @@ body[data-theme="dark"] .icon-btn-active {
 
 body[data-theme="dark"] .sidebar-footer-icon {
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 10px 18px rgba(1, 6, 13, 0.16);
+    inset 0 1px 0 rgba(255, 255, 255, 0.028),
+    0 8px 16px rgba(1, 6, 13, 0.14);
 }
 
 body[data-theme="dark"] .sidebar-footer-icon.icon-btn-active {
-  background: linear-gradient(180deg, rgba(124, 164, 236, 0.18), rgba(124, 164, 236, 0.1));
-  border-color: rgba(124, 164, 236, 0.2);
+  background: linear-gradient(180deg, rgba(124, 164, 236, 0.15), rgba(124, 164, 236, 0.085));
+  border-color: rgba(124, 164, 236, 0.18);
   box-shadow:
-    0 12px 24px rgba(21, 50, 92, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    0 10px 20px rgba(21, 50, 92, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.045);
 }
 
 body[data-theme="dark"] .ghost-btn {
@@ -3431,26 +3431,42 @@ body[data-theme="dark"] .text-btn:hover {
 }
 
 .sidebar-footer-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 22px;
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
   box-shadow:
-    0 10px 18px rgba(15, 23, 42, 0.05),
+    0 8px 16px rgba(15, 23, 42, 0.045),
     inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .sidebar-footer-icon svg {
-  width: 21px;
-  height: 21px;
-  stroke-width: 2;
+  width: 19px;
+  height: 19px;
+  stroke-width: 1.82;
 }
 
 .sidebar-footer-icon.icon-btn-active {
-  background: linear-gradient(180deg, rgba(95, 143, 220, 0.14), rgba(95, 143, 220, 0.08));
-  border-color: rgba(95, 143, 220, 0.18);
+  background: linear-gradient(180deg, rgba(95, 143, 220, 0.115), rgba(95, 143, 220, 0.065));
+  border-color: rgba(95, 143, 220, 0.16);
   box-shadow:
-    0 12px 24px rgba(95, 143, 220, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.48);
+    0 10px 20px rgba(95, 143, 220, 0.11),
+    inset 0 1px 0 rgba(255, 255, 255, 0.46);
+}
+
+.sidebar-footer-icon:hover {
+  border-color: rgba(67, 90, 121, 0.1);
+}
+
+.sidebar-footer-icon:disabled {
+  opacity: 0.62;
+}
+
+body[data-theme="dark"] .sidebar-footer-icon:hover {
+  border-color: rgba(173, 192, 219, 0.12);
+}
+
+body[data-theme="dark"] .sidebar-footer-icon:disabled {
+  opacity: 0.56;
 }
 
 .button-primary,
@@ -4177,14 +4193,14 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 8px;
+  gap: 18px;
+  margin-bottom: 10px;
 }
 
 .report-actions,
 .channel-form-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
   align-items: center;
 }
@@ -4195,6 +4211,7 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
 
 .report-actions-header {
   justify-content: flex-end;
+  flex: 0 0 auto;
 }
 
 .report-actions-footer {
@@ -4241,7 +4258,7 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
 
 .channel-list-row {
   grid-template-columns: minmax(0, 1fr);
-  padding: 16px 18px;
+  padding: 14px 16px;
 }
 
 .report-history-row:hover,
@@ -4288,7 +4305,7 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 9px;
 }
 
 .channel-list-card-head,
@@ -4296,33 +4313,117 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
   min-width: 0;
+}
+
+.channel-list-card-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  flex: 1 1 auto;
+}
+
+.channel-provider-mark {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 1px solid rgba(95, 143, 220, 0.12);
+  background: linear-gradient(180deg, rgba(245, 249, 255, 0.98), rgba(237, 244, 253, 0.92));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 6px 12px rgba(15, 23, 42, 0.04);
+  color: #426a95;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.channel-provider-mark-anthropic {
+  color: #8d6236;
+  border-color: rgba(184, 130, 78, 0.14);
+  background: linear-gradient(180deg, rgba(252, 246, 239, 0.98), rgba(247, 237, 226, 0.94));
+}
+
+.channel-provider-mark-azure-openai {
+  color: #225e91;
+}
+
+.channel-provider-mark-local-gateway {
+  color: #326955;
+  border-color: rgba(70, 142, 108, 0.14);
+  background: linear-gradient(180deg, rgba(241, 249, 245, 0.98), rgba(232, 244, 238, 0.94));
+}
+
+.channel-provider-mark-aggregator {
+  color: #6f538f;
+  border-color: rgba(136, 108, 183, 0.14);
+  background: linear-gradient(180deg, rgba(247, 243, 252, 0.98), rgba(240, 234, 249, 0.94));
 }
 
 .channel-list-card-title-wrap {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .channel-list-card-badges {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
   justify-content: flex-end;
+  flex: 0 0 auto;
+  padding-top: 1px;
 }
 
 .channel-list-provider {
-  font-size: 11.5px;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .channel-list-target {
-  max-width: 210px;
+  max-width: 218px;
   text-align: right;
-  line-height: 1.45;
+  line-height: 1.38;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.channel-list-card-chips {
+  gap: 5px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.channel-list-card-chips .tag-chip,
+.channel-list-card-badges .tag-chip,
+.channel-list-card-badges .priority-pill {
+  min-height: 24px;
+  padding: 0 9px;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.channel-list-card-badges .priority-pill {
+  font-weight: 700;
+}
+
+.channel-list-card-chips .tag-chip {
+  max-width: 148px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .channel-form-wrap .channel-test-panel {
@@ -4378,6 +4479,11 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   min-width: 108px;
 }
 
+.report-preview-title {
+  gap: 5px;
+  padding-top: 2px;
+}
+
 .report-output .panel-title h2,
 .channel-form-wrap .panel-title h2 {
   font-size: 34px;
@@ -4392,6 +4498,23 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   line-height: 1.22;
   letter-spacing: -0.02em;
   color: #243444;
+}
+
+.report-preview-actions {
+  align-self: flex-start;
+  padding-top: 2px;
+}
+
+.report-header-btn {
+  min-height: 38px;
+  padding: 0 15px;
+  border-radius: 13px;
+  font-size: 12.5px;
+  line-height: 1;
+}
+
+.report-header-btn-primary {
+  min-width: 114px;
 }
 
 .report-editor,
@@ -4438,6 +4561,30 @@ body[data-theme="dark"] .report-banner-text {
 body[data-theme="dark"] .report-output .panel-title p,
 body[data-theme="dark"] .channel-form-wrap .panel-title p {
   color: #d7e3f4;
+}
+
+body[data-theme="dark"] .channel-provider-mark {
+  border-color: rgba(124, 164, 236, 0.14);
+  background: linear-gradient(180deg, rgba(124, 164, 236, 0.1), rgba(124, 164, 236, 0.06));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 8px 14px rgba(1, 6, 13, 0.14);
+  color: #d7e5fb;
+}
+
+body[data-theme="dark"] .channel-provider-mark-anthropic {
+  border-color: rgba(195, 145, 92, 0.16);
+  background: linear-gradient(180deg, rgba(195, 145, 92, 0.14), rgba(195, 145, 92, 0.08));
+}
+
+body[data-theme="dark"] .channel-provider-mark-local-gateway {
+  border-color: rgba(87, 170, 132, 0.16);
+  background: linear-gradient(180deg, rgba(87, 170, 132, 0.14), rgba(87, 170, 132, 0.08));
+}
+
+body[data-theme="dark"] .channel-provider-mark-aggregator {
+  border-color: rgba(154, 125, 204, 0.18);
+  background: linear-gradient(180deg, rgba(154, 125, 204, 0.14), rgba(154, 125, 204, 0.08));
 }
 
 body[data-theme="dark"] .report-history-row,

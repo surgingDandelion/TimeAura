@@ -336,7 +336,7 @@ export function ReportStudioPage(): JSX.Element {
 
         <section className="panel panel-report-preview report-output">
           <div className="report-header">
-            <div className="panel-title">
+            <div className="panel-title report-preview-title">
               <h2>{draft?.title ?? "尚未生成报告"}</h2>
               <p>
                 {draft
@@ -344,17 +344,21 @@ export function ReportStudioPage(): JSX.Element {
                   : "点击“生成报告”后，在这里预览 AI 生成的报告内容。"}
               </p>
             </div>
-            <div className="report-actions report-actions-header">
-              <button className="button-ghost" disabled={!draft}>
+            <div className="report-actions report-actions-header report-preview-actions">
+              <button className="button-ghost report-header-btn" disabled={!draft}>
                 重新生成
               </button>
-              <button className="button-ghost" disabled={!draft}>
+              <button className="button-ghost report-header-btn" disabled={!draft}>
                 复制
               </button>
-              <button className="button-ghost" disabled={!draft}>
+              <button className="button-ghost report-header-btn" disabled={!draft}>
                 导出 Markdown
               </button>
-              <button className="button-primary" disabled={!draft || busy} onClick={() => void handleSaveAsRecord()}>
+              <button
+                className="button-primary report-header-btn report-header-btn-primary"
+                disabled={!draft || busy}
+                onClick={() => void handleSaveAsRecord()}
+              >
                 保存为记录
               </button>
             </div>

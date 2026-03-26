@@ -54,6 +54,14 @@ const providerOptions: Array<{
   },
 ];
 
+const providerMarkLabelMap: Record<AIProviderType, string> = {
+  openai_compatible: "OA",
+  anthropic: "AN",
+  azure_openai: "AZ",
+  local_gateway: "LG",
+  aggregator: "AG",
+};
+
 interface ChannelDraft {
   name: string;
   providerType: AIProviderType;
@@ -395,9 +403,14 @@ export function ChannelStudioPage(): JSX.Element {
               >
                 <div className="channel-list-card">
                   <div className="channel-list-card-head">
-                    <div className="channel-list-card-title-wrap">
-                      <div className="record-title-text">{channel.name}</div>
-                      <div className="record-meta channel-list-provider">{providerMeta?.shortLabel ?? channel.providerType}</div>
+                    <div className="channel-list-card-main">
+                      <span className={`channel-provider-mark channel-provider-mark-${channel.providerType.replace(/_/g, "-")}`}>
+                        {providerMarkLabelMap[channel.providerType]}
+                      </span>
+                      <div className="channel-list-card-title-wrap">
+                        <div className="record-title-text">{channel.name}</div>
+                        <div className="record-meta channel-list-provider">{providerMeta?.shortLabel ?? channel.providerType}</div>
+                      </div>
                     </div>
                     <div className="channel-list-card-badges">
                       {channel.id === defaultChannelId ? <span className="tag-chip tag-chip-accent">默认</span> : null}
@@ -407,7 +420,7 @@ export function ChannelStudioPage(): JSX.Element {
                     </div>
                   </div>
                   <div className="channel-list-card-body">
-                    <div className="record-tags">
+                    <div className="record-tags channel-list-card-chips">
                       <span className="tag-chip">{channel.model}</span>
                       {channel.apiKeyRef ? <span className="tag-chip">已绑定凭证</span> : <span className="tag-chip">未绑定凭证</span>}
                     </div>
