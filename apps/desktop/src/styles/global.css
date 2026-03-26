@@ -4590,16 +4590,16 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   width: min(100%, 100%);
 }
 
 .channel-list-card .record-title-text {
   color: #2d3c4f;
   font-size: 20px;
-  font-weight: 740;
-  line-height: 1.12;
-  letter-spacing: -0.03em;
+  font-weight: 710;
+  line-height: 1.08;
+  letter-spacing: -0.028em;
 }
 
 .channel-list-card-status {
@@ -4608,13 +4608,15 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   justify-content: flex-end;
   align-self: center;
   flex: 0 0 auto;
-  padding-left: 10px;
+  padding-left: 14px;
+  min-width: 92px;
 }
 
 .channel-list-provider {
   color: #72859c;
   font-size: 14px;
-  line-height: 1.24;
+  font-weight: 500;
+  line-height: 1.18;
   white-space: normal;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -4626,21 +4628,23 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 78px;
-  min-height: 42px;
-  padding: 0 16px;
+  min-width: 74px;
+  min-height: 40px;
+  padding: 0 14px;
   border-radius: 999px;
-  background: rgba(210, 241, 226, 0.92);
-  color: #14824f;
-  font-size: 15px;
-  font-weight: 740;
+  background: rgba(212, 241, 227, 0.86);
+  color: #188253;
+  font-size: 14px;
+  font-weight: 700;
   letter-spacing: -0.02em;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.54),
+    0 1px 2px rgba(73, 140, 104, 0.04);
 }
 
 .channel-state-pill-off {
-  background: rgba(226, 233, 242, 0.94);
-  color: #6e8094;
+  background: rgba(228, 234, 242, 0.92);
+  color: #6c7d90;
 }
 
 .channel-list-row.record-row-active {
@@ -4650,16 +4654,16 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
 }
 
 .channel-list-row.record-row-active .channel-list-card {
-  border-color: rgba(186, 208, 240, 0.62);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 251, 255, 0.93));
+  border-color: rgba(189, 211, 244, 0.82);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.985), rgba(249, 252, 255, 0.955));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.86),
-    0 12px 28px rgba(126, 151, 187, 0.08);
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 10px 22px rgba(126, 151, 187, 0.06);
 }
 
 .channel-list-row:hover .channel-list-card {
-  background: rgba(255, 255, 255, 0.42);
-  border-color: rgba(190, 218, 252, 0.44);
+  background: rgba(255, 255, 255, 0.38);
+  border-color: rgba(190, 218, 252, 0.36);
 }
 
 @media (max-width: 1540px) {
@@ -4693,9 +4697,9 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   }
 
   .channel-state-pill {
-    min-width: 72px;
-    min-height: 40px;
-    font-size: 14px;
+    min-width: 68px;
+    min-height: 38px;
+    font-size: 13px;
   }
 }
 
@@ -4918,7 +4922,7 @@ body[data-theme="dark"] .channel-provider-mark-aggregator {
 }
 
 body[data-theme="dark"] .channel-list-provider {
-  color: #9caec4;
+  color: #9aadc5;
 }
 
 body[data-theme="dark"] .channel-create-btn {
@@ -4970,23 +4974,26 @@ body[data-theme="dark"] .channel-mapping-select {
 }
 
 body[data-theme="dark"] .channel-state-pill {
-  background: rgba(71, 177, 129, 0.2);
-  color: #d8f7e9;
+  background: rgba(74, 170, 128, 0.18);
+  color: #d4f1e4;
 }
 
 body[data-theme="dark"] .channel-state-pill-off {
-  background: rgba(255, 255, 255, 0.08);
-  color: #bccbdd;
+  background: rgba(255, 255, 255, 0.075);
+  color: #b8c7da;
 }
 
 body[data-theme="dark"] .channel-list-row.record-row-active .channel-list-card {
-  border-color: rgba(124, 164, 236, 0.24);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05));
-  box-shadow: none;
+  border-color: rgba(124, 164, 236, 0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.072), rgba(255, 255, 255, 0.046));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.026),
+    0 8px 18px rgba(2, 9, 19, 0.12);
 }
 
 body[data-theme="dark"] .channel-list-row:hover .channel-list-card {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.058), rgba(255, 255, 255, 0.042));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.038));
+  border-color: rgba(173, 192, 219, 0.08);
 }
 
 body[data-theme="dark"] .channel-mapping-label {
