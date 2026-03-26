@@ -2123,6 +2123,30 @@ textarea:focus-visible {
   color: #235f96;
 }
 
+.filter-chip-priority-p1 {
+  background: rgba(217, 70, 70, 0.06);
+  border-color: rgba(217, 70, 70, 0.1);
+  color: #b04545;
+}
+
+.filter-chip-priority-p2 {
+  background: rgba(236, 151, 31, 0.06);
+  border-color: rgba(236, 151, 31, 0.1);
+  color: #9a6520;
+}
+
+.filter-chip-priority-p3 {
+  background: rgba(34, 139, 230, 0.06);
+  border-color: rgba(34, 139, 230, 0.1);
+  color: #2c73b3;
+}
+
+.filter-chip-priority-p4 {
+  background: rgba(120, 131, 143, 0.08);
+  border-color: rgba(120, 131, 143, 0.1);
+  color: #6b7886;
+}
+
 .filter-chip-priority-p1.filter-chip-active {
   background: rgba(217, 70, 70, 0.12);
   border-color: rgba(217, 70, 70, 0.18);
@@ -3687,6 +3711,30 @@ body[data-theme="dark"] .tag-toggle-active {
   background: rgba(124, 164, 236, 0.14);
   border-color: rgba(124, 164, 236, 0.18);
   color: #dce7ff;
+}
+
+body[data-theme="dark"] .filter-chip-priority-p1 {
+  background: rgba(217, 70, 70, 0.12);
+  border-color: rgba(217, 70, 70, 0.14);
+  color: #ffb9be;
+}
+
+body[data-theme="dark"] .filter-chip-priority-p2 {
+  background: rgba(236, 151, 31, 0.12);
+  border-color: rgba(236, 151, 31, 0.14);
+  color: #ffd0a0;
+}
+
+body[data-theme="dark"] .filter-chip-priority-p3 {
+  background: rgba(34, 139, 230, 0.12);
+  border-color: rgba(34, 139, 230, 0.14);
+  color: #c9e0ff;
+}
+
+body[data-theme="dark"] .filter-chip-priority-p4 {
+  background: rgba(120, 131, 143, 0.14);
+  border-color: rgba(120, 131, 143, 0.16);
+  color: #d4dde7;
 }
 
 body[data-theme="dark"] .filter-chip-priority-p1.filter-chip-active {
