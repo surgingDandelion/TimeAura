@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { AppServices, RecordEntity } from "@timeaura-core";
 
@@ -19,69 +19,86 @@ export function useWorkspaceRecordDraft({
   onMessage,
 }: UseWorkspaceRecordDraftOptions) {
   const [draft, setDraft] = useState<RecordDraft | null>(null);
+  const [persistedDraft, setPersistedDraft] = useState<RecordDraft | null>(null);
   const [contentMode, setContentMode] = useState<ContentMode>("edit");
   const [saving, setSaving] = useState(false);
+  const activeRecordIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!selectedRecord) {
+      activeRecordIdRef.current = null;
       setDraft(null);
+      setPersistedDraft(null);
       return;
     }
 
-    setDraft({
-      title: selectedRecord.title,
-      status: selectedRecord.status,
-      priority: selectedRecord.priority,
-      dueAt: toInputValue(selectedRecord.dueAt),
-      plannedAt: toInputValue(selectedRecord.plannedAt),
-      contentMarkdown: selectedRecord.contentMarkdown,
-      tags: selectedRecord.tags,
-      isPinned: selectedRecord.isPinned,
+    const nextPersistedDraft = createDraftFromRecord(selectedRecord);
+    const switchingRecord = activeRecordIdRef.current !== selectedRecord.id;
+    activeRecordIdRef.current = selectedRecord.id;
+
+    setPersistedDraft(nextPersistedDraft);
+    setDraft((currentDraft) => {
+      if (switchingRecord || !currentDraft || !persistedDraft || sameDraft(currentDraft, persistedDraft)) {
+        return nextPersistedDraft;
+      }
+
+      return currentDraft;
     });
-    setContentMode("edit");
-  }, [selectedRecord]);
+    if (switchingRecord) {
+      setContentMode("edit");
+    }
+  }, [selectedRecord?.id, selectedRecord?.updatedAt]);
 
   const draftDirty = useMemo(() => {
-    if (!selectedRecord || !draft) {
+    if (!draft || !persistedDraft) {
       return false;
     }
 
-    return (
-      draft.title !== selectedRecord.title ||
-      draft.status !== selectedRecord.status ||
-      draft.priority !== selectedRecord.priority ||
-      draft.dueAt !== toInputValue(selectedRecord.dueAt) ||
-      draft.plannedAt !== toInputValue(selectedRecord.plannedAt) ||
-      draft.contentMarkdown !== selectedRecord.contentMarkdown ||
-      draft.isPinned !== selectedRecord.isPinned ||
-      !sameTags(draft.tags, selectedRecord.tags)
-    );
-  }, [draft, selectedRecord]);
+    return !sameDraft(draft, persistedDraft);
+  }, [draft, persistedDraft]);
 
-  async function saveDraft(): Promise<void> {
-    if (!selectedRecord || !draft) {
+  const saveDraft = useCallback(async (options?: {
+    silent?: boolean;
+    draftOverride?: RecordDraft | null;
+  }): Promise<void> => {
+    const targetDraft = options?.draftOverride ?? draft;
+
+    if (!selectedRecord || !targetDraft) {
       return;
     }
 
     setSaving(true);
 
     try {
+      const normalizedDraft = {
+        ...targetDraft,
+        title: targetDraft.title.trim(),
+      };
+
       await services.recordService.updateRecord(selectedRecord.id, {
-        title: draft.title.trim(),
-        status: draft.status,
-        priority: draft.priority,
-        dueAt: fromInputValue(draft.dueAt),
-        plannedAt: fromInputValue(draft.plannedAt),
-        contentMarkdown: draft.contentMarkdown,
-        tags: draft.tags,
-        isPinned: draft.isPinned,
+        title: normalizedDraft.title,
+        status: normalizedDraft.status,
+        priority: normalizedDraft.priority,
+        dueAt: fromInputValue(normalizedDraft.dueAt),
+        plannedAt: fromInputValue(normalizedDraft.plannedAt),
+        contentMarkdown: normalizedDraft.contentMarkdown,
+        tags: normalizedDraft.tags,
+        isPinned: normalizedDraft.isPinned,
       });
 
-      await syncWorkspace("记录已保存");
+      setPersistedDraft(normalizedDraft);
+      setDraft((currentDraft) => {
+        if (!currentDraft || !sameDraft(currentDraft, targetDraft)) {
+          return currentDraft;
+        }
+
+        return normalizedDraft;
+      });
+      await syncWorkspace(options?.silent ? undefined : "记录已保存");
     } finally {
       setSaving(false);
     }
-  }
+  }, [draft, selectedRecord, services.recordService, syncWorkspace]);
 
   async function generateSummary(): Promise<void> {
     if (!selectedRecord) {
@@ -118,7 +135,7 @@ export function useWorkspaceRecordDraft({
         contentMarkdown: result.content,
       });
       setContentMode("preview");
-      onMessage("内容已完成 AI 润色，可预览后再保存");
+      onMessage("内容已完成 AI 润色，正在自动保存");
     } finally {
       setSaving(false);
     }
@@ -140,6 +157,24 @@ export function useWorkspaceRecordDraft({
     });
   }
 
+  useEffect(() => {
+    if (!selectedRecord || !draft || !draftDirty || saving) {
+      return;
+    }
+
+    const draftSnapshot = draft;
+    const timer = window.setTimeout(() => {
+      void saveDraft({
+        silent: true,
+        draftOverride: draftSnapshot,
+      });
+    }, 450);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [draft, draftDirty, saveDraft, saving, selectedRecord]);
+
   return {
     draft,
     setDraft,
@@ -152,4 +187,30 @@ export function useWorkspaceRecordDraft({
     polishMarkdown,
     toggleTag,
   };
+}
+
+function createDraftFromRecord(record: RecordEntity): RecordDraft {
+  return {
+    title: record.title,
+    status: record.status,
+    priority: record.priority,
+    dueAt: toInputValue(record.dueAt),
+    plannedAt: toInputValue(record.plannedAt),
+    contentMarkdown: record.contentMarkdown,
+    tags: record.tags,
+    isPinned: record.isPinned,
+  };
+}
+
+function sameDraft(left: RecordDraft, right: RecordDraft): boolean {
+  return (
+    left.title === right.title &&
+    left.status === right.status &&
+    left.priority === right.priority &&
+    left.dueAt === right.dueAt &&
+    left.plannedAt === right.plannedAt &&
+    left.contentMarkdown === right.contentMarkdown &&
+    left.isPinned === right.isPinned &&
+    sameTags(left.tags, right.tags)
+  );
 }

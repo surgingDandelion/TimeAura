@@ -22,13 +22,27 @@ export function fromInputValue(value: string): string | null {
 
 export function formatDateLabel(value: string | null): string {
   if (!value) {
-    return "未设置时间";
+    return "未设置";
   }
 
   const date = new Date(value);
-  return `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, "0")}:${String(
-    date.getMinutes(),
-  ).padStart(2, "0")}`;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  if (target.getTime() === today.getTime()) {
+    return `今天 ${hours}:${minutes}`;
+  }
+
+  if (target.getTime() === tomorrow.getTime()) {
+    return `明天 ${hours}:${minutes}`;
+  }
+
+  return `${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")} ${hours}:${minutes}`;
 }
 
 export function formatDateTime(value: string | null): string {

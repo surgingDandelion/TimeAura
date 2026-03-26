@@ -1,7 +1,7 @@
 import type { RecordPriority, RecordStatus } from "@timeaura-core";
 
 import type { WorkspaceDetailInspectorContract } from "../contracts";
-import { formatDateTime, renderMarkdownPreview, resolvePresetDate, toInputValue } from "../utils";
+import { formatDateLabel, formatDateTime, renderMarkdownPreview, resolvePresetDate, toInputValue } from "../utils";
 
 export type WorkspaceDetailInspectorProps = WorkspaceDetailInspectorContract;
 
@@ -18,7 +18,6 @@ export function WorkspaceDetailInspector({
   onArchive,
   onDelete,
   onClose,
-  onSave,
   onDraftChange,
   onToggleTag,
   onContentModeChange,
@@ -40,14 +39,14 @@ export function WorkspaceDetailInspector({
           <div className="workspace-detail-subtitle">
             {selectedRecord.status === "已完成" ? "当前记录已完成，可继续补充复盘与总结。" : "维护属性、正文与标签，保持列表视图里的节奏感。"}
           </div>
+          <div className="workspace-detail-autosave-note">
+            {saving ? "正在自动保存…" : draftDirty ? "等待自动保存…" : "所有修改都会自动保存"}
+          </div>
         </div>
 
         <div className="workspace-detail-header-actions">
-          <button className="button-ghost workspace-detail-close" onClick={onClose}>
-            收起
-          </button>
-          <button className="button-primary" disabled={saving || !draftDirty} onClick={onSave}>
-            {saving ? "保存中…" : draftDirty ? "保存" : "已保存"}
+          <button className="icon-btn workspace-detail-close" aria-label="关闭详情" title="关闭详情" onClick={onClose}>
+            <CloseIcon />
           </button>
         </div>
       </div>
@@ -145,13 +144,13 @@ export function WorkspaceDetailInspector({
                   onChange={(event) => onDraftChange({ ...draft, dueAt: event.target.value })}
                 />
                 <div className="quick-chip-row">
-                  <button className="button-mini" onClick={() => onDraftChange({ ...draft, dueAt: toInputValue(resolvePresetDate("today_18")) })}>
+                  <button type="button" className="button-mini" onClick={() => onDraftChange({ ...draft, dueAt: toInputValue(resolvePresetDate("today_18")) })}>
                     今晚 18:00
                   </button>
-                  <button className="button-mini" onClick={() => onDraftChange({ ...draft, dueAt: toInputValue(resolvePresetDate("tomorrow_09")) })}>
+                  <button type="button" className="button-mini" onClick={() => onDraftChange({ ...draft, dueAt: toInputValue(resolvePresetDate("tomorrow_09")) })}>
                     明早 09:00
                   </button>
-                  <button className="button-mini" onClick={() => onDraftChange({ ...draft, dueAt: "" })}>
+                  <button type="button" className="button-mini" onClick={() => onDraftChange({ ...draft, dueAt: "" })}>
                     清空时间
                   </button>
                 </div>
@@ -287,5 +286,14 @@ function formatInputDateLabel(value: string): string {
     return "未设置";
   }
 
-  return value.replace("T", " ");
+  return formatDateLabel(new Date(value).toISOString());
+}
+
+function CloseIcon(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6 6l12 12" />
+      <path d="M18 6L6 18" />
+    </svg>
+  );
 }

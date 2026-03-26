@@ -90,8 +90,7 @@ describe("WorkspaceDetailInspector", () => {
     fireEvent.click(screen.getByRole("button", { name: "润色" }));
     fireEvent.click(screen.getByRole("button", { name: "归档" }));
     fireEvent.click(screen.getByRole("button", { name: "删除" }));
-    fireEvent.click(screen.getByRole("button", { name: "收起" }));
-    fireEvent.click(screen.getByRole("button", { name: "保存" }));
+    fireEvent.click(screen.getByRole("button", { name: "关闭详情" }));
     fireEvent.click(screen.getByRole("button", { name: "管理标签" }));
 
     expect(props.onGenerateSummary).toHaveBeenCalledTimes(1);
@@ -100,7 +99,6 @@ describe("WorkspaceDetailInspector", () => {
     expect(props.onArchive).toHaveBeenCalledWith("record-1");
     expect(props.onDelete).toHaveBeenCalledWith("record-1");
     expect(props.onClose).toHaveBeenCalledTimes(1);
-    expect(props.onSave).toHaveBeenCalledTimes(1);
 
     const titleInput = screen.getByDisplayValue("整理周报");
     fireEvent.change(titleInput, {
@@ -161,7 +159,7 @@ describe("WorkspaceDetailInspector", () => {
     expect(props.onContentModeChange).toHaveBeenNthCalledWith(2, "preview");
   });
 
-  it("renders preview mode and disabled save state", () => {
+  it("renders preview mode and autosave hint state", () => {
     const props = {
       ...createProps(),
       contentMode: "preview" as const,
@@ -173,10 +171,8 @@ describe("WorkspaceDetailInspector", () => {
 
     expect(screen.getByText("当前记录已有 AI 摘要。")).toBeTruthy();
     expect(screen.getByText("已完成架构梳理")).toBeTruthy();
-
-    const saveButton = screen.getByText("保存中…") as HTMLButtonElement;
-    expect(saveButton.disabled).toBe(true);
-
+    expect(screen.getByText("正在自动保存…")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "关闭详情" })).toBeTruthy();
     expect(screen.getByDisplayValue("未开始")).toBeTruthy();
   });
 });

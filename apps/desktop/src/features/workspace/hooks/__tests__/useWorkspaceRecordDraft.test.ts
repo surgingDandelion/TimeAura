@@ -1,11 +1,15 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createWorkspaceAppServicesDouble, createWorkspaceRecordEntity } from "../../testing/workspaceServiceTestDoubles";
 import { fromInputValue, toInputValue } from "../../utils";
 import { useWorkspaceRecordDraft } from "../useWorkspaceRecordDraft";
 
 describe("useWorkspaceRecordDraft", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("hydrates draft from selected record and updates dirty state as fields change", () => {
     const selectedRecord = createWorkspaceRecordEntity({
       id: "record-1",
@@ -60,6 +64,8 @@ describe("useWorkspaceRecordDraft", () => {
   });
 
   it("saves draft with trimmed title and normalized date fields", async () => {
+    vi.useFakeTimers();
+
     const updateRecord = vi.fn(async () => createWorkspaceRecordEntity());
     const syncWorkspace = vi.fn(async (_afterMessage?: string) => undefined);
     const selectedRecord = createWorkspaceRecordEntity({
@@ -95,6 +101,11 @@ describe("useWorkspaceRecordDraft", () => {
       await result.current.saveDraft();
     });
 
+    await act(async () => {
+      vi.runOnlyPendingTimers();
+      await Promise.resolve();
+    });
+
     expect(updateRecord).toHaveBeenCalledWith("record-1", {
       title: "新标题",
       status: "未开始",
@@ -107,6 +118,48 @@ describe("useWorkspaceRecordDraft", () => {
     });
     expect(syncWorkspace).toHaveBeenCalledWith("记录已保存");
     expect(result.current.saving).toBe(false);
+  });
+
+  it("automatically saves dirty draft changes after debounce", async () => {
+    vi.useFakeTimers();
+
+    const updateRecord = vi.fn(async () => createWorkspaceRecordEntity());
+    const syncWorkspace = vi.fn(async (_afterMessage?: string) => undefined);
+    const selectedRecord = createWorkspaceRecordEntity({
+      id: "record-1",
+      title: "整理周报",
+    });
+
+    const { result } = renderHook(() =>
+      useWorkspaceRecordDraft({
+        selectedRecord,
+        services: createWorkspaceAppServicesDouble({
+          recordService: {
+            updateRecord,
+          },
+        }),
+        syncWorkspace,
+        onMessage: vi.fn(),
+      }),
+    );
+
+    act(() => {
+      result.current.setDraft({
+        ...result.current.draft!,
+        title: "自动保存标题",
+      });
+    });
+
+    await act(async () => {
+      vi.advanceTimersByTime(460);
+      await Promise.resolve();
+    });
+
+    expect(updateRecord).toHaveBeenCalledWith("record-1", expect.objectContaining({
+      title: "自动保存标题",
+    }));
+
+    expect(syncWorkspace).toHaveBeenCalledWith(undefined);
   });
 
   it("runs AI summary and polish flows with correct state updates", async () => {
@@ -173,7 +226,7 @@ describe("useWorkspaceRecordDraft", () => {
     });
 
     expect(result.current.contentMode).toBe("preview");
-    expect(onMessage).toHaveBeenCalledWith("内容已完成 AI 润色，可预览后再保存");
+    expect(onMessage).toHaveBeenCalledWith("内容已完成 AI 润色，正在自动保存");
     expect(result.current.saving).toBe(false);
   });
 });
