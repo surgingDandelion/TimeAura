@@ -108,7 +108,7 @@ export function WorkspaceListPanel({
             />
           </label>
 
-          <div className="workspace-filter-group">
+          <div className="workspace-filter-group workspace-filter-group-status">
             <span className="workspace-filter-label">状态</span>
             {[
               { id: "all", label: "全部" },
@@ -127,7 +127,11 @@ export function WorkspaceListPanel({
             ))}
           </div>
 
-          <select className="select workspace-filter-select" value={sortBy} onChange={(event) => onSortByChange(event.target.value as WorkspaceSort)}>
+          <select
+            className="select workspace-filter-select workspace-filter-select-sort"
+            value={sortBy}
+            onChange={(event) => onSortByChange(event.target.value as WorkspaceSort)}
+          >
             <option value="smart">智能排序</option>
             <option value="due">截止时间</option>
             <option value="priority">优先级</option>
@@ -136,7 +140,7 @@ export function WorkspaceListPanel({
         </div>
 
         <div className="workspace-toolbar-row workspace-toolbar-row-secondary">
-          <div className="workspace-filter-group">
+          <div className="workspace-filter-group workspace-filter-group-priority">
             <span className="workspace-filter-label">优先级</span>
             {PRIORITY_OPTIONS.map((option) => (
               <button
@@ -150,9 +154,13 @@ export function WorkspaceListPanel({
             ))}
           </div>
 
-          <div className="workspace-filter-group">
+          <div className="workspace-filter-group workspace-filter-group-tag">
             <span className="workspace-filter-label">标签</span>
-            <select className="select workspace-filter-select workspace-filter-select-tag" value={activeTagId} onChange={(event) => onTagFilterChange(event.target.value)}>
+            <select
+              className="select workspace-filter-select workspace-filter-select-tag"
+              value={activeTagId}
+              onChange={(event) => onTagFilterChange(event.target.value)}
+            >
               <option value="all">全部标签</option>
               {tags.map((tag) => (
                 <option key={tag.id} value={tag.id}>
