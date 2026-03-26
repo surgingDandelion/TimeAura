@@ -24,9 +24,24 @@ export function useWorkspaceReminderActions({
   const [reminderSelectedOnly, setReminderSelectedOnly] = useState(false);
   const [customReminderTimeOpen, setCustomReminderTimeOpen] = useState(false);
   const [customReminderDueAt, setCustomReminderDueAt] = useState("");
+  const [dismissedReminderUntil, setDismissedReminderUntil] = useState<Record<string, number>>({});
 
   const activeReminderHits = useMemo(
-    () => (reminder ? reminderHits.filter((hit) => hit.reminderKind === reminder.kind) : []),
+    () =>
+      reminder
+        ? reminderHits.filter((hit) => {
+            if (hit.reminderKind !== reminder.kind) {
+              return false;
+            }
+
+            const dismissedUntil = dismissedReminderUntil[hit.id] ?? 0;
+            return dismissedUntil <= Date.now();
+          })
+        : [],
+    [dismissedReminderUntil, reminder, reminderHits],
+  );
+  const allReminderTargetIds = useMemo(
+    () => (reminder ? reminderHits.filter((hit) => hit.reminderKind === reminder.kind).map((hit) => hit.id) : []),
     [reminder, reminderHits],
   );
   const activeReminderTargetIds = useMemo(
@@ -43,12 +58,67 @@ export function useWorkspaceReminderActions({
   }, [activeReminderTargetIds]);
 
   useEffect(() => {
+    setDismissedReminderUntil((current) => {
+      const nextEntries = Object.entries(current).filter(([id, until]) => allReminderTargetIds.includes(id) && until > Date.now());
+
+      if (nextEntries.length === Object.keys(current).length) {
+        return current;
+      }
+
+      return Object.fromEntries(nextEntries);
+    });
+  }, [allReminderTargetIds]);
+
+  useEffect(() => {
     if (reminderSelectedIds.length > 0) {
       return;
     }
 
     setReminderSelectedOnly(false);
   }, [reminderSelectedIds]);
+
+  useEffect(() => {
+    if (activeReminderTargetIds.length > 0) {
+      return;
+    }
+
+    setReminderExpanded(false);
+  }, [activeReminderTargetIds]);
+
+  useEffect(() => {
+    const expiryTimes = Object.values(dismissedReminderUntil).filter((value) => value > Date.now());
+
+    if (expiryTimes.length === 0) {
+      return;
+    }
+
+    const nextExpiry = Math.min(...expiryTimes);
+    const timer = window.setTimeout(() => {
+      setDismissedReminderUntil((current) =>
+        Object.fromEntries(Object.entries(current).filter(([, until]) => until > Date.now())),
+      );
+    }, Math.max(0, nextExpiry - Date.now()) + 32);
+
+    return () => window.clearTimeout(timer);
+  }, [dismissedReminderUntil]);
+
+  const visibleReminder = useMemo(() => {
+    if (!reminder || activeReminderHits.length === 0) {
+      return null;
+    }
+
+    if (activeReminderHits.length === reminder.hitCount) {
+      return reminder;
+    }
+
+    return {
+      ...reminder,
+      title: formatReminderSummaryTitle(reminder.kind, activeReminderHits.length),
+      hitCount: activeReminderHits.length,
+      p1Count: activeReminderHits.filter((hit) => hit.priority === "P1").length,
+      recordIds: activeReminderHits.map((hit) => hit.id),
+    };
+  }, [activeReminderHits, reminder]);
 
   const customReminderValidation = useMemo(() => {
     const errors: string[] = [];
@@ -106,8 +176,19 @@ export function useWorkspaceReminderActions({
     }
 
     await services.reminderService.snoozeReminder(targetIds, minutes);
+    setDismissedReminderUntil((current) => {
+      const dismissedUntilAt = Date.now() + minutes * 60 * 1000;
+      const next = { ...current };
+
+      targetIds.forEach((id) => {
+        next[id] = dismissedUntilAt;
+      });
+
+      return next;
+    });
     setReminderSelectedIds([]);
     setReminderSelectedOnly(false);
+    setReminderExpanded(false);
     await syncWorkspace(`已延后提醒 ${minutes} 分钟`);
   }
 
@@ -160,6 +241,7 @@ export function useWorkspaceReminderActions({
   }
 
   return {
+    visibleReminder,
     reminderExpanded,
     setReminderExpanded,
     reminderSelectedIds,
@@ -181,4 +263,15 @@ export function useWorkspaceReminderActions({
     toggleReminderSelection,
     toggleSelectAllReminderHits,
   };
+}
+
+function formatReminderSummaryTitle(kind: ReminderSummary["kind"], count: number): string {
+  const labels: Record<ReminderSummary["kind"], string> = {
+    overdue: "已有任务逾期",
+    due_2h: "有任务即将到点",
+    due_24h: "今天内有任务即将截止",
+    overloaded: "任务有些堆积了",
+  };
+
+  return `${labels[kind]}（${count}）`;
 }

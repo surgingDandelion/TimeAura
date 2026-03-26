@@ -93,7 +93,6 @@ export function useWorkspaceViewModel({
     () => records.find((item) => item.id === selectedId) ?? null,
     [records, selectedId],
   );
-  const batchTargetIds = selectedIds.length > 0 ? selectedIds : reminder?.recordIds ?? [];
 
   const syncWorkspace = useCallback(async (afterMessage?: string): Promise<void> => {
     await loadWorkspace();
@@ -143,6 +142,7 @@ export function useWorkspaceViewModel({
   });
 
   const {
+    visibleReminder,
     reminderExpanded,
     setReminderExpanded,
     reminderSelectedIds,
@@ -170,6 +170,7 @@ export function useWorkspaceViewModel({
     syncWorkspace,
     onMessage: setMessage,
   });
+  const batchTargetIds = selectedIds.length > 0 ? selectedIds : visibleReminder?.recordIds ?? [];
 
   const {
     tagManagerOpen,
@@ -207,18 +208,22 @@ export function useWorkspaceViewModel({
   });
 
   useEffect(() => {
-    if (!runtimeNotice) {
+    if (runtimeNotice) {
+      setMessage(runtimeNotice.text);
+    }
+  }, [runtimeNotice]);
+
+  useEffect(() => {
+    if (!message) {
       return;
     }
 
-    setMessage(runtimeNotice.text);
-
     const timer = window.setTimeout(() => {
-      setMessage((current) => (current === runtimeNotice.text ? null : current));
+      setMessage((current) => (current === message ? null : current));
     }, 3200);
 
     return () => window.clearTimeout(timer);
-  }, [runtimeNotice]);
+  }, [message]);
 
   useEffect(() => {
     if (!selectedId) {
@@ -270,7 +275,7 @@ export function useWorkspaceViewModel({
     loading,
     message,
     runtimeNoticeTone: runtimeNotice?.tone,
-    reminder,
+    reminder: visibleReminder,
     activeReminderHits,
     activeReminderTargetIds,
     reminderExpanded,

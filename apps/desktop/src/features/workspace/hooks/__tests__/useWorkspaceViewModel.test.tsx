@@ -246,8 +246,14 @@ describe("useWorkspaceViewModel", () => {
       expect(result.current.listPanelProps.message).toBe("已延后提醒 30 分钟");
     });
 
+    expect(result.current.listPanelProps.reminder).toBeNull();
+    expect(result.current.listPanelProps.activeReminderHits).toEqual([]);
     expect(result.current.listPanelProps.reminderSelectedIds).toEqual([]);
     expect(result.current.listPanelProps.reminderSelectedOnly).toBe(false);
+
+    await waitFor(() => {
+      expect(result.current.listPanelProps.message).toBeNull();
+    }, { timeout: 4000 });
   });
 
   it("completes custom reminder reschedule flow with validation and selected-only targeting", async () => {
