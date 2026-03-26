@@ -409,10 +409,10 @@ export function ChannelStudioPage(): JSX.Element {
                         {providerDisplay} · {channel.model}
                       </div>
                     </div>
-                  </div>
-                  <div className="channel-list-card-status">
-                    <div className={`channel-state-pill${channel.enabled ? "" : " channel-state-pill-off"}`}>
-                      {channel.enabled ? "开启" : "停用"}
+                    <div className="channel-list-card-actions">
+                      <div className={`channel-state-pill${channel.enabled ? "" : " channel-state-pill-off"}`}>
+                        {channel.enabled ? "开启" : "停用"}
+                      </div>
                     </div>
                   </div>
                 </div>

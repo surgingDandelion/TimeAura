@@ -4223,7 +4223,7 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
 .channel-section-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 16px;
+  gap: 22px;
   align-items: start;
 }
 
@@ -4232,17 +4232,17 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
 }
 
 .channel-panel-title h2 {
-  font-size: 31px;
+  font-size: 34px;
   font-weight: 760;
   line-height: 1.02;
   letter-spacing: -0.055em;
 }
 
 .channel-panel-title p {
-  max-width: 18ch;
+  max-width: 10ch;
   color: #71849a;
-  font-size: 14px;
-  line-height: 1.52;
+  font-size: 16px;
+  line-height: 1.48;
 }
 
 .report-panel-title h2 {
@@ -4423,6 +4423,12 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   scrollbar-gutter: stable;
 }
 
+.channel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
 .report-history-row,
 .channel-list-row {
   border-radius: 20px;
@@ -4447,25 +4453,25 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
 }
 
 .channel-create-btn {
-  width: 42px;
-  min-width: 42px;
-  height: 42px;
-  min-height: 42px;
+  width: 82px;
+  min-width: 82px;
+  height: 82px;
+  min-height: 82px;
   padding: 0;
-  border-radius: 14px;
+  border-radius: 24px;
   align-self: start;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(247, 250, 253, 0.88));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.82),
-    0 8px 18px rgba(15, 23, 42, 0.03);
+    0 10px 24px rgba(15, 23, 42, 0.045);
 }
 
 .channel-create-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 24px;
+  height: 24px;
   stroke: currentColor;
   fill: none;
-  stroke-width: 1.9;
+  stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -4523,15 +4529,18 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   width: 100%;
   min-width: 0;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  column-gap: 18px;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  column-gap: 24px;
   row-gap: 0;
-  min-height: 112px;
-  padding: 22px 22px 22px 20px;
-  border: 1px solid transparent;
-  border-radius: 30px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(247, 250, 254, 0.16));
+  min-height: 194px;
+  padding: 38px 40px 34px 40px;
+  border: 1px solid rgba(190, 218, 252, 0.86);
+  border-radius: 40px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 251, 255, 0.94));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 16px 36px rgba(138, 169, 210, 0.08);
   transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
@@ -4539,24 +4548,28 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  align-items: flex-start;
+  gap: 18px;
+  padding-top: 6px;
 }
 
 .channel-provider-mark {
-  width: 68px;
-  height: 68px;
+  width: 136px;
+  height: 136px;
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 22px;
+  border-radius: 38px;
   border: 0;
   background: linear-gradient(135deg, #70a1ef, #69d0ea);
   color: #ffffff;
-  font-size: 17px;
+  font-size: 36px;
   font-weight: 760;
   letter-spacing: -0.01em;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 12px 24px rgba(105, 178, 234, 0.18);
 }
 
 .channel-provider-mark-anthropic {
@@ -4580,31 +4593,28 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
+  width: min(100%, 262px);
 }
 
 .channel-list-card .record-title-text {
   color: #2d3c4f;
-  font-size: 18px;
+  font-size: 28px;
   font-weight: 740;
-  line-height: 1.12;
-  letter-spacing: -0.035em;
+  line-height: 1.04;
+  letter-spacing: -0.045em;
 }
 
-.channel-list-card-status {
+.channel-list-card-actions {
   display: flex;
   align-items: center;
-  align-self: center;
-  justify-content: flex-end;
-  gap: 8px;
-  flex-wrap: nowrap;
-  flex: 0 0 auto;
+  justify-content: flex-start;
 }
 
 .channel-list-provider {
   color: #72859c;
-  font-size: 15px;
-  line-height: 1.26;
+  font-size: 18px;
+  line-height: 1.08;
   white-space: normal;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -4616,13 +4626,13 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 76px;
-  min-height: 42px;
-  padding: 0 16px;
+  min-width: 154px;
+  min-height: 78px;
+  padding: 0 28px;
   border-radius: 999px;
   background: rgba(210, 241, 226, 0.92);
   color: #14824f;
-  font-size: 15px;
+  font-size: 28px;
   font-weight: 740;
   letter-spacing: -0.02em;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
@@ -4644,11 +4654,12 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 251, 255, 0.93));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.86),
-    0 12px 28px rgba(126, 151, 187, 0.08);
+    0 18px 42px rgba(126, 151, 187, 0.1);
 }
 
 .channel-list-row:hover .channel-list-card {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(248, 251, 255, 0.6));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(248, 251, 255, 0.95));
+  border-color: rgba(190, 218, 252, 0.98);
 }
 
 @media (max-width: 1540px) {
@@ -4657,17 +4668,34 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   }
 
   .channel-list-card {
-    grid-template-columns: auto minmax(0, 1fr);
-    row-gap: 10px;
-  }
-
-  .channel-list-card-status {
-    grid-column: 2;
-    justify-content: flex-start;
+    min-height: 176px;
+    padding: 28px 28px 26px;
+    column-gap: 20px;
   }
 
   .channel-header-actions {
     flex-basis: auto;
+  }
+
+  .channel-provider-mark {
+    width: 112px;
+    height: 112px;
+    border-radius: 32px;
+    font-size: 30px;
+  }
+
+  .channel-list-card .record-title-text {
+    font-size: 24px;
+  }
+
+  .channel-list-provider {
+    font-size: 16px;
+  }
+
+  .channel-state-pill {
+    min-width: 128px;
+    min-height: 64px;
+    font-size: 22px;
   }
 }
 
