@@ -54,14 +54,6 @@ const providerOptions: Array<{
   },
 ];
 
-const providerMarkLabelMap: Record<AIProviderType, string> = {
-  openai_compatible: "OA",
-  anthropic: "AN",
-  azure_openai: "AZ",
-  local_gateway: "LG",
-  aggregator: "AG",
-};
-
 const providerDisplayLabelMap: Record<AIProviderType, string> = {
   openai_compatible: "OpenAI 兼容",
   anthropic: "Anthropic 协议",
@@ -126,10 +118,6 @@ export function ChannelStudioPage(): JSX.Element {
   const selectedChannel = useMemo(
     () => channels.find((item) => item.id === selectedId) ?? null,
     [channels, selectedId],
-  );
-  const enabledChannels = useMemo(
-    () => channels.filter((channel) => channel.enabled),
-    [channels],
   );
   const currentProviderOption = useMemo(
     () => providerOptions.find((item) => item.type === draft?.providerType) ?? providerOptions[0],
@@ -384,18 +372,18 @@ export function ChannelStudioPage(): JSX.Element {
   return (
     <div className="channel-layout channel-page-shell">
       <section className="panel panel-list channel-list-wrap">
-        <div className="panel-title report-panel-title">
-          <h2>AI 通道配置</h2>
-          <p>把摘要、周报、润色等能力映射到不同模型，保持稳定和可控。</p>
-        </div>
-
-        <div className="channel-list-toolbar">
-          <div className="channel-list-meta channel-list-meta-compact">
-            <span>{channels.length} 个通道</span>
-            <span>{enabledChannels.length} 个已启用</span>
+        <div className="channel-section-header">
+          <div className="panel-title report-panel-title channel-panel-title">
+            <h2>AI 通道配置</h2>
+            <p>把摘要、周报、润色等能力映射到不同模型，保持稳定和可控。</p>
           </div>
-          <button className="button-primary channel-create-btn" onClick={() => void handleCreateChannel()}>
-            新增通道
+          <button
+            className="button-ghost channel-create-btn"
+            onClick={() => void handleCreateChannel()}
+            aria-label="新增通道"
+            title="新增通道"
+          >
+            <PlusIcon />
           </button>
         </div>
 
@@ -412,7 +400,7 @@ export function ChannelStudioPage(): JSX.Element {
               >
                 <div className="channel-list-card">
                   <span className={`channel-provider-mark channel-provider-mark-${channel.providerType.replace(/_/g, "-")}`}>
-                    {providerMarkLabelMap[channel.providerType]}
+                    AI
                   </span>
                   <div className="channel-list-card-copy">
                     <div className="channel-list-card-title-wrap">
@@ -421,17 +409,10 @@ export function ChannelStudioPage(): JSX.Element {
                         {providerDisplay} · {channel.model}
                       </div>
                     </div>
-                    <div className="channel-list-card-meta">
-                      <div className="record-tags channel-list-card-chips">
-                        {channel.apiKeyRef ? <span className="tag-chip">已绑定凭证</span> : <span className="tag-chip">未绑定凭证</span>}
-                      </div>
-                      <div className="record-due channel-list-target">{summarizeChannelTarget(channel)}</div>
-                    </div>
                   </div>
                   <div className="channel-list-card-status">
-                    {channel.id === defaultChannelId ? <span className="tag-chip tag-chip-accent">默认</span> : null}
-                    <div className={`priority-pill ${channel.enabled ? "priority-p3" : "priority-p4"}`}>
-                      {channel.enabled ? "启用" : "停用"}
+                    <div className={`channel-state-pill${channel.enabled ? "" : " channel-state-pill-off"}`}>
+                      {channel.enabled ? "开启" : "停用"}
                     </div>
                   </div>
                 </div>
@@ -1049,18 +1030,6 @@ function getModelHelp(providerType: AIProviderType): string {
   return "作为默认生成模型使用。";
 }
 
-function summarizeChannelTarget(channel: AIChannelEntity): string {
-  if (channel.providerType === "azure_openai" && channel.providerOptions.deployment) {
-    return channel.providerOptions.deployment;
-  }
-
-  if (channel.providerOptions.endpointPath) {
-    return channel.providerOptions.endpointPath;
-  }
-
-  return channel.baseUrl;
-}
-
 function parseHeaders(source: string): { value: Record<string, string>; error: string | null } {
   if (!source.trim()) {
     return {
@@ -1112,4 +1081,12 @@ function normalizeOptionalText(value: string): string | null {
 
 function toErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? `${fallback}：${error.message}` : fallback;
+}
+
+function PlusIcon(): JSX.Element {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true">
+      <path d="M10 4.5v11M4.5 10h11" />
+    </svg>
+  );
 }
