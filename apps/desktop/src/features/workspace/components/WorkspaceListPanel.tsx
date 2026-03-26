@@ -129,7 +129,7 @@ export function WorkspaceListPanel({
               <button
                 key={option}
                 type="button"
-                className={`filter-chip${priority === option ? " filter-chip-active" : ""}`}
+                className={`filter-chip filter-chip-priority${option !== "all" ? ` filter-chip-priority-${option.toLowerCase()}` : ""}${priority === option ? " filter-chip-active" : ""}`}
                 onClick={() => onPriorityChange(option)}
               >
                 {option === "all" ? "全部" : option}

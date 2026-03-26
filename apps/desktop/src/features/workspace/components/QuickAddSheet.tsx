@@ -27,6 +27,21 @@ export function QuickAddSheet({
     return () => window.cancelAnimationFrame(frame);
   }, [open, quickAddRef]);
 
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function handleKeyDown(event: KeyboardEvent): void {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, onClose]);
+
   if (!open) {
     return null;
   }
@@ -36,6 +51,11 @@ export function QuickAddSheet({
       <div
         className={`quick-add-modal${quickAddSpotlight ? " quick-add-modal-spotlight" : ""}`}
         onClick={(event) => {
+          if (event.target === event.currentTarget) {
+            onClose();
+            return;
+          }
+
           event.stopPropagation();
         }}
       >
