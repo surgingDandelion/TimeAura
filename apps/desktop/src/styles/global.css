@@ -2087,6 +2087,9 @@ textarea:focus-visible {
 
 .workspace-filter-group-tag {
   flex: 0 0 auto;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -2192,6 +2195,7 @@ textarea:focus-visible {
 .workspace-filter-select-tag {
   width: min(100%, 164px);
   min-width: 148px;
+  flex: 0 0 164px;
 }
 
 .workspace-filter-select:hover {
