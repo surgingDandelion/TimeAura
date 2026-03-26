@@ -62,6 +62,14 @@ const providerMarkLabelMap: Record<AIProviderType, string> = {
   aggregator: "AG",
 };
 
+const providerDisplayLabelMap: Record<AIProviderType, string> = {
+  openai_compatible: "OpenAI 兼容",
+  anthropic: "Anthropic 协议",
+  azure_openai: "Azure OpenAI",
+  local_gateway: "本地模型网关",
+  aggregator: "聚合平台",
+};
+
 interface ChannelDraft {
   name: string;
   providerType: AIProviderType;
@@ -394,6 +402,7 @@ export function ChannelStudioPage(): JSX.Element {
         <div className="record-list channel-list">
           {channels.map((channel) => {
             const providerMeta = providerOptions.find((item) => item.type === channel.providerType);
+            const providerDisplay = providerDisplayLabelMap[channel.providerType] ?? providerMeta?.label ?? channel.providerType;
 
             return (
               <button
@@ -402,29 +411,28 @@ export function ChannelStudioPage(): JSX.Element {
                 onClick={() => setSelectedId(channel.id)}
               >
                 <div className="channel-list-card">
-                  <div className="channel-list-card-head">
-                    <div className="channel-list-card-main">
-                      <span className={`channel-provider-mark channel-provider-mark-${channel.providerType.replace(/_/g, "-")}`}>
-                        {providerMarkLabelMap[channel.providerType]}
-                      </span>
-                      <div className="channel-list-card-title-wrap">
-                        <div className="record-title-text">{channel.name}</div>
-                        <div className="record-meta channel-list-provider">{providerMeta?.shortLabel ?? channel.providerType}</div>
+                  <span className={`channel-provider-mark channel-provider-mark-${channel.providerType.replace(/_/g, "-")}`}>
+                    {providerMarkLabelMap[channel.providerType]}
+                  </span>
+                  <div className="channel-list-card-copy">
+                    <div className="channel-list-card-title-wrap">
+                      <div className="record-title-text">{channel.name}</div>
+                      <div className="record-meta channel-list-provider">
+                        {providerDisplay} · {channel.model}
                       </div>
                     </div>
-                    <div className="channel-list-card-badges">
-                      {channel.id === defaultChannelId ? <span className="tag-chip tag-chip-accent">默认</span> : null}
-                      <div className={`priority-pill ${channel.enabled ? "priority-p3" : "priority-p4"}`}>
-                        {channel.enabled ? "启用" : "停用"}
+                    <div className="channel-list-card-meta">
+                      <div className="record-tags channel-list-card-chips">
+                        {channel.apiKeyRef ? <span className="tag-chip">已绑定凭证</span> : <span className="tag-chip">未绑定凭证</span>}
                       </div>
+                      <div className="record-due channel-list-target">{summarizeChannelTarget(channel)}</div>
                     </div>
                   </div>
-                  <div className="channel-list-card-body">
-                    <div className="record-tags channel-list-card-chips">
-                      <span className="tag-chip">{channel.model}</span>
-                      {channel.apiKeyRef ? <span className="tag-chip">已绑定凭证</span> : <span className="tag-chip">未绑定凭证</span>}
+                  <div className="channel-list-card-status">
+                    {channel.id === defaultChannelId ? <span className="tag-chip tag-chip-accent">默认</span> : null}
+                    <div className={`priority-pill ${channel.enabled ? "priority-p3" : "priority-p4"}`}>
+                      {channel.enabled ? "启用" : "停用"}
                     </div>
-                    <div className="record-due channel-list-target">{summarizeChannelTarget(channel)}</div>
                   </div>
                 </div>
               </button>
