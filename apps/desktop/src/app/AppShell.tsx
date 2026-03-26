@@ -458,11 +458,6 @@ export function AppShell(): JSX.Element {
     <div className="app-shell">
       <div className="window-bar">
         <div className="window-title">
-          <div className="traffic" aria-hidden="true">
-            <span className="red" />
-            <span className="yellow" />
-            <span className="green" />
-          </div>
           <div className="brand-mark">TA</div>
           <div className="brand-copy">
             <h1>TimeAura</h1>
@@ -494,7 +489,6 @@ export function AppShell(): JSX.Element {
       <div className="main-body">
         <aside className="sidebar">
           <div className="sidebar-brand">
-            <h2 className="title">TimeAura</h2>
             <p className="tagline">在紧凑节奏里，先看清楚什么最重要，再让它准时发生。</p>
           </div>
 

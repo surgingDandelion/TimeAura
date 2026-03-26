@@ -2543,28 +2543,28 @@ body[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
 }
 
 .app-shell {
-  width: min(1680px, calc(100vw - 28px));
-  height: calc(100vh - 28px);
-  margin: 14px auto;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid rgba(15, 23, 42, 0.07);
-  border-radius: 32px;
+  border: 0;
+  border-radius: 0;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(246, 249, 253, 0.95));
-  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.16);
+  box-shadow: none;
   backdrop-filter: blur(22px);
 }
 
 body[data-theme="dark"] .app-shell {
   background: linear-gradient(180deg, rgba(17, 24, 36, 0.94), rgba(12, 19, 30, 0.98));
-  border-color: rgba(173, 192, 219, 0.08);
-  box-shadow: 0 28px 60px rgba(1, 6, 13, 0.48);
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .window-bar {
   height: 70px;
-  padding: 0 22px;
+  padding: 0 18px 0 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2577,36 +2577,10 @@ body[data-theme="dark"] .window-bar {
   background: linear-gradient(180deg, rgba(18, 26, 39, 0.92), rgba(14, 21, 33, 0.74));
 }
 
-.traffic {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.traffic span {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  display: inline-block;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
-}
-
-.traffic .red {
-  background: #ff5f57;
-}
-
-.traffic .yellow {
-  background: #febc2e;
-}
-
-.traffic .green {
-  background: #28c840;
-}
-
 .window-title {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .brand-mark {
@@ -2677,27 +2651,15 @@ body[data-theme="dark"] .sidebar {
 }
 
 .sidebar-brand {
-  padding: 10px 8px 0;
-}
-
-.sidebar-brand .title {
-  margin: 0;
-  font-size: 23px;
-  font-weight: 700;
-  line-height: 1.08;
-  letter-spacing: -0.025em;
+  padding: 6px 8px 0;
 }
 
 .sidebar-brand .tagline {
-  margin: 10px 0 0;
+  margin: 0;
   max-width: 164px;
   color: #6d8093;
   font-size: 12px;
   line-height: 1.45;
-}
-
-body[data-theme="dark"] .sidebar-brand .title {
-  color: #e8eef8;
 }
 
 body[data-theme="dark"] .sidebar-brand .tagline {
@@ -3263,12 +3225,6 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
 }
 
 @media (max-width: 1120px) {
-  .app-shell {
-    width: calc(100vw - 20px);
-    height: calc(100vh - 20px);
-    margin: 10px auto;
-  }
-
   .sidebar {
     width: 220px;
     flex-basis: 220px;
