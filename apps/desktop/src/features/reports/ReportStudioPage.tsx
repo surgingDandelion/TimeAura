@@ -203,15 +203,15 @@ export function ReportStudioPage(): JSX.Element {
             <p>根据真实记录生成周报、月报与专题总结，保留模板和通道的组合控制感。</p>
           </div>
 
-          <div className="report-banner">
-            <div>
-              <strong className="report-banner-title">报告历史</strong>
-              <span className="report-banner-text">保存后的报告默认进入这里，不干扰主列表。</span>
-            </div>
-            <button className="button-ghost button-ghost-compact" onClick={() => setMessage("请在左侧底部进入 AI 通道配置")}>
-              管理通道
-            </button>
+        <div className="report-banner">
+          <div>
+            <strong className="report-banner-title">报告历史</strong>
+            <span className="report-banner-text">保存后的报告默认进入这里，不干扰主列表。</span>
           </div>
+          <button className="button-ghost button-ghost-compact report-manage-channel-btn" onClick={() => setMessage("请在左侧底部进入 AI 通道配置")}>
+            管理通道
+          </button>
+        </div>
 
           <div className="stack-card">
             <h4>报告类型</h4>
@@ -344,7 +344,7 @@ export function ReportStudioPage(): JSX.Element {
                   : "点击“生成报告”后，在这里预览 AI 生成的报告内容。"}
               </p>
             </div>
-            <div className="report-actions">
+            <div className="report-actions report-actions-header">
               <button className="button-ghost" disabled={!draft}>
                 重新生成
               </button>

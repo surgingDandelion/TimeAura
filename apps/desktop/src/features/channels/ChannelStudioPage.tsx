@@ -374,11 +374,11 @@ export function ChannelStudioPage(): JSX.Element {
         </div>
 
         <div className="channel-list-toolbar">
-          <div className="channel-list-meta">
+          <div className="channel-list-meta channel-list-meta-compact">
             <span>{channels.length} 个通道</span>
             <span>{enabledChannels.length} 个已启用</span>
           </div>
-          <button className="button-primary" onClick={() => void handleCreateChannel()}>
+          <button className="button-primary channel-create-btn" onClick={() => void handleCreateChannel()}>
             新增通道
           </button>
         </div>
@@ -393,21 +393,25 @@ export function ChannelStudioPage(): JSX.Element {
                 className={`record-row channel-list-row${channel.id === selectedId ? " record-row-active" : ""}`}
                 onClick={() => setSelectedId(channel.id)}
               >
-                <div className={`priority-pill ${channel.enabled ? "priority-p3" : "priority-p4"}`}>
-                  {channel.enabled ? "启用" : "停用"}
-                </div>
-                <div className="record-main">
-                  <div className="record-topline">
-                    <div className="record-title-text">{channel.name}</div>
-                    <div className="record-meta">{providerMeta?.shortLabel ?? channel.providerType}</div>
-                  </div>
-                  <div className="record-bottomline">
-                    <div className="record-tags">
+                <div className="channel-list-card">
+                  <div className="channel-list-card-head">
+                    <div className="channel-list-card-title-wrap">
+                      <div className="record-title-text">{channel.name}</div>
+                      <div className="record-meta channel-list-provider">{providerMeta?.shortLabel ?? channel.providerType}</div>
+                    </div>
+                    <div className="channel-list-card-badges">
                       {channel.id === defaultChannelId ? <span className="tag-chip tag-chip-accent">默认</span> : null}
+                      <div className={`priority-pill ${channel.enabled ? "priority-p3" : "priority-p4"}`}>
+                        {channel.enabled ? "启用" : "停用"}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="channel-list-card-body">
+                    <div className="record-tags">
                       <span className="tag-chip">{channel.model}</span>
                       {channel.apiKeyRef ? <span className="tag-chip">已绑定凭证</span> : <span className="tag-chip">未绑定凭证</span>}
                     </div>
-                    <div className="record-due">{summarizeChannelTarget(channel)}</div>
+                    <div className="record-due channel-list-target">{summarizeChannelTarget(channel)}</div>
                   </div>
                 </div>
               </button>
@@ -450,15 +454,17 @@ export function ChannelStudioPage(): JSX.Element {
                 <h2>{selectedChannel.name}</h2>
                 <p>{currentProviderOption.description}</p>
               </div>
-              <div className="settings-inline channel-form-actions">
-                <span className="switch">
-                  自动回退：{draft.allowFallback ? "开启" : "关闭"}
-                </span>
-                <button className="button-ghost" onClick={() => void handleTestChannel()} disabled={testing}>
-                  {testing ? "测试中…" : "测试连接"}
-                </button>
+              <div className="channel-header-actions">
+                <div className="settings-inline channel-form-actions">
+                  <span className="switch">
+                    自动回退：{draft.allowFallback ? "开启" : "关闭"}
+                  </span>
+                  <button className="button-ghost" onClick={() => void handleTestChannel()} disabled={testing}>
+                    {testing ? "测试中…" : "测试连接"}
+                  </button>
+                </div>
                 <button
-                  className="button-primary"
+                  className="button-primary channel-save-btn"
                   onClick={() => void handleSaveChannel()}
                   disabled={draftParseResult.errors.length > 0}
                 >

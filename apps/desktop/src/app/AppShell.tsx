@@ -588,7 +588,7 @@ export function AppShell(): JSX.Element {
               title="通道配置"
               aria-label="通道配置"
             >
-              <ChannelIcon />
+              <ChannelStudioIcon />
             </button>
             <button
               className="icon-btn sidebar-footer-icon"
@@ -642,15 +642,6 @@ function ReportIcon(): JSX.Element {
     <svg viewBox="0 0 20 20" aria-hidden="true">
       <path d="M5.5 4.5h9a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1Z" />
       <path d="M7.5 8h5M7.5 10.5h5M7.5 13h3" />
-    </svg>
-  );
-}
-
-function ChannelIcon(): JSX.Element {
-  return (
-    <svg viewBox="0 0 20 20" aria-hidden="true">
-      <path d="M7.5 5.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4Zm5 5a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z" />
-      <path d="M9.2 8.2 10.8 9.8M9.2 11.8 10.8 10.2M5.5 7.5H3.8M16.2 12.5h-1.7" />
     </svg>
   );
 }
