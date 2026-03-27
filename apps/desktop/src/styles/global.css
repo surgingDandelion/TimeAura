@@ -530,6 +530,8 @@ body {
 
 .select {
   appearance: none;
+  -webkit-appearance: none;
+  background-clip: padding-box;
   background-image:
     linear-gradient(45deg, transparent 50%, #738396 50%),
     linear-gradient(135deg, #738396 50%, transparent 50%);
@@ -539,6 +541,15 @@ body {
   background-size: 5px 5px, 5px 5px;
   background-repeat: no-repeat;
   padding-right: 32px;
+}
+
+select.select::-ms-expand {
+  display: none;
+}
+
+select.select option {
+  color: #21313f;
+  background: #f6f8fb;
 }
 
 .select-compact {
@@ -3630,6 +3641,11 @@ body[data-theme="dark"] .select {
     linear-gradient(135deg, #9fb0c8 50%, transparent 50%);
 }
 
+body[data-theme="dark"] select.select option {
+  color: #e8eff9;
+  background: #162130;
+}
+
 body[data-theme="dark"] .search-box,
 body[data-theme="dark"] .workspace-filter-select,
 body[data-theme="dark"] .card,
@@ -5056,9 +5072,23 @@ body[data-theme="dark"] .report-template-sheet .textarea:focus {
 
 body[data-theme="dark"] .report-panel-side .select,
 body[data-theme="dark"] .report-template-sheet .select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-clip: padding-box;
   background-image:
     linear-gradient(45deg, transparent 50%, #94abc7 50%),
     linear-gradient(135deg, #94abc7 50%, transparent 50%);
+}
+
+body[data-theme="dark"] .report-panel-side select.select,
+body[data-theme="dark"] .report-template-sheet select.select {
+  background-color: rgba(255, 255, 255, 0.053);
+}
+
+body[data-theme="dark"] .report-panel-side select.select option,
+body[data-theme="dark"] .report-template-sheet select.select option {
+  color: #e8eff9;
+  background: #162130;
 }
 
 body[data-theme="dark"] .report-panel-side input[type="date"] {
