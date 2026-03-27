@@ -68,12 +68,6 @@ export function TrashPage({ onTrashChanged }: TrashPageProps): JSX.Element {
   }
 
   async function handleDestroy(recordId: string): Promise<void> {
-    const confirmed = globalThis.confirm?.("确认彻底删除这条记录吗？删除后将无法恢复。") ?? true;
-
-    if (!confirmed) {
-      return;
-    }
-
     setBusyId(recordId);
 
     try {
@@ -88,12 +82,6 @@ export function TrashPage({ onTrashChanged }: TrashPageProps): JSX.Element {
   }
 
   async function handleEmptyTrash(): Promise<void> {
-    const confirmed = globalThis.confirm?.("确认清空回收站吗？所有已删除记录都会被彻底移除。") ?? true;
-
-    if (!confirmed) {
-      return;
-    }
-
     setBusyId("empty");
 
     try {
