@@ -1,4 +1,4 @@
-import type { KeyboardEvent as ReactKeyboardEvent } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent } from "react";
 
 import type { RecordEntity, TagEntity } from "@timeaura-core";
 
@@ -224,6 +224,7 @@ export function WorkspaceListPanel({
             const recordTags = record.tags
               .map((tagRef) => tags.find((item) => item.id === tagRef))
               .filter((item): item is TagEntity => Boolean(item));
+            const rowSelected = selectedIds.includes(record.id);
 
             return (
               <div
@@ -231,25 +232,16 @@ export function WorkspaceListPanel({
                 ref={(node) => {
                   rowRefs.current[record.id] = node;
                 }}
-                className={`record-row workspace-record-row${record.id === selectedId ? " record-row-active" : ""}${record.id === highlightedRecordId ? " record-row-highlighted" : ""}${isDoneRecord(record) ? " workspace-record-row-done" : ""}`}
+                className={`record-row workspace-record-row${record.id === selectedId ? " record-row-active" : ""}${rowSelected ? " record-row-selected" : ""}${record.id === highlightedRecordId ? " record-row-highlighted" : ""}${isDoneRecord(record) ? " workspace-record-row-done" : ""}`}
                 role="button"
                 tabIndex={0}
-                aria-pressed={record.id === selectedId}
-                onClick={() => onSelectRecord(record.id)}
-                onKeyDown={(event) => handleRecordRowKeyDown(event, record.id, onSelectRecord)}
+                aria-pressed={record.id === selectedId || rowSelected}
+                onClick={(event) => handleRecordRowClick(event, record.id, onSelectRecord, onToggleSelection)}
+                onKeyDown={(event) => handleRecordRowKeyDown(event, record.id, onSelectRecord, onToggleSelection)}
               >
-                <label
-                  className="record-check"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.includes(record.id)}
-                    onChange={() => onToggleSelection(record.id)}
-                  />
-                </label>
+                <div className={`record-priority-marker record-priority-${record.priority.toLowerCase()}`} aria-label={`优先级 ${record.priority}`}>
+                  <span>{record.priority}</span>
+                </div>
 
                 <div className="record-main">
                   <div className="record-topline">
@@ -257,7 +249,6 @@ export function WorkspaceListPanel({
                       {record.isPinned ? <span className="pin-indicator">置顶</span> : null}
                       <div className="record-title-text">{record.title}</div>
                     </div>
-                    <div className="record-meta">{record.status}</div>
                   </div>
 
                   <div className="record-bottomline">
@@ -272,7 +263,7 @@ export function WorkspaceListPanel({
                 </div>
 
                 <div className="record-side-meta">
-                  <div className={`priority-pill priority-${record.priority.toLowerCase()}`}>{record.priority}</div>
+                  <div className={`record-status record-status-${getRecordStatusTone(record.status)}`}>{record.status}</div>
                   <div className="record-due">{formatDateLabel(record.dueAt)}</div>
                 </div>
 
@@ -368,13 +359,44 @@ function handleRecordRowKeyDown(
   event: ReactKeyboardEvent<HTMLElement>,
   recordId: string,
   onSelectRecord: (recordId: string) => void,
+  onToggleSelection: (recordId: string) => void,
 ): void {
-  if (event.key !== "Enter" && event.key !== " ") {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    onSelectRecord(recordId);
     return;
   }
 
-  event.preventDefault();
+  if (event.key === " ") {
+    event.preventDefault();
+    onToggleSelection(recordId);
+  }
+}
+
+function handleRecordRowClick(
+  event: ReactMouseEvent<HTMLElement>,
+  recordId: string,
+  onSelectRecord: (recordId: string) => void,
+  onToggleSelection: (recordId: string) => void,
+): void {
+  if (event.metaKey || event.ctrlKey || event.shiftKey) {
+    onToggleSelection(recordId);
+    return;
+  }
+
   onSelectRecord(recordId);
+}
+
+function getRecordStatusTone(status: RecordEntity["status"]): "done" | "active" | "todo" {
+  if (status === "已完成" || status === "已归档") {
+    return "done";
+  }
+
+  if (status === "进行中") {
+    return "active";
+  }
+
+  return "todo";
 }
 
 function getWorkspaceCopy(activeView: WorkspaceListPanelProps["activeView"], currentTagName: string): {

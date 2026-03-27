@@ -113,7 +113,9 @@ describe("WorkspaceListPanel", () => {
     fireEvent.click(screen.getByText("整理周报"));
     expect(props.onSelectRecord).toHaveBeenCalledWith("record-1");
 
-    fireEvent.click(screen.getByRole("checkbox", { checked: true }));
+    expect(screen.queryByRole("checkbox")).toBeNull();
+
+    fireEvent.click(screen.getByText("整理周报"), { metaKey: true });
     expect(props.onToggleSelection).toHaveBeenCalledWith("record-1");
 
     fireEvent.click(screen.getByText("完成"));
