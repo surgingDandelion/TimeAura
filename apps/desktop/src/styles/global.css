@@ -6166,16 +6166,51 @@ body[data-theme="dark"] .record-check input:checked {
 }
 
 .my-lists-sheet {
-  width: min(680px, calc(100vw - 96px));
+  width: min(760px, calc(100vw - 88px));
   padding: 18px;
   border-radius: 16px;
 }
 
 .my-lists-body {
   display: grid;
-  grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
+  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
   gap: 14px;
   margin-top: 14px;
+  align-items: stretch;
+}
+
+.my-lists-editor-panel,
+.my-lists-library-panel {
+  min-height: 350px;
+}
+
+.my-lists-editor-panel {
+  gap: 18px;
+}
+
+.my-lists-editor-panel .tag-form-stack {
+  flex: 1;
+  justify-content: space-between;
+}
+
+.my-lists-editor-panel .tag-form-row {
+  min-height: 126px;
+  align-content: center;
+}
+
+.my-lists-editor-panel .input {
+  min-height: 64px;
+  font-size: 15px;
+}
+
+.my-lists-editor-panel .color-input {
+  width: 100%;
+  min-height: 68px;
+  border-radius: 18px;
+}
+
+.my-lists-library-panel .tag-library-list {
+  flex: 1;
 }
 
 .my-lists-library-row {

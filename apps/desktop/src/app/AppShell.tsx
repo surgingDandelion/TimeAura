@@ -959,6 +959,13 @@ function MyListsSheet({
 
   const editingTag = draft.id ? tags.find((tag) => tag.id === draft.id) ?? null : null;
   const placeholderColor = "#5f89ff";
+  const resetToCreateDraft = () => {
+    onDraftChange({
+      id: null,
+      name: "",
+      color: placeholderColor,
+    });
+  };
 
   return (
     <div className="sheet-backdrop" onClick={onClose}>
@@ -971,7 +978,7 @@ function MyListsSheet({
         <div className="tag-manager-header">
           <div>
             <h3 className="panel-title panel-title-small">我的列表</h3>
-            <div className="tag-manager-copy">左侧只保留轻量列表管理。记录本身直接选列表，不再在这里来回绑定。</div>
+            <div className="tag-manager-copy">编辑名称和颜色，失焦自动保存。</div>
           </div>
           <button type="button" className="icon-btn" aria-label="关闭我的列表" title="关闭我的列表" onClick={onClose}>
             <CloseIcon />
@@ -979,12 +986,19 @@ function MyListsSheet({
         </div>
 
         <div className="my-lists-body">
-          <div className="tag-panel">
+          <div
+            className="tag-panel my-lists-editor-panel"
+            onClick={(event) => {
+              if (event.target === event.currentTarget) {
+                resetToCreateDraft();
+              }
+            }}
+          >
             <div className="tag-panel-header">
               <div className="tag-panel-title">
-                <strong>编辑列表</strong>
+                <strong>{editingTag ? "编辑列表" : "新建列表"}</strong>
               </div>
-              <div className="tag-panel-caption">输入名称、选择颜色，失焦后自动保存。删除直接生效。</div>
+              <div className="tag-panel-caption">点击空白回到新建。</div>
             </div>
 
             <div className="tag-form-stack">
@@ -1020,15 +1034,29 @@ function MyListsSheet({
             </div>
           </div>
 
-          <div className="tag-panel">
+          <div
+            className="tag-panel my-lists-library-panel"
+            onClick={(event) => {
+              if (event.target === event.currentTarget) {
+                resetToCreateDraft();
+              }
+            }}
+          >
             <div className="tag-panel-header">
               <div className="tag-panel-title">
                 <strong>列表库</strong>
               </div>
-              <div className="tag-panel-caption">点击一行继续编辑，右击左侧导航也可以直接进入编辑或删除。</div>
+              <div className="tag-panel-caption">点击一行编辑。</div>
             </div>
 
-            <div className="tag-library-list">
+            <div
+              className="tag-library-list"
+              onClick={(event) => {
+                if (event.target === event.currentTarget) {
+                  resetToCreateDraft();
+                }
+              }}
+            >
               {tags.length > 0 ? tags.map((tag) => (
                 <button
                   key={tag.id}
