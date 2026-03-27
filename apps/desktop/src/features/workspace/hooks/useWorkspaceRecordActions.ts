@@ -3,7 +3,6 @@ import { useCallback } from "react";
 import type { AppServices } from "@timeaura-core";
 
 import type { WorkspaceCommandResult } from "../contracts";
-import { createDefaultWorkspaceTestSeams, type WorkspaceTestSeams } from "../testSeams";
 
 interface UseWorkspaceRecordActionsOptions {
   batchTargetIds: string[];
@@ -14,7 +13,6 @@ interface UseWorkspaceRecordActionsOptions {
   setSelectedId(recordId: string | null): void;
   setSelectedIds(updater: (current: string[]) => string[]): void;
   syncWorkspace(afterMessage?: string): Promise<void>;
-  seams?: WorkspaceTestSeams;
 }
 
 export function useWorkspaceRecordActions({
@@ -26,7 +24,6 @@ export function useWorkspaceRecordActions({
   setSelectedId,
   setSelectedIds,
   syncWorkspace,
-  seams = createDefaultWorkspaceTestSeams(),
 }: UseWorkspaceRecordActionsOptions) {
   const handleComplete = useCallback(async (recordId: string): Promise<WorkspaceCommandResult<{ recordId: string }>> => {
     await services.recordService.completeRecord(recordId);
@@ -39,14 +36,6 @@ export function useWorkspaceRecordActions({
   }, [services.recordService, syncWorkspace]);
 
   const handleDelete = useCallback(async (recordId: string): Promise<WorkspaceCommandResult<{ recordId: string }>> => {
-    const confirmed = await seams.confirm.confirm("确认将这条记录移入回收站吗？");
-
-    if (!confirmed) {
-      return {
-        status: "cancelled",
-      };
-    }
-
     await services.recordService.deleteRecord(recordId);
 
     if (selectedId === recordId) {
@@ -60,7 +49,7 @@ export function useWorkspaceRecordActions({
       message: "记录已移入回收站",
       data: { recordId },
     };
-  }, [selectedId, seams.confirm, services.recordService, setSelectedId, setSelectedIds, syncWorkspace]);
+  }, [selectedId, services.recordService, setSelectedId, setSelectedIds, syncWorkspace]);
 
   const handleArchive = useCallback(async (recordId: string): Promise<WorkspaceCommandResult<{ recordId: string }>> => {
     await services.recordService.archiveRecord(recordId);

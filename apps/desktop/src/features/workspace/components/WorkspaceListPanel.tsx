@@ -281,6 +281,9 @@ export function WorkspaceListPanel({
                     <button
                       type="button"
                       className="button-mini record-complete-btn"
+                      onMouseDown={(event) => {
+                        event.stopPropagation();
+                      }}
                       onClick={(event) => {
                         event.stopPropagation();
                         onCompleteRecord(record.id);
@@ -296,6 +299,9 @@ export function WorkspaceListPanel({
                     className="record-delete-btn"
                     aria-label={`移入回收站 ${record.title}`}
                     title="移入回收站"
+                    onMouseDown={(event) => {
+                      event.stopPropagation();
+                    }}
                     onClick={(event) => {
                       event.stopPropagation();
                       onDeleteRecord(record.id);

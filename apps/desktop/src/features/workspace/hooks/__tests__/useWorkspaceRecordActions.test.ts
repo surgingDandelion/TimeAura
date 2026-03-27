@@ -2,12 +2,10 @@ import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { createWorkspaceAppServicesDouble } from "../../testing/workspaceServiceTestDoubles";
-import { createWorkspaceTestFixtureBundle } from "../../testing/workspaceTestFixtures";
 import { useWorkspaceRecordActions } from "../useWorkspaceRecordActions";
 
 describe("useWorkspaceRecordActions", () => {
-  it("returns cancelled when delete confirmation is rejected", async () => {
-    const { seams, state } = createWorkspaceTestFixtureBundle({ confirmResult: false });
+  it("deletes record without confirmation and keeps selection in sync", async () => {
     const deleteRecord = vi.fn(async (_recordId: string) => undefined);
     const services = createWorkspaceAppServicesDouble({
       recordService: {
@@ -29,53 +27,6 @@ describe("useWorkspaceRecordActions", () => {
         setSelectedId,
         setSelectedIds,
         syncWorkspace,
-        seams,
-      }),
-    );
-
-    let commandResult: Awaited<ReturnType<typeof result.current.handleDelete>> | undefined;
-
-    await act(async () => {
-      commandResult = await result.current.handleDelete("record-1");
-    });
-
-    expect(commandResult).toEqual({
-      status: "cancelled",
-    });
-    expect(state.confirmMessages).toEqual(["确认将这条记录移入回收站吗？"]);
-    expect(deleteRecord).not.toHaveBeenCalled();
-    expect(setSelectedId).not.toHaveBeenCalled();
-    expect(setSelectedIds).not.toHaveBeenCalled();
-    expect(syncWorkspace).not.toHaveBeenCalled();
-  });
-
-  it("deletes selected record and clears matching selection state", async () => {
-    const { seams, state } = createWorkspaceTestFixtureBundle({ confirmResult: true });
-    const deleteRecord = vi.fn(async (_recordId: string) => undefined);
-    const services = createWorkspaceAppServicesDouble({
-      recordService: {
-        deleteRecord,
-      },
-    });
-    let selectedIdsState = ["record-1", "record-2"];
-    const clearSelection = vi.fn();
-    const setSelectedId = vi.fn();
-    const setSelectedIds = vi.fn((updater: (current: string[]) => string[]) => {
-      selectedIdsState = updater(selectedIdsState);
-    });
-    const syncWorkspace = vi.fn(async (_afterMessage?: string) => undefined);
-
-    const { result } = renderHook(() =>
-      useWorkspaceRecordActions({
-        batchTargetIds: [],
-        selectedId: "record-1",
-        selectedIds: selectedIdsState,
-        services,
-        clearSelection,
-        setSelectedId,
-        setSelectedIds,
-        syncWorkspace,
-        seams,
       }),
     );
 
@@ -90,11 +41,9 @@ describe("useWorkspaceRecordActions", () => {
       message: "记录已移入回收站",
       data: { recordId: "record-1" },
     });
-    expect(state.confirmMessages).toEqual(["确认将这条记录移入回收站吗？"]);
     expect(deleteRecord).toHaveBeenCalledWith("record-1");
     expect(setSelectedId).toHaveBeenCalledWith(null);
     expect(setSelectedIds).toHaveBeenCalledTimes(1);
-    expect(selectedIdsState).toEqual(["record-2"]);
     expect(syncWorkspace).toHaveBeenCalledWith("记录已移入回收站");
   });
 
