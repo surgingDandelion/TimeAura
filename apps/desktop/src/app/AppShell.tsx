@@ -978,7 +978,7 @@ function MyListsSheet({
         <div className="tag-manager-header">
           <div>
             <h3 className="panel-title panel-title-small">我的列表</h3>
-            <div className="tag-manager-copy">编辑名称和颜色，失焦自动保存。</div>
+            <div className="tag-manager-copy">编辑名称和颜色，失焦自动保存</div>
           </div>
           <button type="button" className="icon-btn" aria-label="关闭我的列表" title="关闭我的列表" onClick={onClose}>
             <CloseIcon />
@@ -998,13 +998,12 @@ function MyListsSheet({
               <div className="tag-panel-title">
                 <strong>{editingTag ? "编辑列表" : "新建列表"}</strong>
               </div>
-              <div className="tag-panel-caption">点击空白回到新建。</div>
             </div>
 
             <div className="tag-form-stack">
-              <div className="tag-form-row">
+              <div className="tag-form-row my-lists-form-row">
                 <input
-                  className="input"
+                  className="input my-lists-name-input"
                   value={draft.name}
                   onChange={(event) => onDraftChange({ ...draft, name: event.target.value })}
                   onBlur={() => {
@@ -1013,7 +1012,7 @@ function MyListsSheet({
                   placeholder="输入列表名称"
                 />
                 <input
-                  className="color-input"
+                  className="color-input my-lists-color-dot"
                   type="color"
                   value={draft.color || placeholderColor}
                   onChange={(event) => onDraftChange({ ...draft, color: event.target.value })}
@@ -1046,7 +1045,6 @@ function MyListsSheet({
               <div className="tag-panel-title">
                 <strong>列表库</strong>
               </div>
-              <div className="tag-panel-caption">点击一行编辑。</div>
             </div>
 
             <div
