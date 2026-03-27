@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import type { TagEntity } from "@timeaura-core";
 
 import type { TagManagerSheetContract } from "../contracts";
@@ -20,6 +22,20 @@ export function TagManagerSheet({
   onSubmit,
   onDelete,
 }: TagManagerSheetProps): JSX.Element | null {
+  const [pendingDeleteTagId, setPendingDeleteTagId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      setPendingDeleteTagId(null);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (pendingDeleteTagId && !tags.some((tag) => tag.id === pendingDeleteTagId)) {
+      setPendingDeleteTagId(null);
+    }
+  }, [pendingDeleteTagId, tags]);
+
   if (!open) {
     return null;
   }
@@ -136,6 +152,7 @@ export function TagManagerSheet({
               <div className="tag-library-list">
                 {tags.length > 0 ? tags.map((tag) => {
                   const usageCount = records.filter((record) => record.tags.includes(tag.id)).length;
+                  const deleteConfirming = pendingDeleteTagId === tag.id;
 
                   return (
                     <div key={tag.id} className="tag-library-item">
@@ -164,11 +181,31 @@ export function TagManagerSheet({
                           aria-label={`删除标签 ${tag.name}`}
                           title={tag.isSystem ? "默认标签不可删除" : "删除标签"}
                           disabled={tag.isSystem}
-                          onClick={() => onDelete(tag)}
+                          onClick={() => setPendingDeleteTagId(tag.id)}
                         >
                           <DeleteIcon />
                         </button>
                       </div>
+                      {deleteConfirming ? (
+                        <div className="tag-delete-confirm" role="alert">
+                          <span className="tag-delete-confirm-copy">确认删除“{tag.name}”？</span>
+                          <div className="tag-delete-confirm-actions">
+                            <button type="button" className="text-btn" onClick={() => setPendingDeleteTagId(null)}>
+                              取消
+                            </button>
+                            <button
+                              type="button"
+                              className="tag-confirm-delete-btn"
+                              onClick={() => {
+                                setPendingDeleteTagId(null);
+                                onDelete(tag);
+                              }}
+                            >
+                              确认删除
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                   );
                 }) : <div className="tag-library-empty">当前还没有标签，先新增一个标签开始整理。</div>}

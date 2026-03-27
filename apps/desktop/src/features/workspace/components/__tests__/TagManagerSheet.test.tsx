@@ -150,6 +150,15 @@ describe("TagManagerSheet", () => {
     const deleteButton = screen.getByLabelText("删除标签 系统标签") as HTMLButtonElement;
     expect(deleteButton.disabled).toBe(true);
 
+    fireEvent.click(screen.getByLabelText("删除标签 工作"));
+    expect(screen.getByText("确认删除“工作”？")).toBeTruthy();
+    fireEvent.click(screen.getByText("取消"));
+    expect(props.onDelete).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByLabelText("删除标签 工作"));
+    fireEvent.click(screen.getByText("确认删除"));
+    expect(props.onDelete).toHaveBeenCalledWith(props.tags[1]);
+
     fireEvent.click(screen.getByText("保存修改"));
     expect(props.onSubmit).toHaveBeenCalledTimes(1);
   });

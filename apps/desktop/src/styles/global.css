@@ -6248,6 +6248,7 @@ body[data-theme="dark"] .record-check input:checked {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
   padding: 12px 14px;
   border-radius: 16px;
@@ -6323,9 +6324,9 @@ body[data-theme="dark"] .record-check input:checked {
 }
 
 .tag-action-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.96);
-  border-color: rgba(95, 143, 220, 0.2);
-  color: #275280;
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(67, 90, 121, 0.12);
+  color: #32475f;
 }
 
 .tag-action-btn.delete:hover:not(:disabled) {
@@ -6355,6 +6356,47 @@ body[data-theme="dark"] .record-check input:checked {
   color: #6f8193;
   font-size: 12px;
   line-height: 1.55;
+}
+
+.tag-delete-confirm {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 2px;
+  border-top: 1px solid rgba(67, 90, 121, 0.08);
+}
+
+.tag-delete-confirm-copy {
+  color: #6b7e91;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.tag-delete-confirm-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.tag-confirm-delete-btn {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgba(201, 73, 79, 0.16);
+  border-radius: 10px;
+  background: rgba(201, 73, 79, 0.08);
+  color: #aa4b50;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.tag-confirm-delete-btn:hover {
+  background: rgba(201, 73, 79, 0.12);
+  border-color: rgba(201, 73, 79, 0.22);
 }
 
 .tag-manager-footer {
@@ -6407,6 +6449,37 @@ body[data-theme="dark"] .tag-bind-row.active {
 
 body[data-theme="dark"] .tag-bind-row.active .tag-bind-state {
   color: #dce7ff;
+}
+
+body[data-theme="dark"] .tag-action-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(173, 192, 219, 0.08);
+  color: #9fb0c8;
+}
+
+body[data-theme="dark"] .tag-action-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(173, 192, 219, 0.12);
+  color: #dce7f5;
+}
+
+body[data-theme="dark"] .tag-delete-confirm {
+  border-top-color: rgba(173, 192, 219, 0.08);
+}
+
+body[data-theme="dark"] .tag-delete-confirm-copy {
+  color: #9fb0c8;
+}
+
+body[data-theme="dark"] .tag-confirm-delete-btn {
+  background: rgba(201, 73, 79, 0.14);
+  border-color: rgba(201, 73, 79, 0.18);
+  color: #f0c9cd;
+}
+
+body[data-theme="dark"] .tag-confirm-delete-btn:hover {
+  background: rgba(201, 73, 79, 0.2);
+  border-color: rgba(201, 73, 79, 0.24);
 }
 
 body[data-theme="dark"] .inspector-action-btn {

@@ -6,7 +6,6 @@ import {
   createWorkspaceAppServicesDouble,
   createWorkspaceTagEntity,
 } from "../../testing/workspaceServiceTestDoubles";
-import { createWorkspaceTestFixtureBundle } from "../../testing/workspaceTestFixtures";
 import { useWorkspaceTagManagerActions } from "../useWorkspaceTagManagerActions";
 
 function createDraft(overrides: Partial<RecordDraft> = {}): RecordDraft {
@@ -191,8 +190,7 @@ describe("useWorkspaceTagManagerActions", () => {
     });
   });
 
-  it("deletes tag after confirmation and clears active filter plus draft tag", async () => {
-    const { seams, state } = createWorkspaceTestFixtureBundle({ confirmResult: true });
+  it("deletes tag and clears active filter plus draft tag", async () => {
     const deleteTag = vi.fn(async () => undefined);
     const services = createWorkspaceAppServicesDouble({
       tagService: {
@@ -219,7 +217,6 @@ describe("useWorkspaceTagManagerActions", () => {
         onMessage: vi.fn(),
         onTagFilterChange,
         syncWorkspace,
-        seams,
       }),
     );
 
@@ -229,7 +226,6 @@ describe("useWorkspaceTagManagerActions", () => {
       commandResult = await result.current.handleDeleteTag(tag);
     });
 
-    expect(state.confirmMessages).toEqual(['确认删除标签“工作”吗？']);
     expect(deleteTag).toHaveBeenCalledWith("tag_work");
     expect(onTagFilterChange).toHaveBeenCalledWith("all");
     expect(onDraftChange).toHaveBeenCalledWith(

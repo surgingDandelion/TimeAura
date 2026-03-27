@@ -4,8 +4,6 @@ import type { AppServices, TagEntity } from "@timeaura-core";
 
 import type { WorkspaceCommandResult } from "../contracts";
 import type { RecordDraft, TagEditorDraft } from "../types";
-import { createDefaultWorkspaceTestSeams, type WorkspaceTestSeams } from "../testSeams";
-
 interface UseWorkspaceTagManagerActionsOptions {
   activeTagId: string;
   draft: RecordDraft | null;
@@ -15,7 +13,6 @@ interface UseWorkspaceTagManagerActionsOptions {
   onMessage(message: string): void;
   onTagFilterChange(tagId: string): void;
   syncWorkspace(afterMessage?: string): Promise<void>;
-  seams?: WorkspaceTestSeams;
 }
 
 export function useWorkspaceTagManagerActions({
@@ -27,7 +24,6 @@ export function useWorkspaceTagManagerActions({
   onMessage,
   onTagFilterChange,
   syncWorkspace,
-  seams = createDefaultWorkspaceTestSeams(),
 }: UseWorkspaceTagManagerActionsOptions) {
   const [tagManagerOpen, setTagManagerOpen] = useState(false);
   const [tagEditor, setTagEditor] = useState<TagEditorDraft>({
@@ -111,14 +107,6 @@ export function useWorkspaceTagManagerActions({
   }, [draft, onDraftChange, onMessage, services.tagService, syncWorkspace, tagEditor]);
 
   const handleDeleteTag = useCallback(async (tag: TagEntity): Promise<WorkspaceCommandResult<{ tagId: string }>> => {
-    const confirmed = await seams.confirm.confirm(`确认删除标签“${tag.name}”吗？`);
-
-    if (!confirmed) {
-      return {
-        status: "cancelled",
-      };
-    }
-
     await services.tagService.deleteTag(tag.id);
 
     if (activeTagId === tag.id) {
@@ -139,7 +127,7 @@ export function useWorkspaceTagManagerActions({
       message: "标签已删除",
       data: { tagId: tag.id },
     };
-  }, [activeTagId, draft, onDraftChange, onTagFilterChange, resetTagEditor, seams.confirm, services.tagService, syncWorkspace]);
+  }, [activeTagId, draft, onDraftChange, onTagFilterChange, resetTagEditor, services.tagService, syncWorkspace]);
 
   return {
     tagManagerOpen,
