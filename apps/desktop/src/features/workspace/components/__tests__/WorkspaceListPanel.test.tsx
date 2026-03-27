@@ -50,7 +50,7 @@ function createProps() {
     notificationDebugFeed: [],
     notificationDebugOpen: false,
     searchRef: { current: null } as RefObject<HTMLInputElement>,
-    rowRefs: { current: {} } as MutableRefObject<Record<string, HTMLButtonElement | null>>,
+    rowRefs: { current: {} } as MutableRefObject<Record<string, HTMLElement | null>>,
     onRefresh: vi.fn(),
     onKeywordChange: vi.fn(),
     onStatusChange: vi.fn(),

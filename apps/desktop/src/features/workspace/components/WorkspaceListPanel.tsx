@@ -1,3 +1,5 @@
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
+
 import type { RecordEntity, TagEntity } from "@timeaura-core";
 
 import type { WorkspaceListPanelContract } from "../contracts";
@@ -224,13 +226,17 @@ export function WorkspaceListPanel({
               .filter((item): item is TagEntity => Boolean(item));
 
             return (
-              <button
+              <div
                 key={record.id}
                 ref={(node) => {
                   rowRefs.current[record.id] = node;
                 }}
                 className={`record-row workspace-record-row${record.id === selectedId ? " record-row-active" : ""}${record.id === highlightedRecordId ? " record-row-highlighted" : ""}${isDoneRecord(record) ? " workspace-record-row-done" : ""}`}
+                role="button"
+                tabIndex={0}
+                aria-pressed={record.id === selectedId}
                 onClick={() => onSelectRecord(record.id)}
+                onKeyDown={(event) => handleRecordRowKeyDown(event, record.id, onSelectRecord)}
               >
                 <label
                   className="record-check"
@@ -272,21 +278,21 @@ export function WorkspaceListPanel({
 
                 <div className="record-actions">
                   {record.status !== "已完成" ? (
-                    <span
-                      className="button-mini"
+                    <button
+                      type="button"
+                      className="button-mini record-complete-btn"
                       onClick={(event) => {
                         event.stopPropagation();
                         onCompleteRecord(record.id);
                       }}
                     >
                       完成
-                    </span>
+                    </button>
                   ) : (
                     <span className="record-done">已完成</span>
                   )}
-                  <span
-                    role="button"
-                    tabIndex={0}
+                  <button
+                    type="button"
                     className="record-delete-btn"
                     aria-label={`移入回收站 ${record.title}`}
                     title="移入回收站"
@@ -303,9 +309,9 @@ export function WorkspaceListPanel({
                     }}
                   >
                     <TrashIcon />
-                  </span>
+                  </button>
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
@@ -350,6 +356,19 @@ function isUrgentRecord(record: RecordEntity): boolean {
   }
 
   return dueAt <= Date.now() + 24 * 60 * 60 * 1000;
+}
+
+function handleRecordRowKeyDown(
+  event: ReactKeyboardEvent<HTMLElement>,
+  recordId: string,
+  onSelectRecord: (recordId: string) => void,
+): void {
+  if (event.key !== "Enter" && event.key !== " ") {
+    return;
+  }
+
+  event.preventDefault();
+  onSelectRecord(recordId);
 }
 
 function getWorkspaceCopy(activeView: WorkspaceListPanelProps["activeView"], currentTagName: string): {

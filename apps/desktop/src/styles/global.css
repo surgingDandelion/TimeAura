@@ -4086,14 +4086,29 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
 .record-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
+  min-width: 92px;
+}
+
+.record-complete-btn {
+  min-width: 48px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.record-complete-btn:hover {
+  transform: translateY(-0.5px);
 }
 
 .record-delete-btn {
   width: 28px;
   height: 28px;
   padding: 0;
-  border: 0;
+  border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
   color: rgba(136, 92, 96, 0.72);
@@ -4125,6 +4140,7 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
 
 .record-delete-btn:hover {
   background: rgba(196, 92, 99, 0.1);
+  border-color: rgba(196, 92, 99, 0.12);
   color: #9a4f54;
 }
 

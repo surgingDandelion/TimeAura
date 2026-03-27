@@ -28,7 +28,7 @@ export function useWorkspaceViewModel({
   const { services, runtime } = useAppServices();
   const quickAddRef = useRef<HTMLInputElement | null>(null);
   const searchRef = useRef<HTMLInputElement | null>(null);
-  const rowRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const rowRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const [message, setMessage] = useState<string | null>(null);
 

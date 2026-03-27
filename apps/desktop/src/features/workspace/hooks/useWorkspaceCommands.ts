@@ -65,7 +65,7 @@ interface UseWorkspaceCommandsOptions {
   tagEditor: TagEditorDraft;
   quickAddRef: RefObject<HTMLInputElement>;
   searchRef: RefObject<HTMLInputElement>;
-  rowRefs: MutableRefObject<Record<string, HTMLButtonElement | null>>;
+  rowRefs: MutableRefObject<Record<string, HTMLElement | null>>;
   onRefresh(): void;
   onCloseQuickAdd(): void;
   onQuickAddChange(value: string): void;

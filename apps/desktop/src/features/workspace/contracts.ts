@@ -111,7 +111,7 @@ export interface WorkspaceListPanelContract {
   notificationDebugFeed: NotificationDebugEntry[];
   notificationDebugOpen: boolean;
   searchRef: RefObject<HTMLInputElement>;
-  rowRefs: MutableRefObject<Record<string, HTMLButtonElement | null>>;
+  rowRefs: MutableRefObject<Record<string, HTMLElement | null>>;
   onRefresh(): void;
   onKeywordChange: StringHandler;
   onStatusChange(value: WorkspaceStatusFilter): void;

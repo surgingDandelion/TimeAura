@@ -57,7 +57,7 @@ function createCommandsOptions() {
   } as unknown as RefObject<HTMLInputElement>;
   const rowRefs = {
     current: {},
-  } as MutableRefObject<Record<string, HTMLButtonElement | null>>;
+  } as MutableRefObject<Record<string, HTMLElement | null>>;
 
   return {
     activeTagId: "all",
