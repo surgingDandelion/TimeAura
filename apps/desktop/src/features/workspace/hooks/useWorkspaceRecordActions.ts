@@ -39,7 +39,7 @@ export function useWorkspaceRecordActions({
   }, [services.recordService, syncWorkspace]);
 
   const handleDelete = useCallback(async (recordId: string): Promise<WorkspaceCommandResult<{ recordId: string }>> => {
-    const confirmed = await seams.confirm.confirm("确认删除这条记录吗？");
+    const confirmed = await seams.confirm.confirm("确认将这条记录移入回收站吗？");
 
     if (!confirmed) {
       return {
@@ -54,10 +54,10 @@ export function useWorkspaceRecordActions({
     }
 
     setSelectedIds((current) => current.filter((id) => id !== recordId));
-    await syncWorkspace("记录已删除");
+    await syncWorkspace("记录已移入回收站");
     return {
       status: "success",
-      message: "记录已删除",
+      message: "记录已移入回收站",
       data: { recordId },
     };
   }, [selectedId, seams.confirm, services.recordService, setSelectedId, setSelectedIds, syncWorkspace]);

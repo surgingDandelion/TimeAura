@@ -104,6 +104,29 @@ export class MockRecordRepository implements RecordRepository {
     record.updatedAt = deletedAt;
   }
 
+  async restore(id: string, restoredAt: string): Promise<RecordEntity> {
+    const record = this.requireRecord(id);
+    record.deletedAt = null;
+    record.updatedAt = restoredAt;
+    return cloneValue(record);
+  }
+
+  async hardDelete(id: string): Promise<void> {
+    this.runtime.records = this.runtime.records.filter((record) => record.id !== id);
+    this.runtime.recordTags = this.runtime.recordTags.filter((link) => link.recordId !== id);
+  }
+
+  async clearDeleted(): Promise<number> {
+    const deletedIds = this.runtime.records.filter((record) => Boolean(record.deletedAt)).map((record) => record.id);
+    if (deletedIds.length === 0) {
+      return 0;
+    }
+
+    this.runtime.records = this.runtime.records.filter((record) => !record.deletedAt);
+    this.runtime.recordTags = this.runtime.recordTags.filter((link) => !deletedIds.includes(link.recordId));
+    return deletedIds.length;
+  }
+
   async archive(id: string, archivedAt: string): Promise<void> {
     const record = this.requireRecord(id);
     record.archivedAt = archivedAt;

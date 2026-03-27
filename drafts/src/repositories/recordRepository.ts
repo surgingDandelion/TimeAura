@@ -9,5 +9,8 @@ export interface RecordRepository {
   list(query: RecordListQuery): Promise<PageResult<RecordEntity>>;
   listByIds(ids: string[]): Promise<RecordEntity[]>;
   softDelete(id: string, deletedAt: string): Promise<void>;
+  restore(id: string, restoredAt: string): Promise<RecordEntity>;
+  hardDelete(id: string): Promise<void>;
+  clearDeleted(): Promise<number>;
   archive(id: string, archivedAt: string): Promise<void>;
 }

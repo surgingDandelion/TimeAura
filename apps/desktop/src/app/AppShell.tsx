@@ -6,6 +6,7 @@ import { useAppServices } from "./providers/AppServicesProvider";
 import { ensureDesktopExperienceData } from "./bootstrap/ensureDesktopExperienceData";
 import { ChannelStudioPage } from "../features/channels/ChannelStudioPage";
 import { ReportStudioPage } from "../features/reports/ReportStudioPage";
+import { TrashPage } from "../features/trash/TrashPage";
 import { WorkspacePage } from "../features/workspace/WorkspacePage";
 import type {
   NotificationActionEventPayload,
@@ -17,7 +18,7 @@ import type {
   WorkspaceSystemView,
 } from "../features/workspace/types";
 
-type AppPage = "workspace" | "reports" | "channels";
+type AppPage = "workspace" | "reports" | "channels" | "trash";
 type ThemeMode = "light" | "dark";
 
 interface WorkspaceSidebarCounts {
@@ -575,8 +576,8 @@ export function AppShell(): JSX.Element {
               <ReportIcon />
             </button>
             <button
-              className="icon-btn sidebar-footer-icon"
-              disabled
+              className={`icon-btn sidebar-footer-icon${page === "trash" ? " icon-btn-active" : ""}`}
+              onClick={() => setPage("trash")}
               title="回收站"
               aria-label="回收站"
             >
@@ -618,6 +619,7 @@ export function AppShell(): JSX.Element {
           ) : null}
           {page === "reports" ? <ReportStudioPage /> : null}
           {page === "channels" ? <ChannelStudioPage /> : null}
+          {page === "trash" ? <TrashPage onTrashChanged={handleWorkspaceChanged} /> : null}
         </main>
       </div>
     </div>

@@ -42,7 +42,7 @@ describe("useWorkspaceRecordActions", () => {
     expect(commandResult).toEqual({
       status: "cancelled",
     });
-    expect(state.confirmMessages).toEqual(["确认删除这条记录吗？"]);
+    expect(state.confirmMessages).toEqual(["确认将这条记录移入回收站吗？"]);
     expect(deleteRecord).not.toHaveBeenCalled();
     expect(setSelectedId).not.toHaveBeenCalled();
     expect(setSelectedIds).not.toHaveBeenCalled();
@@ -87,15 +87,15 @@ describe("useWorkspaceRecordActions", () => {
 
     expect(commandResult).toEqual({
       status: "success",
-      message: "记录已删除",
+      message: "记录已移入回收站",
       data: { recordId: "record-1" },
     });
-    expect(state.confirmMessages).toEqual(["确认删除这条记录吗？"]);
+    expect(state.confirmMessages).toEqual(["确认将这条记录移入回收站吗？"]);
     expect(deleteRecord).toHaveBeenCalledWith("record-1");
     expect(setSelectedId).toHaveBeenCalledWith(null);
     expect(setSelectedIds).toHaveBeenCalledTimes(1);
     expect(selectedIdsState).toEqual(["record-2"]);
-    expect(syncWorkspace).toHaveBeenCalledWith("记录已删除");
+    expect(syncWorkspace).toHaveBeenCalledWith("记录已移入回收站");
   });
 
   it("returns noop when there is no record to reschedule", async () => {

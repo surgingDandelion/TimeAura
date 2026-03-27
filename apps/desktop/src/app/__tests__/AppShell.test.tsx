@@ -12,6 +12,7 @@ const ensureDesktopExperienceDataSpy = vi.fn();
 const workspacePageSpy = vi.fn();
 const reportPageSpy = vi.fn();
 const channelPageSpy = vi.fn();
+const trashPageSpy = vi.fn();
 const tauriBridge = vi.hoisted(() => ({
   notificationCallback: null as null | ((payload: { extra?: Record<string, unknown> }) => void),
   desktopCallback: null as null | ((payload: { payload: { actionId?: string; extra?: Record<string, unknown> } }) => void),
@@ -77,6 +78,13 @@ vi.mock("../../features/channels/ChannelStudioPage", () => ({
   ChannelStudioPage: () => {
     channelPageSpy();
     return <div data-testid="channel-page">channel-page</div>;
+  },
+}));
+
+vi.mock("../../features/trash/TrashPage", () => ({
+  TrashPage: (props: Record<string, unknown>) => {
+    trashPageSpy(props);
+    return <div data-testid="trash-page">trash-page</div>;
   },
 }));
 
@@ -164,6 +172,7 @@ describe("AppShell", () => {
     workspacePageSpy.mockReset();
     reportPageSpy.mockReset();
     channelPageSpy.mockReset();
+    trashPageSpy.mockReset();
     tauriBridge.notificationCallback = null;
     tauriBridge.desktopCallback = null;
     tauriBridge.unregister.mockClear();
@@ -202,6 +211,9 @@ describe("AppShell", () => {
 
     fireEvent.click(screen.getByLabelText("通道配置"));
     expect(screen.getByTestId("channel-page")).toBeTruthy();
+
+    fireEvent.click(screen.getByLabelText("回收站"));
+    expect(screen.getByTestId("trash-page")).toBeTruthy();
 
     fireEvent.click(screen.getAllByText("快速新增")[0] as HTMLElement);
 

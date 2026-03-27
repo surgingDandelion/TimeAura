@@ -81,6 +81,18 @@ export class DefaultRecordService implements RecordService {
     await this.recordRepository.softDelete(id, this.now());
   }
 
+  async restoreRecord(id: string): Promise<RecordEntity> {
+    return this.recordRepository.restore(id, this.now());
+  }
+
+  async destroyRecord(id: string): Promise<void> {
+    await this.recordRepository.hardDelete(id);
+  }
+
+  async emptyTrash(): Promise<number> {
+    return this.recordRepository.clearDeleted();
+  }
+
   async batchReschedule(ids: string[], strategy: RescheduleStrategy): Promise<RecordEntity[]> {
     return this.recordRepository.batchReschedule(ids, strategy);
   }

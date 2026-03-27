@@ -104,6 +104,14 @@ export function createWorkspaceRecordServiceDouble(overrides: Partial<RecordServ
     ),
     archiveRecord: vi.fn(async () => undefined),
     deleteRecord: vi.fn(async () => undefined),
+    restoreRecord: vi.fn(async (id: string) =>
+      createWorkspaceRecordEntity({
+        id,
+        deletedAt: null,
+      }),
+    ),
+    destroyRecord: vi.fn(async () => undefined),
+    emptyTrash: vi.fn(async () => 0),
     batchReschedule: vi.fn(async (ids: string[], strategy: RescheduleStrategy) =>
       ids.map((id) =>
         createWorkspaceRecordEntity({

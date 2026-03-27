@@ -216,6 +216,37 @@ export class SqliteRecordRepository implements RecordRepository {
     );
   }
 
+  async restore(id: string, restoredAt: string): Promise<RecordEntity> {
+    await this.client.execute(
+      "UPDATE records SET deleted_at = NULL, updated_at = ? WHERE id = ?",
+      [restoredAt, id],
+    );
+
+    const restored = await this.findById(id);
+    if (!restored) {
+      throw new Error(`Record not found: ${id}`);
+    }
+
+    return restored;
+  }
+
+  async hardDelete(id: string): Promise<void> {
+    await this.client.execute("DELETE FROM records WHERE id = ?", [id]);
+  }
+
+  async clearDeleted(): Promise<number> {
+    const rows = await this.client.select<{ count: number }>(
+      "SELECT COUNT(*) AS count FROM records WHERE deleted_at IS NOT NULL",
+    );
+    const count = Number(rows[0]?.count ?? 0);
+
+    if (count > 0) {
+      await this.client.execute("DELETE FROM records WHERE deleted_at IS NOT NULL");
+    }
+
+    return count;
+  }
+
   async archive(id: string, archivedAt: string): Promise<void> {
     await this.client.execute(
       "UPDATE records SET status = '已归档', archived_at = ?, updated_at = ? WHERE id = ?",
