@@ -75,6 +75,7 @@ function createProps() {
     onSelectRecord: vi.fn(),
     onToggleSelection: vi.fn(),
     onCompleteRecord: vi.fn(),
+    onDeleteRecord: vi.fn(),
   };
 }
 
@@ -117,6 +118,9 @@ describe("WorkspaceListPanel", () => {
 
     fireEvent.click(screen.getByText("完成"));
     expect(props.onCompleteRecord).toHaveBeenCalledWith("record-1");
+
+    fireEvent.click(screen.getByLabelText("移入回收站 整理周报"));
+    expect(props.onDeleteRecord).toHaveBeenCalledWith("record-1");
   });
 
   it("exposes batch reschedule actions when there is selection", () => {

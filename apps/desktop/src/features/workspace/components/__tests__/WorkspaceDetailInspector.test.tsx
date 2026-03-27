@@ -48,7 +48,6 @@ function createProps() {
     onPolishMarkdown: vi.fn(),
     onOpenTagManager: vi.fn(),
     onArchive: vi.fn(),
-    onDelete: vi.fn(),
     onClose: vi.fn(),
     onSave: vi.fn(),
     onDraftChange: vi.fn(),
@@ -71,7 +70,6 @@ describe("WorkspaceDetailInspector", () => {
         onPolishMarkdown={vi.fn()}
         onOpenTagManager={vi.fn()}
         onArchive={vi.fn()}
-        onDelete={vi.fn()}
         onClose={vi.fn()}
         onSave={vi.fn()}
         onDraftChange={vi.fn()}
@@ -90,7 +88,6 @@ describe("WorkspaceDetailInspector", () => {
     fireEvent.click(screen.getByRole("button", { name: "AI 摘要" }));
     fireEvent.click(screen.getByRole("button", { name: "润色" }));
     fireEvent.click(screen.getByRole("button", { name: "归档" }));
-    fireEvent.click(screen.getByRole("button", { name: "删除" }));
     fireEvent.click(screen.getByRole("button", { name: "关闭详情" }));
     fireEvent.click(screen.getByRole("button", { name: "管理标签" }));
 
@@ -98,7 +95,6 @@ describe("WorkspaceDetailInspector", () => {
     expect(props.onPolishMarkdown).toHaveBeenCalledTimes(1);
     expect(props.onOpenTagManager).toHaveBeenCalledTimes(1);
     expect(props.onArchive).toHaveBeenCalledWith("record-1");
-    expect(props.onDelete).toHaveBeenCalledWith("record-1");
     expect(props.onClose).toHaveBeenCalledTimes(1);
 
     const titleInput = screen.getByDisplayValue("整理周报");

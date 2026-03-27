@@ -136,6 +136,7 @@ export interface WorkspaceListPanelContract {
   onSelectRecord: RecordIdHandler;
   onToggleSelection: RecordIdHandler;
   onCompleteRecord: RecordIdHandler;
+  onDeleteRecord: RecordIdHandler;
 }
 
 export interface WorkspaceDetailInspectorContract {
@@ -149,7 +150,6 @@ export interface WorkspaceDetailInspectorContract {
   onPolishMarkdown(): void;
   onOpenTagManager(): void;
   onArchive: RecordIdHandler;
-  onDelete: RecordIdHandler;
   onClose(): void;
   onSave(): void;
   onDraftChange: RecordDraftHandler;

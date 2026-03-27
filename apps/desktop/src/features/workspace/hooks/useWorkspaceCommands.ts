@@ -92,11 +92,11 @@ interface UseWorkspaceCommandsOptions {
   onSelectRecord(recordId: string | null): void;
   onToggleSelection(recordId: string): void;
   onCompleteRecord(recordId: string): void;
+  onDelete(recordId: string): void;
   onGenerateSummary(): void;
   onPolishMarkdown(): void;
   onOpenTagManager(): void;
   onArchive(recordId: string): void;
-  onDelete(recordId: string): void;
   onCloseInspector(): void;
   onSave(): void;
   onDraftChange(nextDraft: RecordDraft): void;
@@ -205,6 +205,7 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
       onSelectRecord: (recordId: string) => options.onSelectRecord(recordId),
       onToggleSelection: options.onToggleSelection,
       onCompleteRecord: options.onCompleteRecord,
+      onDeleteRecord: options.onDelete,
     };
 
   const quickAddSheetProps: QuickAddSheetContract = {
@@ -229,7 +230,6 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
       onPolishMarkdown: options.onPolishMarkdown,
       onOpenTagManager: options.onOpenTagManager,
       onArchive: options.onArchive,
-      onDelete: options.onDelete,
       onClose: options.onCloseInspector,
       onSave: options.onSave,
       onDraftChange: options.onDraftChange,

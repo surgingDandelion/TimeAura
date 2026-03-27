@@ -4083,6 +4083,51 @@ body[data-theme="dark"] .quick-add-modal:focus-within .quick-add-close {
   padding: 0 10px;
 }
 
+.record-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.record-delete-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(136, 92, 96, 0.72);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+
+.record-delete-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.workspace-record-row:hover .record-delete-btn,
+.workspace-record-row.record-row-active .record-delete-btn,
+.workspace-record-row:focus-visible .record-delete-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.record-delete-btn:hover {
+  background: rgba(196, 92, 99, 0.1);
+  color: #9a4f54;
+}
+
 .workspace-detail-header {
   gap: 10px;
   padding: 2px 4px 0 6px;
@@ -5362,6 +5407,15 @@ body[data-theme="dark"] .trash-button-danger {
 }
 
 body[data-theme="dark"] .trash-button-danger:hover:not(:disabled) {
+  background: rgba(196, 92, 99, 0.14);
+  color: #f0c9cd;
+}
+
+body[data-theme="dark"] .record-delete-btn {
+  color: rgba(228, 187, 191, 0.72);
+}
+
+body[data-theme="dark"] .record-delete-btn:hover {
   background: rgba(196, 92, 99, 0.14);
   color: #f0c9cd;
 }

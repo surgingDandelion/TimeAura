@@ -57,6 +57,7 @@ export function WorkspaceListPanel({
   onSelectRecord,
   onToggleSelection,
   onCompleteRecord,
+  onDeleteRecord,
 }: WorkspaceListPanelProps): JSX.Element {
   const effectiveStatus =
     activeView === "done" ? "done" : activeView === "today" || activeView === "plan" ? "todo" : status;
@@ -283,6 +284,26 @@ export function WorkspaceListPanel({
                   ) : (
                     <span className="record-done">已完成</span>
                   )}
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    className="record-delete-btn"
+                    aria-label={`移入回收站 ${record.title}`}
+                    title="移入回收站"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onDeleteRecord(record.id);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        onDeleteRecord(record.id);
+                      }
+                    }}
+                  >
+                    <TrashIcon />
+                  </span>
                 </div>
               </button>
             );
@@ -367,6 +388,16 @@ function SearchIcon(): JSX.Element {
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="11" cy="11" r="6.5" />
       <path d="M16 16l4 4" />
+    </svg>
+  );
+}
+
+function TrashIcon(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 7h16" />
+      <path d="M9 7V4h6v3" />
+      <path d="M7 7l1 13h8l1-13" />
     </svg>
   );
 }

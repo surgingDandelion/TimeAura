@@ -15,7 +15,6 @@ export function WorkspaceDetailInspector({
   onPolishMarkdown,
   onOpenTagManager,
   onArchive,
-  onDelete,
   onClose,
   onDraftChange,
   onToggleTag,
@@ -183,9 +182,6 @@ export function WorkspaceDetailInspector({
               </button>
               <button className="button-ghost inspector-action-btn" onClick={() => onArchive(selectedRecord.id)}>
                 归档
-              </button>
-              <button className="button-ghost inspector-action-btn inspector-action-btn-danger" onClick={() => onDelete(selectedRecord.id)}>
-                删除
               </button>
             </div>
           </div>
