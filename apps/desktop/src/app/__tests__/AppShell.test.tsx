@@ -534,4 +534,53 @@ describe("AppShell", () => {
     expect(tauriBridge.unlisten).toHaveBeenCalledTimes(1);
     expect(tauriBridge.unregister).toHaveBeenCalledTimes(1);
   });
+
+  it("prevents browser-level select all outside text editing targets", async () => {
+    const container = createContainer();
+    useAppServicesSpy.mockReturnValue(container);
+
+    render(<AppShell />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("workspace-page")).toBeTruthy();
+    });
+
+    const event = new KeyboardEvent("keydown", {
+      key: "a",
+      metaKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+
+    document.body.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it("keeps select all available inside inputs", async () => {
+    const container = createContainer();
+    useAppServicesSpy.mockReturnValue(container);
+
+    render(<AppShell />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("workspace-page")).toBeTruthy();
+    });
+
+    const input = document.createElement("input");
+    document.body.appendChild(input);
+
+    const event = new KeyboardEvent("keydown", {
+      key: "a",
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+
+    input.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+
+    input.remove();
+  });
 });

@@ -42,6 +42,15 @@ const WORKSPACE_VIEW_CARDS: Array<{
 
 const UNCATEGORIZED_TAG_ID = "tag_uncategorized";
 
+function isTextEditingTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  const tagName = target.tagName;
+  return tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "SELECT" || target.isContentEditable;
+}
+
 export function AppShell(): JSX.Element {
   const { runtime, services } = useAppServices();
   const reminderScanInFlightRef = useRef(false);
@@ -61,6 +70,28 @@ export function AppShell(): JSX.Element {
   const [workspaceRuntimeNotice, setWorkspaceRuntimeNotice] = useState<WorkspaceRuntimeNotice | null>(null);
   const [notificationDebugEntries, setNotificationDebugEntries] = useState<NotificationDebugEntry[]>([]);
   const [theme, setTheme] = useState<ThemeMode>("light");
+
+  useEffect(() => {
+    const handlePreventBrowserSelectAll = (event: KeyboardEvent) => {
+      const commandPressed = event.metaKey || event.ctrlKey;
+
+      if (!commandPressed || event.key.toLowerCase() !== "a") {
+        return;
+      }
+
+      if (isTextEditingTarget(event.target)) {
+        return;
+      }
+
+      event.preventDefault();
+    };
+
+    window.addEventListener("keydown", handlePreventBrowserSelectAll);
+
+    return () => {
+      window.removeEventListener("keydown", handlePreventBrowserSelectAll);
+    };
+  }, []);
 
   const pushNotificationDebug = useCallback((entry: Omit<NotificationDebugEntry, "id" | "at">) => {
     setNotificationDebugEntries((current) => [
