@@ -111,7 +111,7 @@ export function WorkspaceDetailInspector({
             </div>
 
             <div className="inspector-field-row stack">
-              <label>标签</label>
+              <label>列表</label>
               <div className="inspector-field-control wrap">
                 <div className={`tag-editor${currentTags.length === 0 ? " empty" : ""}`}>
                   {currentTags.length > 0 ? currentTags.map((tag) => (
@@ -122,10 +122,28 @@ export function WorkspaceDetailInspector({
                   )) : "当前记录的标签会展示在这里。"}
                 </div>
 
-                <button type="button" className="inspector-action-btn inspector-action-btn-quiet" onClick={onOpenTagManager}>
-                  <EditIcon />
-                  管理标签
-                </button>
+                {tags.length > 0 ? (
+                  <div className="tag-choice-grid">
+                    {tags.map((tag) => {
+                      const active = draft.tags.includes(tag.id);
+
+                      return (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          className={`tag-choice-chip${active ? " tag-choice-chip-active" : ""}`}
+                          onClick={() => onToggleTag(tag.id)}
+                        >
+                          <i style={{ backgroundColor: tag.color }} />
+                          <span>{tag.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="tag-editor empty">还没有可用列表，请先在左侧“我的列表”中创建。</div>
+                )}
+                <div className="inspector-field-note">名称和颜色在左侧“我的列表”里维护，这里只负责为记录直接选择。</div>
               </div>
             </div>
 

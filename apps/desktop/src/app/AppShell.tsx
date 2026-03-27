@@ -28,6 +28,18 @@ interface WorkspaceSidebarCounts {
   done: number;
 }
 
+interface SidebarListEditorDraft {
+  id: string | null;
+  name: string;
+  color: string;
+}
+
+interface SidebarTagContextMenuState {
+  tag: TagCountItem;
+  x: number;
+  y: number;
+}
+
 const WORKSPACE_VIEW_CARDS: Array<{
   id: WorkspaceSystemView;
   label: string;
@@ -70,6 +82,15 @@ export function AppShell(): JSX.Element {
   const [workspaceRuntimeNotice, setWorkspaceRuntimeNotice] = useState<WorkspaceRuntimeNotice | null>(null);
   const [notificationDebugEntries, setNotificationDebugEntries] = useState<NotificationDebugEntry[]>([]);
   const [theme, setTheme] = useState<ThemeMode>("light");
+  const [workspaceDataVersion, setWorkspaceDataVersion] = useState(0);
+  const [myListsOpen, setMyListsOpen] = useState(false);
+  const [sidebarListDraft, setSidebarListDraft] = useState<SidebarListEditorDraft>({
+    id: null,
+    name: "",
+    color: "#5f89ff",
+  });
+  const [pendingSidebarDeleteId, setPendingSidebarDeleteId] = useState<string | null>(null);
+  const [sidebarTagContextMenu, setSidebarTagContextMenu] = useState<SidebarTagContextMenuState | null>(null);
 
   useEffect(() => {
     const handlePreventBrowserSelectAll = (event: KeyboardEvent) => {
@@ -92,6 +113,49 @@ export function AppShell(): JSX.Element {
       window.removeEventListener("keydown", handlePreventBrowserSelectAll);
     };
   }, []);
+
+  useEffect(() => {
+    if (!sidebarTagContextMenu) {
+      return;
+    }
+
+    const closeMenu = () => {
+      setSidebarTagContextMenu(null);
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeMenu();
+      }
+    };
+
+    window.addEventListener("click", closeMenu);
+    window.addEventListener("contextmenu", closeMenu);
+    window.addEventListener("resize", closeMenu);
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("click", closeMenu);
+      window.removeEventListener("contextmenu", closeMenu);
+      window.removeEventListener("resize", closeMenu);
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [sidebarTagContextMenu]);
+
+  useEffect(() => {
+    if (!sidebarListDraft.id) {
+      return;
+    }
+
+    if (!sidebarTags.some((tag) => tag.id === sidebarListDraft.id)) {
+      setSidebarListDraft({
+        id: null,
+        name: "",
+        color: "#5f89ff",
+      });
+      setPendingSidebarDeleteId(null);
+    }
+  }, [sidebarListDraft.id, sidebarTags]);
 
   const pushNotificationDebug = useCallback((entry: Omit<NotificationDebugEntry, "id" | "at">) => {
     setNotificationDebugEntries((current) => [
@@ -171,7 +235,94 @@ export function AppShell(): JSX.Element {
       loadSidebarData(),
       scheduleReminderNotifications(),
     ]);
+    setWorkspaceDataVersion((current) => current + 1);
   }, [loadSidebarData, scheduleReminderNotifications]);
+
+  const resetSidebarListDraft = useCallback(() => {
+    setSidebarListDraft({
+      id: null,
+      name: "",
+      color: "#5f89ff",
+    });
+    setPendingSidebarDeleteId(null);
+  }, []);
+
+  const closeMyLists = useCallback(() => {
+    setMyListsOpen(false);
+    resetSidebarListDraft();
+  }, [resetSidebarListDraft]);
+
+  const openMyListsCreate = useCallback(() => {
+    setPage("workspace");
+    setMyListsOpen(true);
+    setSidebarTagContextMenu(null);
+    resetSidebarListDraft();
+  }, [resetSidebarListDraft]);
+
+  const openMyListsEdit = useCallback((tag: TagCountItem, options?: { deleteConfirm?: boolean }) => {
+    setPage("workspace");
+    setMyListsOpen(true);
+    setSidebarTagContextMenu(null);
+    setSidebarListDraft({
+      id: tag.id,
+      name: tag.name,
+      color: tag.color,
+    });
+    setPendingSidebarDeleteId(options?.deleteConfirm ? tag.id : null);
+  }, []);
+
+  const submitSidebarList = useCallback(async () => {
+    const name = sidebarListDraft.name.trim();
+
+    if (!name) {
+      presentRuntimeNotice("列表名称不能为空", "warning");
+      return;
+    }
+
+    try {
+      if (sidebarListDraft.id) {
+        await services.tagService.updateTag(sidebarListDraft.id, {
+          name,
+          color: sidebarListDraft.color,
+        });
+        await handleWorkspaceChanged();
+        setWorkspaceTagId(sidebarListDraft.id);
+        presentRuntimeNotice("我的列表已更新", "info");
+      } else {
+        const created = await services.tagService.createTag({
+          name,
+          color: sidebarListDraft.color,
+        });
+        await handleWorkspaceChanged();
+        setWorkspaceTagId(created.id);
+        presentRuntimeNotice("已新增我的列表", "info");
+      }
+
+      closeMyLists();
+    } catch (error) {
+      reportShellFailure("列表保存失败", "保存我的列表失败，请稍后重试", error);
+    }
+  }, [closeMyLists, handleWorkspaceChanged, presentRuntimeNotice, reportShellFailure, services.tagService, sidebarListDraft]);
+
+  const confirmDeleteSidebarList = useCallback(async () => {
+    if (!sidebarListDraft.id) {
+      return;
+    }
+
+    try {
+      await services.tagService.deleteTag(sidebarListDraft.id);
+
+      if (workspaceTagId === sidebarListDraft.id) {
+        setWorkspaceTagId("all");
+      }
+
+      await handleWorkspaceChanged();
+      presentRuntimeNotice("已删除我的列表", "info");
+      closeMyLists();
+    } catch (error) {
+      reportShellFailure("列表删除失败", "删除我的列表失败，请稍后重试", error);
+    }
+  }, [closeMyLists, handleWorkspaceChanged, presentRuntimeNotice, reportShellFailure, services.tagService, sidebarListDraft.id, workspaceTagId]);
 
   const routeToWorkspaceRecord = useCallback((recordId: string) => {
     setPage("workspace");
@@ -625,9 +776,21 @@ export function AppShell(): JSX.Element {
           </div>
 
           <div className="nav-section sidebar-section">
-            <div className="nav-label">标签</div>
+            <div className="nav-label-row">
+              <div className="nav-label">我的列表</div>
+              <button
+                type="button"
+                className="nav-label-action"
+                aria-label="新增我的列表"
+                title="新增我的列表"
+                onClick={openMyListsCreate}
+              >
+                <PlusIcon />
+              </button>
+            </div>
             <div className="sidebar-tag-list">
             <button
+              type="button"
               className={`sidebar-tag-item${page === "workspace" && workspaceTagId === "all" ? " sidebar-tag-item-active" : ""}`}
               onClick={() => {
                 setPage("workspace");
@@ -644,10 +807,19 @@ export function AppShell(): JSX.Element {
             {sidebarTags.map((tag) => (
               <button
                 key={tag.id}
+                type="button"
                 className={`sidebar-tag-item${page === "workspace" && workspaceTagId === tag.id ? " sidebar-tag-item-active" : ""}`}
                 onClick={() => {
                   setPage("workspace");
                   setWorkspaceTagId(tag.id);
+                }}
+                onContextMenu={(event) => {
+                  event.preventDefault();
+                  setSidebarTagContextMenu({
+                    tag,
+                    x: Math.min(event.clientX, window.innerWidth - 176),
+                    y: Math.min(event.clientY, window.innerHeight - 96),
+                  });
                 }}
               >
                 <span className="sidebar-tag-label">
@@ -702,6 +874,7 @@ export function AppShell(): JSX.Element {
             <WorkspacePage
               activeTagId={workspaceTagId}
               activeView={workspaceView}
+              dataVersion={workspaceDataVersion}
               focusTarget={workspaceFocusTarget}
               quickAddTarget={workspaceQuickAddTarget}
               runtimeNotice={workspaceRuntimeNotice}
@@ -715,6 +888,189 @@ export function AppShell(): JSX.Element {
           {page === "channels" ? <ChannelStudioPage /> : null}
           {page === "trash" ? <TrashPage onTrashChanged={handleWorkspaceChanged} /> : null}
         </main>
+      </div>
+
+      {sidebarTagContextMenu ? (
+        <div
+          className="sidebar-context-menu"
+          style={{ left: sidebarTagContextMenu.x, top: sidebarTagContextMenu.y }}
+          role="menu"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <button
+            type="button"
+            className="sidebar-context-menu-item"
+            onClick={() => openMyListsEdit(sidebarTagContextMenu.tag)}
+          >
+            编辑列表
+          </button>
+          <button
+            type="button"
+            className="sidebar-context-menu-item danger"
+            disabled={sidebarTagContextMenu.tag.isSystem}
+            onClick={() => openMyListsEdit(sidebarTagContextMenu.tag, { deleteConfirm: true })}
+          >
+            删除列表
+          </button>
+        </div>
+      ) : null}
+
+      <MyListsSheet
+        open={myListsOpen}
+        tags={sidebarTags}
+        draft={sidebarListDraft}
+        pendingDeleteId={pendingSidebarDeleteId}
+        onClose={closeMyLists}
+        onDraftChange={setSidebarListDraft}
+        onResetDraft={resetSidebarListDraft}
+        onSelectTag={(tag) => openMyListsEdit(tag)}
+        onRequestDelete={(tag) => setPendingSidebarDeleteId(tag.id)}
+        onCancelDelete={() => setPendingSidebarDeleteId(null)}
+        onConfirmDelete={confirmDeleteSidebarList}
+        onSubmit={submitSidebarList}
+      />
+    </div>
+  );
+}
+
+interface MyListsSheetProps {
+  open: boolean;
+  tags: TagCountItem[];
+  draft: SidebarListEditorDraft;
+  pendingDeleteId: string | null;
+  onClose(): void;
+  onDraftChange(nextDraft: SidebarListEditorDraft): void;
+  onResetDraft(): void;
+  onSelectTag(tag: TagCountItem): void;
+  onRequestDelete(tag: TagCountItem): void;
+  onCancelDelete(): void;
+  onConfirmDelete(): void;
+  onSubmit(): void;
+}
+
+function MyListsSheet({
+  open,
+  tags,
+  draft,
+  pendingDeleteId,
+  onClose,
+  onDraftChange,
+  onResetDraft,
+  onSelectTag,
+  onRequestDelete,
+  onCancelDelete,
+  onConfirmDelete,
+  onSubmit,
+}: MyListsSheetProps): JSX.Element | null {
+  if (!open) {
+    return null;
+  }
+
+  const editingTag = draft.id ? tags.find((tag) => tag.id === draft.id) ?? null : null;
+
+  return (
+    <div className="sheet-backdrop" onClick={onClose}>
+      <div
+        className="sheet-panel my-lists-sheet"
+        onClick={(event) => {
+          event.stopPropagation();
+        }}
+      >
+        <div className="tag-manager-header">
+          <div>
+            <h3 className="panel-title panel-title-small">我的列表</h3>
+            <div className="tag-manager-copy">左侧只保留轻量列表管理。记录本身直接选列表，不再在这里来回绑定。</div>
+          </div>
+          <button type="button" className="icon-btn" aria-label="关闭我的列表" title="关闭我的列表" onClick={onClose}>
+            <CloseIcon />
+          </button>
+        </div>
+
+        <div className="my-lists-body">
+          <div className="tag-panel">
+            <div className="tag-panel-header">
+              <div className="tag-panel-title">
+                <strong>{editingTag ? "编辑列表" : "新增列表"}</strong>
+              </div>
+              <div className="tag-panel-caption">只维护名称和颜色。具体记录绑定在工作台详情和快速新增里直接完成。</div>
+            </div>
+
+            <div className="tag-form-stack">
+              <div className="tag-form-row">
+                <input
+                  className="input"
+                  value={draft.name}
+                  onChange={(event) => onDraftChange({ ...draft, name: event.target.value })}
+                  placeholder="输入列表名称"
+                />
+                <input
+                  className="color-input"
+                  type="color"
+                  value={draft.color}
+                  onChange={(event) => onDraftChange({ ...draft, color: event.target.value })}
+                  aria-label="列表颜色"
+                />
+              </div>
+
+              <div className="tag-form-actions">
+                <button type="button" className="text-btn" onClick={onResetDraft}>
+                  新建列表
+                </button>
+                <button type="button" className="button-ghost" onClick={onSubmit}>
+                  {editingTag ? "保存修改" : "新增列表"}
+                </button>
+              </div>
+
+              {editingTag && !editingTag.isSystem ? (
+                pendingDeleteId === editingTag.id ? (
+                  <div className="tag-delete-confirm" role="alert">
+                    <span className="tag-delete-confirm-copy">确认删除“{editingTag.name}”？该列表会从已有记录中移除。</span>
+                    <div className="tag-delete-confirm-actions">
+                      <button type="button" className="text-btn" onClick={onCancelDelete}>
+                        取消
+                      </button>
+                      <button type="button" className="tag-confirm-delete-btn" onClick={onConfirmDelete}>
+                        确认删除
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="my-lists-delete-row">
+                    <button type="button" className="inspector-action-btn inspector-action-btn-danger" onClick={() => onRequestDelete(editingTag)}>
+                      删除这个列表
+                    </button>
+                  </div>
+                )
+              ) : null}
+            </div>
+          </div>
+
+          <div className="tag-panel">
+            <div className="tag-panel-header">
+              <div className="tag-panel-title">
+                <strong>列表库</strong>
+              </div>
+              <div className="tag-panel-caption">点击一行继续编辑，右击左侧导航也可以直接进入编辑或删除。</div>
+            </div>
+
+            <div className="tag-library-list">
+              {tags.length > 0 ? tags.map((tag) => (
+                <button
+                  key={tag.id}
+                  type="button"
+                  className={`my-lists-library-row${draft.id === tag.id ? " my-lists-library-row-active" : ""}`}
+                  onClick={() => onSelectTag(tag)}
+                >
+                  <span className="tag-library-name">
+                    <i style={{ backgroundColor: tag.color }} />
+                    <span>{tag.name}</span>
+                  </span>
+                  <span className="tag-library-meta">{tag.count} 条记录</span>
+                </button>
+              )) : <div className="tag-library-empty">当前还没有列表，先从左侧加一个新的。</div>}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -759,6 +1115,24 @@ function QuickAddIcon(): JSX.Element {
   return (
     <svg viewBox="0 0 20 20" aria-hidden="true">
       <path d="M10 4.5v11M4.5 10h11" />
+    </svg>
+  );
+}
+
+function PlusIcon(): JSX.Element {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true">
+      <path d="M10 4.5v11" />
+      <path d="M4.5 10h11" />
+    </svg>
+  );
+}
+
+function CloseIcon(): JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M6 6l12 12" />
+      <path d="M18 6L6 18" />
     </svg>
   );
 }

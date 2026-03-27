@@ -30,6 +30,7 @@ export interface WorkspaceRuntimeNotice {
 export interface WorkspacePageProps {
   activeTagId: string;
   activeView: WorkspaceSystemView;
+  dataVersion?: number;
   focusTarget: WorkspaceFocusTarget | null;
   quickAddTarget: WorkspaceQuickAddTarget | null;
   runtimeNotice: WorkspaceRuntimeNotice | null;

@@ -8,10 +8,13 @@ export function QuickAddSheet({
   open,
   currentTagName,
   quickAdd,
+  quickAddTagId,
+  tags,
   quickAddSpotlight,
   quickAddRef,
   onClose,
   onQuickAddChange,
+  onQuickAddTagChange,
   onQuickAddSubmit,
 }: QuickAddSheetProps): JSX.Element | null {
   useEffect(() => {
@@ -61,13 +64,25 @@ export function QuickAddSheet({
       >
         <div className="quick-add-modal-header">
           <div className="quick-add-prefix">快速录入</div>
-          <div className="quick-add-tip">支持 `#标签`、`!P1`、`@明天 18:00`，回车立即创建并保留焦点。</div>
+          <div className="quick-add-tip">输入标题并直接选择列表，回车立即创建。</div>
           <button className="quick-add-close" onClick={onClose} aria-label="关闭快速新增">
             ×
           </button>
         </div>
 
         <div className="quick-add-modal-row">
+          <select
+            className="select quick-add-select"
+            value={quickAddTagId}
+            onChange={(event) => onQuickAddTagChange(event.target.value)}
+            aria-label="选择列表"
+          >
+            {tags.length > 0 ? tags.map((tag) => (
+              <option key={tag.id} value={tag.id}>
+                {tag.name}
+              </option>
+            )) : <option value="">暂未创建列表</option>}
+          </select>
           <input
             ref={quickAddRef}
             className="quick-add-input"
@@ -78,7 +93,7 @@ export function QuickAddSheet({
                 onQuickAddSubmit();
               }
             }}
-            placeholder="例如：明天下午 3 点 #工作 !P1 和设计评审"
+            placeholder="例如：明天下午 3 点和设计评审"
           />
           <button className="button-primary quick-add-submit-btn" onClick={onQuickAddSubmit}>
             新增
@@ -86,8 +101,8 @@ export function QuickAddSheet({
         </div>
 
         <div className="quick-add-meta">
-          <span>默认写入「{currentTagName}」，适合连续补记。</span>
-          <span>回车立即创建，创建后保留输入焦点。</span>
+          <span>当前写入「{tags.find((tag) => tag.id === quickAddTagId)?.name ?? currentTagName}」，回车后继续保持输入焦点。</span>
+          <span>输入标题即可，列表改为直接选择，不再依赖额外管理步骤。</span>
         </div>
       </div>
     </div>

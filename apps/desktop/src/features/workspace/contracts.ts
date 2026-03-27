@@ -57,10 +57,13 @@ export interface QuickAddSheetContract {
   open: boolean;
   currentTagName: string;
   quickAdd: string;
+  quickAddTagId: string;
+  tags: TagEntity[];
   quickAddSpotlight: boolean;
   quickAddRef: RefObject<HTMLInputElement>;
   onClose(): void;
   onQuickAddChange: StringHandler;
+  onQuickAddTagChange: StringHandler;
   onQuickAddSubmit(): void;
 }
 

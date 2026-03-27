@@ -7,12 +7,14 @@ import type { WorkspacePriorityFilter, WorkspaceSort, WorkspaceStatusFilter } fr
 interface UseWorkspaceDataOptions {
   activeTagId: string;
   activeView: "today" | "plan" | "all" | "done";
+  dataVersion?: number;
   services: AppServices;
 }
 
 export function useWorkspaceData({
   activeTagId,
   activeView,
+  dataVersion,
   services,
 }: UseWorkspaceDataOptions) {
   const [records, setRecords] = useState<RecordEntity[]>([]);
@@ -71,7 +73,7 @@ export function useWorkspaceData({
     } finally {
       setLoading(false);
     }
-  }, [activeTagId, activeView, keyword, priority, services.recordService, services.reminderService, services.tagService, sortBy, status]);
+  }, [activeTagId, activeView, dataVersion, keyword, priority, services.recordService, services.reminderService, services.tagService, sortBy, status]);
 
   useEffect(() => {
     void loadWorkspace();

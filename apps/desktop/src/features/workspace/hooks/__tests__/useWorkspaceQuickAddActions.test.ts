@@ -2,7 +2,11 @@ import { act, renderHook } from "@testing-library/react";
 import type { RefObject } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { createWorkspaceAppServicesDouble, createWorkspaceRecordEntity } from "../../testing/workspaceServiceTestDoubles";
+import {
+  createWorkspaceAppServicesDouble,
+  createWorkspaceRecordEntity,
+  createWorkspaceTagEntity,
+} from "../../testing/workspaceServiceTestDoubles";
 import { useWorkspaceQuickAddActions } from "../useWorkspaceQuickAddActions";
 
 describe("useWorkspaceQuickAddActions", () => {
@@ -11,10 +15,12 @@ describe("useWorkspaceQuickAddActions", () => {
     const onSelectCreatedRecord = vi.fn();
     const syncWorkspace = vi.fn(async (_afterMessage?: string) => undefined);
     const quickAddRef = { current: null } as RefObject<HTMLInputElement>;
+    const tags = [createWorkspaceTagEntity({ id: "tag_work", name: "工作" })];
 
     const { result } = renderHook(() =>
       useWorkspaceQuickAddActions({
         activeTagId: "all",
+        tags,
         quickAddRef,
         services,
         onSelectCreatedRecord,
@@ -53,12 +59,14 @@ describe("useWorkspaceQuickAddActions", () => {
     const syncWorkspace = vi.fn(async (_afterMessage?: string) => undefined);
     const input = document.createElement("input");
     const quickAddRef = { current: input } as RefObject<HTMLInputElement>;
+    const tags = [createWorkspaceTagEntity({ id: "tag_work", name: "工作" })];
 
     document.body.appendChild(input);
 
     const { result } = renderHook(() =>
       useWorkspaceQuickAddActions({
         activeTagId: "tag_work",
+        tags,
         quickAddRef,
         services,
         onSelectCreatedRecord,

@@ -27,6 +27,7 @@ interface UseWorkspaceCommandsOptions {
   activeView: "today" | "plan" | "all" | "done";
   currentTagName: string;
   quickAdd: string;
+  quickAddTagId: string;
   keyword: string;
   status: WorkspaceStatusFilter;
   priority: WorkspacePriorityFilter;
@@ -69,6 +70,7 @@ interface UseWorkspaceCommandsOptions {
   onRefresh(): void;
   onCloseQuickAdd(): void;
   onQuickAddChange(value: string): void;
+  onQuickAddTagChange(value: string): void;
   onQuickAddSubmit(): void;
   onKeywordChange(value: string): void;
   onStatusChange(value: WorkspaceStatusFilter): void;
@@ -212,10 +214,13 @@ export function useWorkspaceCommands(options: UseWorkspaceCommandsOptions) {
       open: options.quickAddOpen,
       currentTagName: options.currentTagName,
       quickAdd: options.quickAdd,
+      quickAddTagId: options.quickAddTagId,
+      tags: options.tags,
       quickAddSpotlight: options.quickAddSpotlight,
       quickAddRef: options.quickAddRef,
       onClose: options.onCloseQuickAdd,
       onQuickAddChange: options.onQuickAddChange,
+      onQuickAddTagChange: options.onQuickAddTagChange,
       onQuickAddSubmit: options.onQuickAddSubmit,
     };
 

@@ -17,6 +17,7 @@ import type { WorkspacePageProps } from "../types";
 export function useWorkspaceViewModel({
   activeTagId,
   activeView,
+  dataVersion,
   focusTarget,
   quickAddTarget,
   runtimeNotice,
@@ -51,6 +52,7 @@ export function useWorkspaceViewModel({
   } = useWorkspaceData({
     activeTagId,
     activeView,
+    dataVersion,
     services,
   });
   const handleResetListContext = useCallback(() => {
@@ -131,10 +133,13 @@ export function useWorkspaceViewModel({
 
   const {
     quickAdd,
+    quickAddTagId,
     setQuickAdd,
+    setQuickAddTagId,
     handleQuickAdd,
   } = useWorkspaceQuickAddActions({
     activeTagId,
+    tags,
     quickAddRef,
     services,
     onSelectCreatedRecord: setSelectedId,
@@ -261,6 +266,7 @@ export function useWorkspaceViewModel({
     activeView,
     currentTagName,
     quickAdd,
+    quickAddTagId,
     keyword,
     status,
     priority,
@@ -305,6 +311,7 @@ export function useWorkspaceViewModel({
     quickAddSpotlight,
     onCloseQuickAdd: closeQuickAdd,
     onQuickAddChange: setQuickAdd,
+    onQuickAddTagChange: setQuickAddTagId,
     onQuickAddSubmit: () => {
       void runCommandSafely(handleQuickAdd, "新增记录失败");
     },

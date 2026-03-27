@@ -44,7 +44,7 @@ describe("Desktop experience smoke", () => {
 
     fireEvent.click(screen.getAllByRole("button", { name: "快速新增" })[0] as HTMLElement);
 
-    const quickAddInput = await screen.findByPlaceholderText(/例如：明天下午 3 点 #工作 !P1 和设计评审/);
+    const quickAddInput = await screen.findByPlaceholderText(/例如：明天下午 3 点和设计评审/);
     fireEvent.change(quickAddInput, {
       target: {
         value: "Smoke 验收记录",

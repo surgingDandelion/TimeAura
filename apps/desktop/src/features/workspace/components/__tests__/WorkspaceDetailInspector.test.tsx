@@ -89,11 +89,11 @@ describe("WorkspaceDetailInspector", () => {
     fireEvent.click(screen.getByRole("button", { name: "润色" }));
     fireEvent.click(screen.getByRole("button", { name: "归档" }));
     fireEvent.click(screen.getByRole("button", { name: "关闭详情" }));
-    fireEvent.click(screen.getByRole("button", { name: "管理标签" }));
+    fireEvent.click(screen.getByRole("button", { name: "重点" }));
 
     expect(props.onGenerateSummary).toHaveBeenCalledTimes(1);
     expect(props.onPolishMarkdown).toHaveBeenCalledTimes(1);
-    expect(props.onOpenTagManager).toHaveBeenCalledTimes(1);
+    expect(props.onToggleTag).toHaveBeenCalledWith("tag_focus");
     expect(props.onArchive).toHaveBeenCalledWith("record-1");
     expect(props.onClose).toHaveBeenCalledTimes(1);
 
@@ -131,7 +131,7 @@ describe("WorkspaceDetailInspector", () => {
       dueAt: "2026-01-03T12:30",
     });
 
-    expect(screen.getByText("工作")).toBeTruthy();
+    expect(screen.getAllByText("工作").length).toBeGreaterThan(0);
 
     const textarea = container.querySelector("textarea") as HTMLTextAreaElement;
     fireEvent.change(textarea, {
