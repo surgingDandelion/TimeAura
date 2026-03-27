@@ -52,8 +52,6 @@ const WORKSPACE_VIEW_CARDS: Array<{
   { id: "done", label: "已完成", meta: "完成沉淀", accentClass: "nav-card-accent-done" },
 ];
 
-const UNCATEGORIZED_TAG_ID = "tag_uncategorized";
-
 function isTextEditingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) {
     return false;
@@ -89,7 +87,6 @@ export function AppShell(): JSX.Element {
     name: "",
     color: "#5f89ff",
   });
-  const [pendingSidebarDeleteId, setPendingSidebarDeleteId] = useState<string | null>(null);
   const [sidebarTagContextMenu, setSidebarTagContextMenu] = useState<SidebarTagContextMenuState | null>(null);
 
   useEffect(() => {
@@ -153,7 +150,6 @@ export function AppShell(): JSX.Element {
         name: "",
         color: "#5f89ff",
       });
-      setPendingSidebarDeleteId(null);
     }
   }, [sidebarListDraft.id, sidebarTags]);
 
@@ -210,7 +206,7 @@ export function AppShell(): JSX.Element {
         services.recordService.listRecords({ status: "done", view: "done" }),
       ]);
 
-      setSidebarTags(tagCounts);
+      setSidebarTags(tagCounts.filter((tag) => !isHiddenListTag(tag)));
       setWorkspaceCounts({
         today: todayRecords.total,
         plan: planRecords.total,
@@ -244,7 +240,6 @@ export function AppShell(): JSX.Element {
       name: "",
       color: "#5f89ff",
     });
-    setPendingSidebarDeleteId(null);
   }, []);
 
   const closeMyLists = useCallback(() => {
@@ -259,7 +254,7 @@ export function AppShell(): JSX.Element {
     resetSidebarListDraft();
   }, [resetSidebarListDraft]);
 
-  const openMyListsEdit = useCallback((tag: TagCountItem, options?: { deleteConfirm?: boolean }) => {
+  const openMyListsEdit = useCallback((tag: TagCountItem) => {
     setPage("workspace");
     setMyListsOpen(true);
     setSidebarTagContextMenu(null);
@@ -268,61 +263,65 @@ export function AppShell(): JSX.Element {
       name: tag.name,
       color: tag.color,
     });
-    setPendingSidebarDeleteId(options?.deleteConfirm ? tag.id : null);
   }, []);
 
-  const submitSidebarList = useCallback(async () => {
-    const name = sidebarListDraft.name.trim();
+  const persistSidebarListDraft = useCallback(async (draftToPersist: SidebarListEditorDraft) => {
+    const name = draftToPersist.name.trim();
 
     if (!name) {
-      presentRuntimeNotice("列表名称不能为空", "warning");
       return;
     }
 
     try {
-      if (sidebarListDraft.id) {
-        await services.tagService.updateTag(sidebarListDraft.id, {
+      if (draftToPersist.id) {
+        await services.tagService.updateTag(draftToPersist.id, {
           name,
-          color: sidebarListDraft.color,
+          color: draftToPersist.color,
         });
         await handleWorkspaceChanged();
-        setWorkspaceTagId(sidebarListDraft.id);
-        presentRuntimeNotice("我的列表已更新", "info");
-      } else {
-        const created = await services.tagService.createTag({
-          name,
-          color: sidebarListDraft.color,
-        });
-        await handleWorkspaceChanged();
-        setWorkspaceTagId(created.id);
-        presentRuntimeNotice("已新增我的列表", "info");
+        setWorkspaceTagId(draftToPersist.id);
+        setSidebarListDraft((current) =>
+          current.id === draftToPersist.id
+            ? {
+                ...current,
+                name,
+                color: draftToPersist.color,
+              }
+            : current,
+        );
+        return;
       }
 
-      closeMyLists();
+      const created = await services.tagService.createTag({
+        name,
+        color: draftToPersist.color,
+      });
+      await handleWorkspaceChanged();
+      setWorkspaceTagId(created.id);
+      setSidebarListDraft({
+        id: created.id,
+        name: created.name,
+        color: created.color,
+      });
     } catch (error) {
       reportShellFailure("列表保存失败", "保存我的列表失败，请稍后重试", error);
     }
-  }, [closeMyLists, handleWorkspaceChanged, presentRuntimeNotice, reportShellFailure, services.tagService, sidebarListDraft]);
+  }, [handleWorkspaceChanged, reportShellFailure, services.tagService]);
 
-  const confirmDeleteSidebarList = useCallback(async () => {
-    if (!sidebarListDraft.id) {
-      return;
-    }
-
+  const deleteSidebarList = useCallback(async (tag: TagCountItem) => {
     try {
-      await services.tagService.deleteTag(sidebarListDraft.id);
+      await services.tagService.deleteTag(tag.id);
 
-      if (workspaceTagId === sidebarListDraft.id) {
+      if (workspaceTagId === tag.id) {
         setWorkspaceTagId("all");
       }
 
       await handleWorkspaceChanged();
-      presentRuntimeNotice("已删除我的列表", "info");
-      closeMyLists();
+      setSidebarListDraft((current) => (current.id === tag.id ? { id: null, name: "", color: "#5f89ff" } : current));
     } catch (error) {
       reportShellFailure("列表删除失败", "删除我的列表失败，请稍后重试", error);
     }
-  }, [closeMyLists, handleWorkspaceChanged, presentRuntimeNotice, reportShellFailure, services.tagService, sidebarListDraft.id, workspaceTagId]);
+  }, [handleWorkspaceChanged, reportShellFailure, services.tagService, workspaceTagId]);
 
   const routeToWorkspaceRecord = useCallback((recordId: string) => {
     setPage("workspace");
@@ -496,16 +495,17 @@ export function AppShell(): JSX.Element {
   }, [pushNotificationDebug]);
 
   useEffect(() => {
-    if (runtime) {
-      setWorkspaceBootstrapping(false);
-      return;
-    }
-
     let cancelled = false;
 
     void (async () => {
       try {
-        const seedResult = await ensureDesktopExperienceData(services);
+        const seedResult = runtime
+          ? {
+              seeded: false,
+              recordIds: [],
+              channelId: null,
+            }
+          : await ensureDesktopExperienceData(services);
 
         if (cancelled) {
           return;
@@ -517,7 +517,8 @@ export function AppShell(): JSX.Element {
           return;
         }
 
-        await handleWorkspaceChanged();
+        await loadSidebarData();
+        setWorkspaceDataVersion((current) => current + 1);
 
         if (cancelled) {
           return;
@@ -526,7 +527,7 @@ export function AppShell(): JSX.Element {
         if (seedResult.seeded) {
           presentRuntimeNotice("已自动准备演示数据，现在可以直接体验新增与提醒链路", "info");
         } else if (repairedCount > 0) {
-          presentRuntimeNotice(`已修复 ${repairedCount} 条历史记录的标签关联`, "info");
+          presentRuntimeNotice(`已修复 ${repairedCount} 条历史记录的列表归属`, "info");
         }
       } catch (error) {
         if (cancelled) {
@@ -544,7 +545,7 @@ export function AppShell(): JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [handleWorkspaceChanged, presentRuntimeNotice, reportShellFailure, runtime, services]);
+  }, [loadSidebarData, presentRuntimeNotice, reportShellFailure, runtime, services]);
 
   useEffect(() => {
     if (workspaceBootstrapping) {
@@ -781,11 +782,11 @@ export function AppShell(): JSX.Element {
               <button
                 type="button"
                 className="nav-label-action"
-                aria-label="新增我的列表"
-                title="新增我的列表"
+                aria-label="编辑我的列表"
+                title="编辑我的列表"
                 onClick={openMyListsCreate}
               >
-                <PlusIcon />
+                <EditIcon />
               </button>
             </div>
             <div className="sidebar-tag-list">
@@ -907,8 +908,10 @@ export function AppShell(): JSX.Element {
           <button
             type="button"
             className="sidebar-context-menu-item danger"
-            disabled={sidebarTagContextMenu.tag.isSystem}
-            onClick={() => openMyListsEdit(sidebarTagContextMenu.tag, { deleteConfirm: true })}
+            onClick={() => {
+              void deleteSidebarList(sidebarTagContextMenu.tag);
+              setSidebarTagContextMenu(null);
+            }}
           >
             删除列表
           </button>
@@ -919,15 +922,11 @@ export function AppShell(): JSX.Element {
         open={myListsOpen}
         tags={sidebarTags}
         draft={sidebarListDraft}
-        pendingDeleteId={pendingSidebarDeleteId}
         onClose={closeMyLists}
         onDraftChange={setSidebarListDraft}
-        onResetDraft={resetSidebarListDraft}
+        onPersistDraft={persistSidebarListDraft}
         onSelectTag={(tag) => openMyListsEdit(tag)}
-        onRequestDelete={(tag) => setPendingSidebarDeleteId(tag.id)}
-        onCancelDelete={() => setPendingSidebarDeleteId(null)}
-        onConfirmDelete={confirmDeleteSidebarList}
-        onSubmit={submitSidebarList}
+        onDeleteTag={deleteSidebarList}
       />
     </div>
   );
@@ -937,36 +936,29 @@ interface MyListsSheetProps {
   open: boolean;
   tags: TagCountItem[];
   draft: SidebarListEditorDraft;
-  pendingDeleteId: string | null;
   onClose(): void;
   onDraftChange(nextDraft: SidebarListEditorDraft): void;
-  onResetDraft(): void;
+  onPersistDraft(nextDraft: SidebarListEditorDraft): Promise<void>;
   onSelectTag(tag: TagCountItem): void;
-  onRequestDelete(tag: TagCountItem): void;
-  onCancelDelete(): void;
-  onConfirmDelete(): void;
-  onSubmit(): void;
+  onDeleteTag(tag: TagCountItem): Promise<void>;
 }
 
 function MyListsSheet({
   open,
   tags,
   draft,
-  pendingDeleteId,
   onClose,
   onDraftChange,
-  onResetDraft,
+  onPersistDraft,
   onSelectTag,
-  onRequestDelete,
-  onCancelDelete,
-  onConfirmDelete,
-  onSubmit,
+  onDeleteTag,
 }: MyListsSheetProps): JSX.Element | null {
   if (!open) {
     return null;
   }
 
   const editingTag = draft.id ? tags.find((tag) => tag.id === draft.id) ?? null : null;
+  const placeholderColor = "#5f89ff";
 
   return (
     <div className="sheet-backdrop" onClick={onClose}>
@@ -990,9 +982,9 @@ function MyListsSheet({
           <div className="tag-panel">
             <div className="tag-panel-header">
               <div className="tag-panel-title">
-                <strong>{editingTag ? "编辑列表" : "新增列表"}</strong>
+                <strong>编辑列表</strong>
               </div>
-              <div className="tag-panel-caption">只维护名称和颜色。具体记录绑定在工作台详情和快速新增里直接完成。</div>
+              <div className="tag-panel-caption">输入名称、选择颜色，失焦后自动保存。删除直接生效。</div>
             </div>
 
             <div className="tag-form-stack">
@@ -1001,46 +993,29 @@ function MyListsSheet({
                   className="input"
                   value={draft.name}
                   onChange={(event) => onDraftChange({ ...draft, name: event.target.value })}
+                  onBlur={() => {
+                    void onPersistDraft(draft);
+                  }}
                   placeholder="输入列表名称"
                 />
                 <input
                   className="color-input"
                   type="color"
-                  value={draft.color}
+                  value={draft.color || placeholderColor}
                   onChange={(event) => onDraftChange({ ...draft, color: event.target.value })}
+                  onBlur={() => {
+                    void onPersistDraft(draft);
+                  }}
                   aria-label="列表颜色"
                 />
               </div>
 
-              <div className="tag-form-actions">
-                <button type="button" className="text-btn" onClick={onResetDraft}>
-                  新建列表
-                </button>
-                <button type="button" className="button-ghost" onClick={onSubmit}>
-                  {editingTag ? "保存修改" : "新增列表"}
-                </button>
-              </div>
-
-              {editingTag && !editingTag.isSystem ? (
-                pendingDeleteId === editingTag.id ? (
-                  <div className="tag-delete-confirm" role="alert">
-                    <span className="tag-delete-confirm-copy">确认删除“{editingTag.name}”？该列表会从已有记录中移除。</span>
-                    <div className="tag-delete-confirm-actions">
-                      <button type="button" className="text-btn" onClick={onCancelDelete}>
-                        取消
-                      </button>
-                      <button type="button" className="tag-confirm-delete-btn" onClick={onConfirmDelete}>
-                        确认删除
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="my-lists-delete-row">
-                    <button type="button" className="inspector-action-btn inspector-action-btn-danger" onClick={() => onRequestDelete(editingTag)}>
-                      删除这个列表
-                    </button>
-                  </div>
-                )
+              {editingTag ? (
+                <div className="my-lists-delete-row">
+                  <button type="button" className="inspector-action-btn inspector-action-btn-danger" onClick={() => void onDeleteTag(editingTag)}>
+                    删除
+                  </button>
+                </div>
               ) : null}
             </div>
           </div>
@@ -1119,11 +1094,11 @@ function QuickAddIcon(): JSX.Element {
   );
 }
 
-function PlusIcon(): JSX.Element {
+function EditIcon(): JSX.Element {
   return (
-    <svg viewBox="0 0 20 20" aria-hidden="true">
-      <path d="M10 4.5v11" />
-      <path d="M4.5 10h11" />
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 20h4l10-10-4-4L4 16v4z" />
+      <path d="M13 7l4 4" />
     </svg>
   );
 }
@@ -1174,12 +1149,36 @@ function ThemeToggleIcon({ theme }: { theme: ThemeMode }): JSX.Element {
 async function repairWorkspaceRecordTags(
   services: AppServices,
 ): Promise<number> {
-  const records = await services.recordService.listRecords({ view: "all", status: "all" });
-  const missingTagRecords = records.items.filter((record) => record.tags.length === 0 && !record.deletedAt);
+  const [records, tags] = await Promise.all([
+    services.recordService.listRecords({ view: "all", status: "all" }),
+    services.tagService.listTags(),
+  ]);
+  const fallbackTag = tags.find((tag) => !isHiddenListTag(tag)) ?? null;
+
+  if (!fallbackTag) {
+    return 0;
+  }
+
+  const missingTagRecords = records.items.filter((record) => {
+    if (record.deletedAt) {
+      return false;
+    }
+
+    const visibleTags = record.tags.filter((tagId) => !isHiddenListTagId(tagId));
+    return visibleTags.length === 0;
+  });
 
   for (const record of missingTagRecords) {
-    await services.tagService.setRecordTags(record.id, [UNCATEGORIZED_TAG_ID]);
+    await services.tagService.setRecordTags(record.id, [fallbackTag.id]);
   }
 
   return missingTagRecords.length;
+}
+
+function isHiddenListTag(tag: { id: string; name: string }): boolean {
+  return isHiddenListTagId(tag.id) || tag.name === "未分类";
+}
+
+function isHiddenListTagId(tagId: string): boolean {
+  return tagId === "tag_uncategorized";
 }

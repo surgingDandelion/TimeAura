@@ -36,7 +36,7 @@ describe("useWorkspaceRecordDraft", () => {
       plannedAt: toInputValue("2026-01-01T18:00:00.000Z"),
       completedAt: "",
       contentMarkdown: "",
-      tags: ["tag_uncategorized"],
+      tags: [],
       isPinned: false,
     });
     expect(result.current.contentMode).toBe("edit");
@@ -61,7 +61,7 @@ describe("useWorkspaceRecordDraft", () => {
       result.current.toggleTag("tag_work");
     });
 
-    expect(result.current.draft?.tags).toEqual(["tag_uncategorized"]);
+    expect(result.current.draft?.tags).toEqual(["tag_work"]);
   });
 
   it("saves draft with trimmed title and normalized date fields", async () => {

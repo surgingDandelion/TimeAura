@@ -148,13 +148,17 @@ export function useWorkspaceRecordDraft({
     }
 
     const hasTag = draft.tags.includes(tagValue);
+    if (hasTag && draft.tags.length === 1) {
+      return;
+    }
+
     const nextTags = hasTag
       ? draft.tags.filter((item) => item !== tagValue)
       : [...draft.tags.filter((item) => item !== "tag_uncategorized"), tagValue];
 
     setDraft({
       ...draft,
-      tags: nextTags.length > 0 ? nextTags : ["tag_uncategorized"],
+      tags: nextTags,
     });
   }
 
@@ -191,6 +195,8 @@ export function useWorkspaceRecordDraft({
 }
 
 function createDraftFromRecord(record: RecordEntity): RecordDraft {
+  const normalizedTags = record.tags.filter((tagId) => tagId !== "tag_uncategorized");
+
   return {
     title: record.title,
     status: record.status,
@@ -199,7 +205,7 @@ function createDraftFromRecord(record: RecordEntity): RecordDraft {
     plannedAt: toInputValue(record.plannedAt),
     completedAt: toInputValue(record.completedAt),
     contentMarkdown: record.contentMarkdown,
-    tags: record.tags,
+    tags: normalizedTags,
     isPinned: record.isPinned,
   };
 }

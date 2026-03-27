@@ -52,7 +52,7 @@ export function useWorkspaceData({
       }
 
       if (tagResult.status === "fulfilled") {
-        setTags(tagResult.value);
+        setTags(tagResult.value.filter((tag) => tag.id !== "tag_uncategorized" && tag.name !== "未分类"));
       } else {
         reportWorkspaceLoadIssue("tags", tagResult.reason);
       }
