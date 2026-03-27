@@ -204,15 +204,13 @@ describe("ReportStudioPage", () => {
 
     await waitFor(() => {
       expect(screen.getByRole("heading", { name: "AI 报告" })).toBeTruthy();
-      expect(screen.getByDisplayValue("默认周报模板")).toBeTruthy();
+      expect(screen.getByRole("combobox", { name: "报告模板" })).toBeTruthy();
     });
 
-    fireEvent.change(screen.getByLabelText("标签范围"), {
-      target: { value: "tag-work" },
-    });
-    fireEvent.change(screen.getByLabelText("状态范围"), {
-      target: { value: "todo" },
-    });
+    fireEvent.click(screen.getByRole("combobox", { name: "标签范围" }));
+    fireEvent.click(screen.getByRole("option", { name: "工作" }));
+    fireEvent.click(screen.getByRole("combobox", { name: "状态范围" }));
+    fireEvent.click(screen.getByRole("option", { name: "未完成" }));
     fireEvent.change(screen.getByLabelText("开始时间"), {
       target: { value: "2026-03-10" },
     });

@@ -1,10 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import type { AIChannelEntity, ReportDraftResult, ReportHistoryEntity, ReportTemplateEntity, TagEntity } from "@timeaura-core";
 
 import { useAppServices } from "../../app/providers/AppServicesProvider";
 
 type ReportTypeOption = "weekly" | "monthly" | "custom";
+type ReportSelectOption = {
+  value: string;
+  label: string;
+};
 
 export function ReportStudioPage(): JSX.Element {
   const { services } = useAppServices();
@@ -35,6 +39,37 @@ export function ReportStudioPage(): JSX.Element {
   const enabledChannels = useMemo(
     () => channels.filter((item) => item.enabled),
     [channels],
+  );
+  const tagOptions = useMemo<ReportSelectOption[]>(
+    () => [
+      { value: "all", label: "全部标签" },
+      ...tags.map((tag) => ({ value: tag.id, label: tag.name })),
+    ],
+    [tags],
+  );
+  const statusOptions = useMemo<ReportSelectOption[]>(
+    () => [
+      { value: "all", label: "全部状态" },
+      { value: "done", label: "已完成" },
+      { value: "todo", label: "未完成" },
+    ],
+    [],
+  );
+  const templateOptions = useMemo<ReportSelectOption[]>(
+    () => filteredTemplates.map((template) => ({ value: template.id, label: template.name })),
+    [filteredTemplates],
+  );
+  const channelOptions = useMemo<ReportSelectOption[]>(
+    () => enabledChannels.map((channel) => ({ value: channel.id, label: channel.name })),
+    [enabledChannels],
+  );
+  const toneOptions = useMemo<ReportSelectOption[]>(
+    () => [
+      { value: "professional", label: "专业简洁" },
+      { value: "executive", label: "管理视角" },
+      { value: "friendly", label: "轻松直接" },
+    ],
+    [],
   );
   const selectedTemplate = useMemo(
     () => filteredTemplates.find((item) => item.id === templateId) ?? filteredTemplates[0] ?? null,
@@ -259,26 +294,16 @@ export function ReportStudioPage(): JSX.Element {
             <h4>筛选条件</h4>
             <label className="field">
               <span className="field-label">标签范围</span>
-              <select className="select" value={tagFilter} onChange={(event) => setTagFilter(event.target.value)}>
-                <option value="all">全部标签</option>
-                {tags.map((tag) => (
-                  <option key={tag.id} value={tag.id}>
-                    {tag.name}
-                  </option>
-                ))}
-              </select>
+              <ReportSelect label="标签范围" value={tagFilter} options={tagOptions} onChange={setTagFilter} />
             </label>
             <label className="field">
               <span className="field-label">状态范围</span>
-              <select
-                className="select"
+              <ReportSelect
+                label="状态范围"
                 value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value as "all" | "todo" | "done")}
-              >
-                <option value="all">全部状态</option>
-                <option value="done">已完成</option>
-                <option value="todo">未完成</option>
-              </select>
+                options={statusOptions}
+                onChange={(nextValue) => setStatusFilter(nextValue as "all" | "todo" | "done")}
+              />
             </label>
           </div>
 
@@ -286,26 +311,26 @@ export function ReportStudioPage(): JSX.Element {
             <h4>模板与通道</h4>
             <label className="field">
               <span className="field-label">报告模板</span>
-              <select className="select" value={selectedTemplate?.id ?? ""} onChange={(event) => setTemplateId(event.target.value)}>
-                {filteredTemplates.map((template) => (
-                  <option key={template.id} value={template.id}>
-                    {template.name}
-                  </option>
-                ))}
-              </select>
+              <ReportSelect
+                label="报告模板"
+                value={selectedTemplate?.id ?? ""}
+                options={templateOptions}
+                onChange={setTemplateId}
+                placeholder="请选择模板"
+              />
             </label>
             <button className="button-ghost report-template-config-btn" disabled={!selectedTemplate} onClick={() => setTemplateEditorOpen(true)}>
               配置当前模板
             </button>
             <label className="field">
               <span className="field-label">AI 通道</span>
-              <select className="select" value={channelId} onChange={(event) => setChannelId(event.target.value)}>
-                {enabledChannels.map((channel) => (
-                  <option key={channel.id} value={channel.id}>
-                    {channel.name}
-                  </option>
-                ))}
-              </select>
+              <ReportSelect
+                label="AI 通道"
+                value={channelId}
+                options={channelOptions}
+                onChange={setChannelId}
+                placeholder="请选择通道"
+              />
             </label>
             <button className="button-primary report-generate-btn" disabled={busy || !selectedTemplate} onClick={() => void handleGenerate()}>
               {busy ? "生成中…" : "生成报告"}
@@ -415,11 +440,7 @@ export function ReportStudioPage(): JSX.Element {
               </label>
               <label className="field">
                 <span className="field-label">输出语气</span>
-                <select className="select" value={templateEditorTone} onChange={(event) => setTemplateEditorTone(event.target.value)}>
-                  <option value="professional">专业简洁</option>
-                  <option value="executive">管理视角</option>
-                  <option value="friendly">轻松直接</option>
-                </select>
+                <ReportSelect label="输出语气" value={templateEditorTone} options={toneOptions} onChange={setTemplateEditorTone} />
               </label>
               <label className="field">
                 <span className="field-label">章节结构</span>
@@ -458,4 +479,95 @@ function defaultRangeEnd(): string {
 
 function toErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? `${fallback}：${error.message}` : fallback;
+}
+
+type ReportSelectProps = {
+  label: string;
+  value: string;
+  options: ReportSelectOption[];
+  onChange: (value: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
+};
+
+function ReportSelect({ label, value, options, onChange, placeholder = "请选择", disabled = false }: ReportSelectProps): JSX.Element {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const listboxId = useId();
+  const selectedOption = options.find((option) => option.value === value) ?? null;
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent): void {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent): void {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    window.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [value]);
+
+  return (
+    <div ref={rootRef} className={`report-select${open ? " report-select-open" : ""}${disabled ? " report-select-disabled" : ""}`}>
+      <button
+        type="button"
+        className="report-select-trigger"
+        role="combobox"
+        aria-label={label}
+        aria-expanded={open}
+        aria-controls={listboxId}
+        aria-haspopup="listbox"
+        disabled={disabled}
+        onClick={() => {
+          if (!disabled) {
+            setOpen((current) => !current);
+          }
+        }}
+      >
+        <span className={`report-select-value${selectedOption ? "" : " report-select-placeholder"}`}>
+          {selectedOption?.label ?? placeholder}
+        </span>
+        <span className="report-select-chevron" aria-hidden="true" />
+      </button>
+
+      {open ? (
+        <div id={listboxId} className="report-select-menu" role="listbox" aria-label={label}>
+          {options.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="option"
+              aria-selected={option.value === value}
+              className={`report-select-option${option.value === value ? " report-select-option-active" : ""}`}
+              onClick={() => {
+                onChange(option.value);
+                setOpen(false);
+              }}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
 }
