@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { AppServices, TagCountItem } from "@timeaura-core";
 
@@ -44,6 +44,7 @@ const UNCATEGORIZED_TAG_ID = "tag_uncategorized";
 
 export function AppShell(): JSX.Element {
   const { runtime, services } = useAppServices();
+  const reminderScanInFlightRef = useRef(false);
   const [workspaceBootstrapping, setWorkspaceBootstrapping] = useState(!runtime);
   const [page, setPage] = useState<AppPage>("workspace");
   const [workspaceCounts, setWorkspaceCounts] = useState<WorkspaceSidebarCounts>({
@@ -376,13 +377,75 @@ export function AppShell(): JSX.Element {
       return;
     }
 
-    void scheduleReminderNotifications();
+    let disposed = false;
+    let timer: number | null = null;
 
-    const interval = window.setInterval(() => {
-      void scheduleReminderNotifications();
-    }, 60_000);
+    const queueNextScan = (delayMs: number) => {
+      if (disposed) {
+        return;
+      }
 
-    return () => window.clearInterval(interval);
+      timer = window.setTimeout(() => {
+        void runReminderScan();
+      }, delayMs);
+    };
+
+    const runReminderScan = async () => {
+      if (disposed) {
+        return;
+      }
+
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+        queueNextScan(60_000);
+        return;
+      }
+
+      if (reminderScanInFlightRef.current) {
+        queueNextScan(60_000);
+        return;
+      }
+
+      reminderScanInFlightRef.current = true;
+
+      try {
+        await scheduleReminderNotifications();
+      } finally {
+        reminderScanInFlightRef.current = false;
+
+        if (!disposed) {
+          queueNextScan(60_000);
+        }
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (disposed || typeof document === "undefined" || document.visibilityState !== "visible") {
+        return;
+      }
+
+      if (timer !== null) {
+        window.clearTimeout(timer);
+        timer = null;
+      }
+
+      void runReminderScan();
+    };
+
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+    }
+
+    void runReminderScan();
+
+    return () => {
+      disposed = true;
+      if (timer !== null) {
+        window.clearTimeout(timer);
+      }
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+      }
+    };
   }, [scheduleReminderNotifications, workspaceBootstrapping]);
 
   useEffect(() => {

@@ -347,6 +347,52 @@ describe("AppShell", () => {
     vi.useRealTimers();
   });
 
+  it("skips reminder polling while document is hidden and resumes when visible again", async () => {
+    vi.useFakeTimers();
+    const container = createContainer();
+    useAppServicesSpy.mockReturnValue(container);
+
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "hidden",
+    });
+
+    render(<AppShell />);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(container.services.notificationService.scheduleReminderNotifications).toHaveBeenCalledTimes(0);
+
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(container.services.notificationService.scheduleReminderNotifications).toHaveBeenCalledTimes(0);
+
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: "visible",
+    });
+
+    act(() => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(container.services.notificationService.scheduleReminderNotifications).toHaveBeenCalledTimes(1);
+
+    vi.useRealTimers();
+  });
+
   it("handles desktop notification actions for complete and click-to-open flows", async () => {
     const container = createContainer();
     useAppServicesSpy.mockReturnValue(container);
