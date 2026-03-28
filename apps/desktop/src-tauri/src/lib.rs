@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::sync::atomic::{AtomicBool, Ordering};
 
+use tauri::image::Image;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Manager, RunEvent, Runtime, WindowEvent};
@@ -204,6 +205,78 @@ fn hide_main_window<R: Runtime>(app: &AppHandle<R>) {
     }
 }
 
+fn create_tray_icon_image() -> Image<'static> {
+    const SIZE: usize = 72;
+    const STROKE_MAIN: f32 = 7.6;
+    const STROKE_ACCENT: f32 = 6.8;
+    const STROKE_RING: f32 = 3.6;
+    const DOT_RADIUS: f32 = 4.1;
+    const RADIUS: f32 = 18.0;
+    const CENTER_X: f32 = 34.0;
+    const CENTER_Y: f32 = 30.0;
+
+    let mut rgba = vec![0_u8; SIZE * SIZE * 4];
+
+    for y in 0..SIZE {
+        for x in 0..SIZE {
+            let px = x as f32 + 0.5;
+            let py = y as f32 + 0.5;
+
+            let horizontal = segment_alpha(px, py, 16.0, 18.0, 47.0, 18.0, STROKE_MAIN);
+            let vertical = segment_alpha(px, py, 34.0, 18.0, 34.0, 50.0, STROKE_MAIN);
+            let accent = segment_alpha(px, py, 34.0, 50.0, 47.0, 18.0, STROKE_ACCENT);
+            let orbit = ring_alpha(px, py, CENTER_X, CENTER_Y, RADIUS, STROKE_RING);
+            let dot = circle_alpha(px, py, 47.0, 18.0, DOT_RADIUS);
+
+            let alpha = horizontal.max(vertical).max(accent).max(orbit).max(dot);
+
+            if alpha <= 0.0 {
+                continue;
+            }
+
+            let index = (y * SIZE + x) * 4;
+            rgba[index] = 0;
+            rgba[index + 1] = 0;
+            rgba[index + 2] = 0;
+            rgba[index + 3] = (alpha * 255.0).round().clamp(0.0, 255.0) as u8;
+        }
+    }
+
+    Image::new_owned(rgba, SIZE as u32, SIZE as u32)
+}
+
+fn segment_alpha(px: f32, py: f32, x1: f32, y1: f32, x2: f32, y2: f32, stroke: f32) -> f32 {
+    let dx = x2 - x1;
+    let dy = y2 - y1;
+    let len_sq = dx * dx + dy * dy;
+
+    if len_sq <= f32::EPSILON {
+        return 0.0;
+    }
+
+    let t = (((px - x1) * dx) + ((py - y1) * dy)) / len_sq;
+    let t = t.clamp(0.0, 1.0);
+    let nearest_x = x1 + dx * t;
+    let nearest_y = y1 + dy * t;
+    let distance = ((px - nearest_x).powi(2) + (py - nearest_y).powi(2)).sqrt();
+    feathered_alpha(distance, stroke / 2.0)
+}
+
+fn ring_alpha(px: f32, py: f32, cx: f32, cy: f32, radius: f32, stroke: f32) -> f32 {
+    let distance = ((px - cx).powi(2) + (py - cy).powi(2)).sqrt();
+    feathered_alpha((distance - radius).abs(), stroke / 2.0)
+}
+
+fn circle_alpha(px: f32, py: f32, cx: f32, cy: f32, radius: f32) -> f32 {
+    let distance = ((px - cx).powi(2) + (py - cy).powi(2)).sqrt();
+    feathered_alpha(distance, radius)
+}
+
+fn feathered_alpha(distance: f32, half_width: f32) -> f32 {
+    let edge = 1.15;
+    ((half_width + edge - distance) / edge).clamp(0.0, 1.0)
+}
+
 fn setup_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     let open_item = MenuItem::with_id(app, TRAY_OPEN_ID, "打开 TimeAura", true, None::<&str>)?;
     let quit_item = MenuItem::with_id(app, TRAY_QUIT_ID, "退出 TimeAura", true, None::<&str>)?;
@@ -214,7 +287,7 @@ fn setup_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
         .menu(&menu)
         .tooltip("TimeAura")
         .show_menu_on_left_click(false)
-        .icon_as_template(false)
+        .icon_as_template(true)
         .on_menu_event(|app, event| match event.id().as_ref() {
             TRAY_OPEN_ID => show_main_window(app),
             TRAY_QUIT_ID => {
@@ -236,9 +309,7 @@ fn setup_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
             }
         });
 
-    if let Some(icon) = app.default_window_icon().cloned() {
-        tray = tray.icon(icon);
-    }
+    tray = tray.icon(create_tray_icon_image());
 
     tray.build(app)?;
     Ok(())
