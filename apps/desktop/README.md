@@ -29,6 +29,7 @@
 - `npm run test:coverage`
 - `cargo check`（`apps/desktop/src-tauri`）
 - `npm run tauri:dev`
+- `TimeAura B2` 品牌图标导出与窗口栏品牌标识接线
 
 运行说明：
 
@@ -55,6 +56,11 @@
   - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/apps/desktop/scripts/export-b2-icons.sh`
 - 启动态实现：
   - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/apps/desktop/src/app/components/BootstrapScreen.tsx`
+- 当前导出结果：
+  - `PNG` 多尺寸资产
+  - `icon.ico`
+  - `icon.iconset`
+  - `icon.icns`
 
 CI / 覆盖率说明：
 

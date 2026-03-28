@@ -42,6 +42,8 @@
 
 当前文件命名：
 
+- `icon.icns`
+- `icon.ico`
 - `icon.png`
 - `icon-16.png`
 - `icon-32.png`
@@ -75,8 +77,8 @@
 说明：
 
 - 当前工程已经生成 iconset 目录
-- `iconutil` 在本机环境下未稳定产出 `icon.icns`，因此现阶段先以 PNG 资产和 iconset 为主
-- 后续如果切换图形工具链或系统环境，可继续尝试生成 `icon.icns`
+- 脚本会同步生成 `icon.ico`
+- `icon.icns` 通过 `iconutil` 自动生成；若后续某些系统工具链拒绝产出，则保留 PNG + ICO + iconset 作为降级结果
 
 ---
 
@@ -89,8 +91,7 @@ Tauri 配置文件：
 当前策略：
 
 - 开发态窗口图标由 `src-tauri/icons/icon.png` 提供
-- bundler 图标路径统一指向当前导出的 PNG 资源
-- 后续若 `icon.icns` 稳定产出，可加入 bundle icon 列表
+- bundler 图标路径已接入 `icon.icns`、`icon.ico` 与当前导出的 PNG 资源
 
 ---
 
@@ -113,7 +114,8 @@ npm run icons:export
 1. 使用 `qlmanage` 从 `icon-source.svg` 渲染 `1024 png`
 2. 生成多尺寸 PNG
 3. 生成 `icon.iconset`
-4. 尝试生成 `icon.icns`
+4. 生成 `icon.ico`
+5. 生成 `icon.icns`（若系统工具链支持）
 
 ---
 
@@ -140,9 +142,7 @@ npm run icons:export
 
 若需要正式进入打包发布，建议继续补齐：
 
-- `icon.icns`
-- `icon.ico`
 - Windows 安装器图标
 - DMG / installer banner 图
 
-但在当前桌面开发阶段，PNG + 启动态图标链已经足够支撑开发与本地体验。
+当前桌面开发阶段已经具备 `PNG + ICO + ICNS + 启动态图标链`，可支撑本地开发与后续打包接入。

@@ -1867,6 +1867,7 @@ textarea:focus-visible {
   height: 220px;
   display: block;
   filter: drop-shadow(0 18px 38px rgba(24, 41, 66, 0.1));
+  animation: bootstrap-logo-appear 520ms cubic-bezier(0.22, 0.7, 0.22, 1) both;
 }
 
 .bootstrap-orbit {
@@ -1886,6 +1887,7 @@ textarea:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: center;
+  animation: bootstrap-copy-appear 520ms cubic-bezier(0.22, 0.7, 0.22, 1) 90ms both;
 }
 
 .bootstrap-kicker {
@@ -1920,6 +1922,30 @@ textarea:focus-visible {
 
   100% {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes bootstrap-logo-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.976);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes bootstrap-copy-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -3106,15 +3132,58 @@ body[data-theme="dark"] .window-bar {
 .brand-mark {
   width: 42px;
   height: 42px;
-  border-radius: 14px;
   display: grid;
   place-items: center;
-  color: #fff;
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  background: linear-gradient(135deg, rgba(95, 143, 220, 0.94), rgba(119, 215, 237, 0.68));
-  box-shadow: 0 10px 20px rgba(95, 143, 220, 0.18);
+  flex: 0 0 auto;
+}
+
+.brand-mark svg {
+  width: 42px;
+  height: 42px;
+  display: block;
+  filter: drop-shadow(0 10px 18px rgba(95, 143, 220, 0.14));
+}
+
+.brand-mark-outer {
+  fill: rgba(255, 255, 255, 0.9);
+}
+
+.brand-mark-inner {
+  fill: url(#brandMarkGradient);
+}
+
+.brand-mark-stroke {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.brand-mark-stroke-main {
+  stroke: #ffffff;
+  stroke-width: 4.8;
+}
+
+.brand-mark-stroke-accent {
+  stroke: #ddebff;
+  stroke-width: 4.5;
+}
+
+.brand-mark-orbit {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-width: 1.85;
+}
+
+.brand-mark-dot {
+  fill: #e7a25e;
+}
+
+body[data-theme="dark"] .brand-mark svg {
+  filter: drop-shadow(0 10px 20px rgba(3, 9, 18, 0.34));
+}
+
+body[data-theme="dark"] .brand-mark-outer {
+  fill: rgba(246, 250, 255, 0.92);
 }
 
 .brand-copy h1 {
