@@ -43,6 +43,12 @@
 - `styles` 或 `theme`
   - design tokens、全局样式、主题变量
 
+统一视觉与 UI 细节标准请以以下文档为准：
+
+- `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/docs/TimeAura-Design-Language-and-UI-Conventions.md`
+
+该文档比目录结构文档优先级更高；后续 AI 生成页面、重构组件或新增主题时，先遵循设计规约，再落工程目录。
+
 ---
 
 ## 3. React 目录结构建议

@@ -6224,26 +6224,26 @@ body[data-theme="dark"] .record-check input:checked {
 }
 
 .my-lists-sheet {
-  width: min(736px, calc(100vw - 88px));
-  padding: 16px;
-  border-radius: 16px;
+  width: min(700px, calc(100vw - 104px));
+  padding: 15px;
+  border-radius: 14px;
 }
 
 .my-lists-body {
   display: grid;
-  grid-template-columns: minmax(248px, 272px) minmax(0, 1fr);
-  gap: 12px;
-  margin-top: 12px;
+  grid-template-columns: minmax(238px, 260px) minmax(0, 1fr);
+  gap: 10px;
+  margin-top: 10px;
   align-items: stretch;
 }
 
 .my-lists-editor-panel,
 .my-lists-library-panel {
-  min-height: 284px;
+  min-height: 272px;
 }
 
 .my-lists-editor-panel {
-  gap: 12px;
+  gap: 10px;
 }
 
 .my-lists-editor-panel .tag-form-stack {
@@ -6252,22 +6252,30 @@ body[data-theme="dark"] .record-check input:checked {
 }
 
 .my-lists-form-row {
-  grid-template-columns: minmax(0, 1fr) 30px;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) 28px;
+  gap: 12px;
   min-height: auto;
-  padding: 10px 12px;
-  align-items: center;
+  padding: 11px 12px 10px;
+  align-items: start;
+}
+
+.my-lists-field-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .my-lists-name-input {
-  min-height: 38px;
+  min-height: 30px;
   padding: 0 0 0 2px;
   border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
+  line-height: 1.25;
 }
 
 .my-lists-name-input:focus,
@@ -6276,10 +6284,23 @@ body[data-theme="dark"] .record-check input:checked {
   box-shadow: none;
 }
 
+.my-lists-field-hint {
+  color: #7b8d9f;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.my-lists-color-slot {
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
 .my-lists-color-dot {
-  width: 22px;
-  height: 22px;
-  min-height: 22px;
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
   padding: 0;
   border: 0;
   border-radius: 999px;
@@ -6314,23 +6335,23 @@ body[data-theme="dark"] .record-check input:checked {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 12px;
-  border: 1px solid rgba(67, 90, 121, 0.08);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.64);
+  padding: 9px 11px;
+  border: 1px solid rgba(67, 90, 121, 0.07);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.56);
   text-align: left;
   cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
 .my-lists-library-row:hover {
-  background: rgba(255, 255, 255, 0.82);
-  border-color: rgba(67, 90, 121, 0.14);
+  background: rgba(255, 255, 255, 0.76);
+  border-color: rgba(67, 90, 121, 0.12);
 }
 
 .my-lists-library-row-active {
-  background: rgba(95, 143, 220, 0.08);
-  border-color: rgba(95, 143, 220, 0.16);
+  background: rgba(95, 143, 220, 0.065);
+  border-color: rgba(95, 143, 220, 0.14);
 }
 
 .my-lists-delete-row {
@@ -6840,8 +6861,8 @@ body[data-theme="dark"] .tag-bind-row.active {
 
 body[data-theme="dark"] .tag-choice-chip-active,
 body[data-theme="dark"] .my-lists-library-row-active {
-  background: rgba(124, 164, 236, 0.1);
-  border-color: rgba(124, 164, 236, 0.16);
+  background: rgba(124, 164, 236, 0.085);
+  border-color: rgba(124, 164, 236, 0.14);
   color: #dce7ff;
 }
 
@@ -6877,12 +6898,16 @@ body[data-theme="dark"] .tag-confirm-delete-btn {
 
 body[data-theme="dark"] .my-lists-library-row,
 body[data-theme="dark"] .sidebar-context-menu {
-  background: rgba(19, 28, 41, 0.94);
-  border-color: rgba(173, 192, 219, 0.08);
+  background: rgba(20, 27, 38, 0.9);
+  border-color: rgba(173, 192, 219, 0.07);
 }
 
 body[data-theme="dark"] .my-lists-name-input {
   color: #dce7f5;
+}
+
+body[data-theme="dark"] .my-lists-field-hint {
+  color: #90a4be;
 }
 
 body[data-theme="dark"] .my-lists-color-dot::-webkit-color-swatch,
@@ -6891,8 +6916,28 @@ body[data-theme="dark"] .my-lists-color-dot::-moz-color-swatch {
 }
 
 body[data-theme="dark"] .my-lists-library-row:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(173, 192, 219, 0.12);
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(173, 192, 219, 0.11);
+}
+
+body[data-theme="dark"] .my-lists-sheet {
+  background: linear-gradient(180deg, rgba(20, 27, 39, 0.985), rgba(17, 24, 35, 0.98));
+}
+
+body[data-theme="dark"] .my-lists-editor-panel,
+body[data-theme="dark"] .my-lists-library-panel {
+  background: rgba(255, 255, 255, 0.032);
+  border-color: rgba(173, 192, 219, 0.07);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.022);
+}
+
+body[data-theme="dark"] .my-lists-form-row {
+  background: rgba(255, 255, 255, 0.038);
+  border-color: rgba(173, 192, 219, 0.07);
+}
+
+body[data-theme="dark"] .my-lists-library-row .tag-library-meta {
+  color: #8fa4bf;
 }
 
 body[data-theme="dark"] .sidebar-context-menu {

@@ -79,3 +79,14 @@ AI 通道页当前支持：
 - `Azure OpenAI`：可配置 `资源根地址 / Deployment / API Version / 展示模型名`
 - `Local Gateway`：可配置 `Base URL / Model / Endpoint Path`，API Key 可选
 - `Aggregator`：可配置 `Base URL / Model / Endpoint Path / 附加请求头 JSON`
+
+界面开发与 AI 生成统一规约入口：
+
+- 产品与交互主文档：
+  - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/docs/TimeAura-PRD-v1.md`
+- 统一设计语言与 UI 细则：
+  - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/docs/TimeAura-Design-Language-and-UI-Conventions.md`
+- 高保真参考原型：
+  - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/index.html`
+
+后续新增页面、主题调整、组件重构或让模型直接出图/出代码时，先遵守设计规约，再参考 PRD 与原型，避免重新走一轮风格漂移和细节返工。

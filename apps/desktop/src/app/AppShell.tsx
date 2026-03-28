@@ -978,7 +978,7 @@ function MyListsSheet({
         <div className="tag-manager-header">
           <div>
             <h3 className="panel-title panel-title-small">我的列表</h3>
-            <div className="tag-manager-copy">编辑名称和颜色，失焦自动保存</div>
+            <div className="tag-manager-copy">改名或换色后失焦即保存</div>
           </div>
           <button type="button" className="icon-btn" aria-label="关闭我的列表" title="关闭我的列表" onClick={onClose}>
             <CloseIcon />
@@ -1002,25 +1002,30 @@ function MyListsSheet({
 
             <div className="tag-form-stack">
               <div className="tag-form-row my-lists-form-row">
-                <input
-                  className="input my-lists-name-input"
-                  value={draft.name}
-                  onChange={(event) => onDraftChange({ ...draft, name: event.target.value })}
-                  onBlur={() => {
-                    void onPersistDraft(draft);
-                  }}
-                  placeholder="输入列表名称"
-                />
-                <input
-                  className="color-input my-lists-color-dot"
-                  type="color"
-                  value={draft.color || placeholderColor}
-                  onChange={(event) => onDraftChange({ ...draft, color: event.target.value })}
-                  onBlur={() => {
-                    void onPersistDraft(draft);
-                  }}
-                  aria-label="列表颜色"
-                />
+                <div className="my-lists-field-copy">
+                  <input
+                    className="input my-lists-name-input"
+                    value={draft.name}
+                    onChange={(event) => onDraftChange({ ...draft, name: event.target.value })}
+                    onBlur={() => {
+                      void onPersistDraft(draft);
+                    }}
+                    placeholder="输入列表名称"
+                  />
+                  <span className="my-lists-field-hint">名称与颜色会立即同步到左侧导航。</span>
+                </div>
+                <div className="my-lists-color-slot">
+                  <input
+                    className="color-input my-lists-color-dot"
+                    type="color"
+                    value={draft.color || placeholderColor}
+                    onChange={(event) => onDraftChange({ ...draft, color: event.target.value })}
+                    onBlur={() => {
+                      void onPersistDraft(draft);
+                    }}
+                    aria-label="列表颜色"
+                  />
+                </div>
               </div>
 
               {editingTag ? (

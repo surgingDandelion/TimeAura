@@ -8,6 +8,7 @@
 - 版本阶段：V1.3 设计输入稿 + 交互状态规范版 + 桌面壳真实链路补齐版
 - 文档日期：2026-03-24
 - 目标平台：桌面端优先（macOS / Windows，跨平台框架可扩展）
+- 配套界面规约：`docs/TimeAura-Design-Language-and-UI-Conventions.md`
 
 ## 2. 产品愿景
 

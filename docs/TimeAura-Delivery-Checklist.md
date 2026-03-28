@@ -81,6 +81,21 @@
   - 定义建议启动方式、最短体验路径、重点关注页面和已知说明
   - 适合作为“现在是否可以开始试用”的统一判断入口
 
+### 3.6 设计语言与 UI 规约
+
+- 文件：`/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/docs/TimeAura-Design-Language-and-UI-Conventions.md`
+- 作用：
+  - 作为当前项目统一视觉语言、控件语言、布局密度和主题约束的正式规约
+  - 明确字体、颜色、边线、圆角、阴影、滚动条、状态强度与 AI 生成约束
+  - 用于减少后续设计 / 前端 / AI 生成反复返工
+- 重点阅读章节：
+  - 字体体系与字号层级
+  - 布局规则
+  - 颜色系统
+  - 控件规范
+  - 组件级规则
+  - `11. AI 生成与实现约束`
+
 ---
 
 ## 4. 建议给不同对象的发包方式
@@ -91,12 +106,14 @@
 
 - `docs/TimeAura-PRD-v1.md`
 - `docs/TimeAura-LowFi-Wireframes-v1.md`
+- `docs/TimeAura-Design-Language-and-UI-Conventions.md`
 - `index.html`
 - `docs/TimeAura-Delivery-Checklist.md`
 
 建议说明：
 
 - 先看 PRD 理解产品逻辑
+- 再看设计语言规约，锁定主题、密度、控件语言与状态强度
 - 再看低保真线框理解布局结构
 - 最后看 HTML 原型理解当前风格方向与交互状态
 - 若需要继续扩展高保真规范，以 PRD 中的 design tokens 为准
@@ -106,12 +123,14 @@
 建议打包以下内容：
 
 - `docs/TimeAura-PRD-v1.md`
+- `docs/TimeAura-Design-Language-and-UI-Conventions.md`
 - `index.html`
 - `docs/TimeAura-Delivery-Checklist.md`
 
 建议说明：
 
 - PRD 负责功能与交互规则
+- 设计规约负责视觉语言、布局密度和控件实现边界
 - `index.html` 负责现阶段样式、层级、状态、控件语言参考
 - 低保真线框可作为结构补充材料按需查看
 
@@ -121,6 +140,7 @@
 
 - `docs/TimeAura-UI-Model-Final-Prompt.md`
 - `docs/TimeAura-PRD-v1.md`
+- `docs/TimeAura-Design-Language-and-UI-Conventions.md`
 - `docs/TimeAura-LowFi-Wireframes-v1.md`
 - `index.html`
 
@@ -128,8 +148,9 @@
 
 1. 先输入 `docs/TimeAura-UI-Model-Final-Prompt.md`
 2. 再附加 `docs/TimeAura-PRD-v1.md`
-3. 再附加 `docs/TimeAura-LowFi-Wireframes-v1.md`
-4. 如模型支持文件参考，再附加 `index.html`
+3. 再附加 `docs/TimeAura-Design-Language-and-UI-Conventions.md`
+4. 再附加 `docs/TimeAura-LowFi-Wireframes-v1.md`
+5. 如模型支持文件参考，再附加 `index.html`
 
 ---
 
@@ -138,6 +159,7 @@
 | 文件 | 主要回答什么问题 |
 | --- | --- |
 | `TimeAura-PRD-v1.md` | 这个产品要做什么，规则是什么，边界是什么 |
+| `TimeAura-Design-Language-and-UI-Conventions.md` | 这个产品长什么样，字体/颜色/布局/控件/状态该如何统一 |
 | `TimeAura-LowFi-Wireframes-v1.md` | 页面骨架怎么搭，区块之间怎么组织 |
 | `index.html` | 当前高保真效果与交互状态长什么样 |
 | `TimeAura-UI-Model-Final-Prompt.md` | 如果交给模型，应该如何稳定地产出 |
