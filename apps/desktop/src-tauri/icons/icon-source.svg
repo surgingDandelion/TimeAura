@@ -1,16 +1,15 @@
 <svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
   <title>TimeAura B2 Symbol</title>
   <defs>
-    <linearGradient id="symbolBlueB2" x1="264" y1="212" x2="760" y2="796" gradientUnits="userSpaceOnUse">
+    <linearGradient id="symbolBlueB2" x1="224" y1="180" x2="796" y2="852" gradientUnits="userSpaceOnUse">
       <stop stop-color="#9AC0EB"/>
       <stop offset="1" stop-color="#436CA6"/>
     </linearGradient>
   </defs>
-  <rect x="160" y="160" width="704" height="704" rx="198" fill="white" fill-opacity="0.92"/>
-  <rect x="250" y="250" width="524" height="524" rx="148" fill="url(#symbolBlueB2)"/>
-  <path d="M394 384H646" stroke="white" stroke-width="54" stroke-linecap="round"/>
-  <path d="M520 384V636" stroke="white" stroke-width="54" stroke-linecap="round"/>
-  <path d="M520 636L646 384" stroke="#DDEBFF" stroke-width="50" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="520" cy="480" r="157" stroke="rgba(255,255,255,0.18)" stroke-width="15"/>
-  <circle cx="646" cy="384" r="18" fill="#E7A25E"/>
+  <rect x="176" y="176" width="672" height="672" rx="190" fill="url(#symbolBlueB2)"/>
+  <path d="M368 364H650" stroke="white" stroke-width="58" stroke-linecap="round"/>
+  <path d="M509 364V664" stroke="white" stroke-width="58" stroke-linecap="round"/>
+  <path d="M509 664L650 364" stroke="#DDEBFF" stroke-width="54" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="509" cy="478" r="170" stroke="rgba(255,255,255,0.18)" stroke-width="16"/>
+  <circle cx="650" cy="364" r="20" fill="#E7A25E"/>
 </svg>
