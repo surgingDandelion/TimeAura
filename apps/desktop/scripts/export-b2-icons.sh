@@ -3,11 +3,15 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+PROJECT_ROOT="$(cd "$ROOT_DIR/../.." && pwd)"
 ICON_DIR="$ROOT_DIR/src-tauri/icons"
+CANONICAL_SVG="$PROJECT_ROOT/docs/logo-options/b2-suite/timeaura-b2-symbol.svg"
 SOURCE_SVG="$ICON_DIR/icon-source.svg"
 PREVIEW_PNG="$ICON_DIR/icon-source.svg.png"
 
-if [[ ! -f "$SOURCE_SVG" ]]; then
+if [[ -f "$CANONICAL_SVG" ]]; then
+  cp "$CANONICAL_SVG" "$SOURCE_SVG"
+elif [[ ! -f "$SOURCE_SVG" ]]; then
   echo "Missing icon source: $SOURCE_SVG" >&2
   exit 1
 fi

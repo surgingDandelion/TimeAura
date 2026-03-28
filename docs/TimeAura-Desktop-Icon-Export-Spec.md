@@ -10,7 +10,10 @@
 
 主图形母版：
 
-- `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/apps/desktop/src-tauri/icons/icon-source.svg`
+- 规范源：
+  - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/docs/logo-options/b2-suite/timeaura-b2-symbol.svg`
+- 导出同步副本：
+  - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/apps/desktop/src-tauri/icons/icon-source.svg`
 
 ---
 
@@ -19,7 +22,7 @@
 - 图标结构基于 `T + A` 三角形主图形
 - 圆环贴合三角结构外接关系
 - 橙色点用于表达“时间闭环”的动态起点
-- 默认正式图标使用浅色底母版
+- macOS Dock / 应用切换器默认使用 `B2 symbol` 版，不再额外叠加外层浅灰底板
 - 暗色版用于启动页、宣传图或主题展示，不直接替代桌面系统主图标
 
 ---
@@ -112,6 +115,7 @@ npm run icons:export
 脚本会自动完成：
 
 1. 使用 `qlmanage` 从 `icon-source.svg` 渲染 `1024 png`
+   - 脚本会先将 `timeaura-b2-symbol.svg` 同步到 `src-tauri/icons/icon-source.svg`
 2. 生成多尺寸 PNG
 3. 生成 `icon.iconset`
 4. 生成 `icon.ico`
