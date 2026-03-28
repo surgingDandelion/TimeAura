@@ -250,10 +250,10 @@ fn hide_main_window<R: Runtime>(app: &AppHandle<R>) {
 
 fn create_tray_icon_image() -> Image<'static> {
     const SIZE: usize = 72;
-    const STROKE_MAIN: f32 = 7.4;
-    const STROKE_ACCENT: f32 = 6.8;
-    const STROKE_RING: f32 = 3.4;
-    const RADIUS: f32 = 16.8;
+    const STROKE_MAIN: f32 = 8.9;
+    const STROKE_ACCENT: f32 = 8.1;
+    const STROKE_RING: f32 = 4.1;
+    const RADIUS: f32 = 18.2;
     const CENTER_X: f32 = 32.0;
     const CENTER_Y: f32 = 30.0;
 
@@ -264,9 +264,9 @@ fn create_tray_icon_image() -> Image<'static> {
             let px = x as f32 + 0.5;
             let py = y as f32 + 0.5;
 
-            let horizontal = segment_alpha(px, py, 14.5, 17.5, 48.5, 17.5, STROKE_MAIN);
-            let vertical = segment_alpha(px, py, 32.0, 17.5, 32.0, 51.5, STROKE_MAIN);
-            let accent = segment_alpha(px, py, 32.0, 51.5, 48.5, 17.5, STROKE_ACCENT);
+            let horizontal = segment_alpha(px, py, 12.5, 16.5, 50.5, 16.5, STROKE_MAIN);
+            let vertical = segment_alpha(px, py, 32.0, 16.5, 32.0, 54.0, STROKE_MAIN);
+            let accent = segment_alpha(px, py, 32.0, 54.0, 50.5, 16.5, STROKE_ACCENT);
             let orbit = ring_alpha(px, py, CENTER_X, CENTER_Y, RADIUS, STROKE_RING);
 
             let alpha = horizontal.max(vertical).max(accent).max(orbit);
@@ -309,7 +309,7 @@ fn ring_alpha(px: f32, py: f32, cx: f32, cy: f32, radius: f32, stroke: f32) -> f
 }
 
 fn feathered_alpha(distance: f32, half_width: f32) -> f32 {
-    let edge = 1.15;
+    let edge = 0.9;
     ((half_width + edge - distance) / edge).clamp(0.0, 1.0)
 }
 
