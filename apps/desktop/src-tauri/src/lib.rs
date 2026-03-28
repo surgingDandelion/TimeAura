@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::Duration;
 
 use tauri::image::Image;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
@@ -199,21 +200,62 @@ fn show_main_window<R: Runtime>(app: &AppHandle<R>) {
     }
 }
 
+fn send_webview_window_to_background<R: Runtime>(window: &tauri::WebviewWindow<R>) {
+    if window.is_fullscreen().unwrap_or(false) {
+        let label = window.label().to_string();
+        let app = window.app_handle().clone();
+
+        let _ = window.set_fullscreen(false);
+
+        std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_millis(180));
+
+            if let Some(window) = app.get_webview_window(&label) {
+                let _ = window.minimize();
+                let _ = window.hide();
+            }
+        });
+        return;
+    }
+
+    let _ = window.hide();
+}
+
+fn send_window_to_background<R: Runtime>(window: &tauri::Window<R>) {
+    if window.is_fullscreen().unwrap_or(false) {
+        let label = window.label().to_string();
+        let app = window.app_handle().clone();
+
+        let _ = window.set_fullscreen(false);
+
+        std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_millis(180));
+
+            if let Some(window) = app.get_webview_window(&label) {
+                let _ = window.minimize();
+                let _ = window.hide();
+            }
+        });
+        return;
+    }
+
+    let _ = window.hide();
+}
+
 fn hide_main_window<R: Runtime>(app: &AppHandle<R>) {
     if let Some(window) = app.get_webview_window(MAIN_WINDOW_LABEL) {
-        let _ = window.hide();
+        send_webview_window_to_background(&window);
     }
 }
 
 fn create_tray_icon_image() -> Image<'static> {
     const SIZE: usize = 72;
-    const STROKE_MAIN: f32 = 7.6;
-    const STROKE_ACCENT: f32 = 6.8;
-    const STROKE_RING: f32 = 3.6;
-    const DOT_RADIUS: f32 = 4.1;
-    const RADIUS: f32 = 18.0;
-    const CENTER_X: f32 = 34.0;
-    const CENTER_Y: f32 = 30.0;
+    const STROKE_MAIN: f32 = 6.0;
+    const STROKE_ACCENT: f32 = 5.4;
+    const STROKE_RING: f32 = 2.6;
+    const RADIUS: f32 = 13.8;
+    const CENTER_X: f32 = 31.5;
+    const CENTER_Y: f32 = 29.0;
 
     let mut rgba = vec![0_u8; SIZE * SIZE * 4];
 
@@ -222,13 +264,12 @@ fn create_tray_icon_image() -> Image<'static> {
             let px = x as f32 + 0.5;
             let py = y as f32 + 0.5;
 
-            let horizontal = segment_alpha(px, py, 16.0, 18.0, 47.0, 18.0, STROKE_MAIN);
-            let vertical = segment_alpha(px, py, 34.0, 18.0, 34.0, 50.0, STROKE_MAIN);
-            let accent = segment_alpha(px, py, 34.0, 50.0, 47.0, 18.0, STROKE_ACCENT);
+            let horizontal = segment_alpha(px, py, 18.0, 20.0, 44.5, 20.0, STROKE_MAIN);
+            let vertical = segment_alpha(px, py, 31.5, 20.0, 31.5, 46.0, STROKE_MAIN);
+            let accent = segment_alpha(px, py, 31.5, 46.0, 44.5, 20.0, STROKE_ACCENT);
             let orbit = ring_alpha(px, py, CENTER_X, CENTER_Y, RADIUS, STROKE_RING);
-            let dot = circle_alpha(px, py, 47.0, 18.0, DOT_RADIUS);
 
-            let alpha = horizontal.max(vertical).max(accent).max(orbit).max(dot);
+            let alpha = horizontal.max(vertical).max(accent).max(orbit);
 
             if alpha <= 0.0 {
                 continue;
@@ -265,11 +306,6 @@ fn segment_alpha(px: f32, py: f32, x1: f32, y1: f32, x2: f32, y2: f32, stroke: f
 fn ring_alpha(px: f32, py: f32, cx: f32, cy: f32, radius: f32, stroke: f32) -> f32 {
     let distance = ((px - cx).powi(2) + (py - cy).powi(2)).sqrt();
     feathered_alpha((distance - radius).abs(), stroke / 2.0)
-}
-
-fn circle_alpha(px: f32, py: f32, cx: f32, cy: f32, radius: f32) -> f32 {
-    let distance = ((px - cx).powi(2) + (py - cy).powi(2)).sqrt();
-    feathered_alpha(distance, radius)
 }
 
 fn feathered_alpha(distance: f32, half_width: f32) -> f32 {
@@ -323,7 +359,7 @@ pub fn run() {
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
                 api.prevent_close();
-                let _ = window.hide();
+                send_window_to_background(window);
             }
         })
         .setup(|app| {
