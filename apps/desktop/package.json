@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "icons:export": "./scripts/export-b2-icons.sh",
     "test": "node ./scripts/run-vitest-sequential.mjs",
     "test:coverage": "node --max-old-space-size=6144 ./node_modules/vitest/vitest.mjs run --coverage --maxWorkers=1",
     "test:watch": "vitest",

@@ -24,6 +24,7 @@
 
 - `npm install`
 - `npm run build`
+- `npm run icons:export`
 - `npm run test`
 - `npm run test:coverage`
 - `cargo check`（`apps/desktop/src-tauri`）
@@ -45,6 +46,15 @@
 - `VITE_TIMEAURA_DB_URL=sqlite:timeaura.db`
 - `VITE_TIMEAURA_STRONGHOLD_PASSWORD=<your-dev-password>`
 - `VITE_TIMEAURA_STRONGHOLD_PATH=timeaura.stronghold`
+
+桌面图标资产与启动态规范：
+
+- 图标导出规范：
+  - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/docs/TimeAura-Desktop-Icon-Export-Spec.md`
+- 图标导出脚本：
+  - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/apps/desktop/scripts/export-b2-icons.sh`
+- 启动态实现：
+  - `/Users/dandelion/Documents/iflytek/viber_coding/TimeAura/apps/desktop/src/app/components/BootstrapScreen.tsx`
 
 CI / 覆盖率说明：
 

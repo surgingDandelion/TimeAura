@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TimeAura B2 Logo Suite</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "SF Pro Text", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        padding: 28px;
+        background:
+          radial-gradient(circle at top left, rgba(255,255,255,0.92), transparent 24%),
+          linear-gradient(180deg, #f8fafc 0%, #e9eef5 100%);
+        color: #223244;
+      }
+
+      .page {
+        max-width: 1440px;
+        margin: 0 auto;
+        display: grid;
+        gap: 16px;
+      }
+
+      .hero, .card {
+        border: 1px solid rgba(31, 41, 51, 0.08);
+        background: rgba(255,255,255,0.68);
+      }
+
+      .hero {
+        padding: 22px;
+      }
+
+      .hero h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 650;
+        letter-spacing: -0.03em;
+      }
+
+      .hero p {
+        margin: 8px 0 0;
+        color: #6f8193;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .grid-2, .grid-3 {
+        display: grid;
+        gap: 16px;
+      }
+
+      .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+      .card { padding: 14px; }
+
+      .card img {
+        width: 100%;
+        display: block;
+        border: 1px solid rgba(31, 41, 51, 0.06);
+        background: white;
+      }
+
+      .demo-link-card {
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 14px;
+        padding: 20px;
+        border: 1px solid rgba(31, 41, 51, 0.06);
+        background: linear-gradient(180deg, #f7f9fb 0%, #eef2f6 100%);
+      }
+
+      .demo-link-card code {
+        display: inline-block;
+        padding: 6px 8px;
+        background: rgba(31, 41, 51, 0.06);
+        color: #425265;
+        font-size: 12px;
+      }
+
+      .card strong {
+        display: block;
+        margin-top: 10px;
+        font-size: 14px;
+      }
+
+      .card span {
+        display: block;
+        margin-top: 4px;
+        color: #6f8193;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .section-title {
+        margin: 2px 0 -4px;
+        color: #6f8193;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+      }
+
+      @media (max-width: 1080px) {
+        .grid-3 { grid-template-columns: 1fr; }
+        .grid-2 { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <h1>TimeAura B2 Logo Suite</h1>
+        <p>这一套已经按“桌面应用图标 + 品牌字标 + 横版锁定 + 深浅主题”整理完成，并把圆弧升级成完整圆环，方便继续做启动或 hover 动画。</p>
+      </section>
+
+      <div class="section-title">APP ICON</div>
+      <section class="grid-2">
+        <article class="card">
+          <img src="./timeaura-b2-app-icon-light.svg" alt="B2 app icon light" />
+          <strong>App Icon / Light</strong>
+          <span>适合作为主应用图标母版，干净、清晰、缩小后识别稳定。</span>
+        </article>
+        <article class="card">
+          <img src="./timeaura-b2-app-icon-dark.svg" alt="B2 app icon dark" />
+          <strong>App Icon / Dark</strong>
+          <span>更适合暗色品牌展示与深色启动页，不建议直接替换系统 icon，适合作为备选主题版。</span>
+        </article>
+      </section>
+
+      <div class="section-title">SYMBOL + WORDMARK</div>
+      <section class="grid-3">
+        <article class="card">
+          <img src="./timeaura-b2-symbol.svg" alt="B2 symbol" />
+          <strong>Symbol</strong>
+          <span>独立图形版，适合 favicon、菜单栏、小尺寸角标。</span>
+        </article>
+        <article class="card">
+          <img src="./timeaura-b2-wordmark-darkonlight.svg" alt="B2 wordmark light background" />
+          <strong>Wordmark / Light</strong>
+          <span>用于浅色页面、官网页头、产品介绍页。</span>
+        </article>
+        <article class="card">
+          <img src="./timeaura-b2-wordmark-lightondark.svg" alt="B2 wordmark dark background" />
+          <strong>Wordmark / Dark</strong>
+          <span>用于深色页面、启动页、深色品牌板。</span>
+        </article>
+      </section>
+
+      <div class="section-title">HORIZONTAL LOCKUP</div>
+      <section class="grid-2">
+        <article class="card">
+          <img src="./timeaura-b2-lockup-horizontal-light.svg" alt="B2 horizontal light" />
+          <strong>Horizontal Lockup / Light</strong>
+          <span>适合 PRD 封面、品牌页、落地页头部。</span>
+        </article>
+        <article class="card">
+          <img src="./timeaura-b2-lockup-horizontal-dark.svg" alt="B2 horizontal dark" />
+          <strong>Horizontal Lockup / Dark</strong>
+          <span>适合深色视觉稿、发布图与桌面启动界面。</span>
+        </article>
+      </section>
+
+      <div class="section-title">ANIMATION PREVIEW</div>
+      <section class="grid-2">
+        <article class="card">
+          <img src="./timeaura-b2-app-icon-light.svg" alt="B2 ring app icon" />
+          <strong>Ring-ready App Icon</strong>
+          <span>圆弧已改为完整圆环，橙点可沿环顺时针完成一整圈，再停回原位。</span>
+        </article>
+        <article class="card">
+          <div class="demo-link-card">
+            <strong>打开动画预览</strong>
+            <code>docs/logo-options/b2-suite/timeaura-b2-animation-demo.html</code>
+          </div>
+          <strong>Animation Demo</strong>
+          <span>打开下方独立文件可直接预览启动动画和 hover 动效。</span>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

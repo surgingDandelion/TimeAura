@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import type { AppContainer } from "@timeaura-core";
 
 import { createDesktopAppServices } from "../bootstrap/createDesktopAppServices";
+import { BootstrapScreen } from "../components/BootstrapScreen";
 
 interface AppServicesContextValue {
   container: AppContainer | null;
@@ -58,15 +59,12 @@ export function AppServicesProvider({ children }: { children: ReactNode }): JSX.
   }, []);
 
   if (status === "loading") {
-    return <div className="bootstrap-screen">正在初始化 TimeAura Desktop…</div>;
+    return <BootstrapScreen mode="loading" />;
   }
 
   if (status === "error" || !container) {
     return (
-      <div className="bootstrap-screen bootstrap-screen-error">
-        <div className="bootstrap-title">应用初始化失败</div>
-        <div className="bootstrap-detail">{error?.message ?? "未知错误"}</div>
-      </div>
+      <BootstrapScreen mode="error" title="应用初始化失败" detail={error?.message ?? "未知错误"} />
     );
   }
 

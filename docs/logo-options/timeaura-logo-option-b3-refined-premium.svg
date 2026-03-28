@@ -1,0 +1,43 @@
+<svg width="1400" height="900" viewBox="0 0 1400 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>TimeAura Logo Option B3 - Refined Premium</title>
+  <defs>
+    <linearGradient id="bgB3" x1="170" y1="92" x2="1198" y2="820" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7FAFC"/>
+      <stop offset="1" stop-color="#E8EEF5"/>
+    </linearGradient>
+    <linearGradient id="shapeB3" x1="491" y1="260" x2="760" y2="553" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#91BAEC"/>
+      <stop offset="0.58" stop-color="#577FB9"/>
+      <stop offset="1" stop-color="#385F92"/>
+    </linearGradient>
+    <linearGradient id="glossB3" x1="545" y1="288" x2="709" y2="455" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white" stop-opacity="0.26"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadowB3" x="394" y="178" width="466" height="466" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="22"/>
+      <feGaussianBlur stdDeviation="28"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.14902 0 0 0 0 0.223529 0 0 0 0 0.32549 0 0 0 0.15 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_1"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_1" result="shape"/>
+    </filter>
+  </defs>
+  <rect width="1400" height="900" fill="url(#bgB3)"/>
+  <rect x="82" y="82" width="1236" height="736" rx="36" fill="rgba(255,255,255,0.58)" stroke="rgba(31,41,51,0.08)"/>
+  <g filter="url(#shadowB3)">
+    <rect x="444" y="230" width="366" height="366" rx="84" fill="rgba(255,255,255,0.8)"/>
+    <rect x="486" y="272" width="282" height="282" rx="74" fill="url(#shapeB3)"/>
+    <path d="M514 301H740C742 301 744 303 744 305V378C744 380 742 382 740 382H514C512 382 510 380 510 378V305C510 303 512 301 514 301Z" fill="url(#glossB3)"/>
+    <path d="M553 336H699" stroke="white" stroke-width="28" stroke-linecap="round"/>
+    <path d="M627.5 336V487" stroke="white" stroke-width="28" stroke-linecap="round"/>
+    <path d="M627 487L711 336" stroke="#D9E9FF" stroke-width="25" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="711" cy="336" r="11" fill="#EBAB68"/>
+    <circle cx="627" cy="410" r="113" stroke="rgba(255,255,255,0.16)" stroke-width="2"/>
+    <circle cx="627" cy="410" r="9" fill="white"/>
+  </g>
+  <text x="700" y="686" text-anchor="middle" fill="#223244" font-family="SF Pro Display, PingFang SC, Helvetica Neue, Arial, sans-serif" font-size="78" font-weight="650" letter-spacing="-0.04em">TimeAura</text>
+  <text x="700" y="744" text-anchor="middle" fill="#6F8193" font-family="SF Pro Text, PingFang SC, Helvetica Neue, Arial, sans-serif" font-size="30" font-weight="500">让每个重要时刻如约而至</text>
+  <text x="700" y="144" text-anchor="middle" fill="#7B8D9F" font-family="SF Pro Text, PingFang SC, Helvetica Neue, Arial, sans-serif" font-size="22" font-weight="600" letter-spacing="0.08em">B3 / PREMIUM BADGE</text>
+</svg>

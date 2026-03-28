@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TimeAura B2 Animation Demo</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "SF Pro Text", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        padding: 28px;
+        background:
+          radial-gradient(circle at top left, rgba(255, 255, 255, 0.92), transparent 24%),
+          linear-gradient(180deg, #f8fafc 0%, #e9eef5 100%);
+        color: #223244;
+      }
+
+      .page {
+        max-width: 1280px;
+        margin: 0 auto;
+        display: grid;
+        gap: 16px;
+      }
+
+      .hero,
+      .card {
+        border: 1px solid rgba(31, 41, 51, 0.08);
+        background: rgba(255, 255, 255, 0.68);
+      }
+
+      .hero {
+        padding: 22px;
+      }
+
+      .hero h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 650;
+        letter-spacing: -0.03em;
+      }
+
+      .hero p {
+        margin: 8px 0 0;
+        color: #6f8193;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      .card strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 14px;
+      }
+
+      .card span {
+        display: block;
+        margin-bottom: 16px;
+        color: #6f8193;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .stage {
+        min-height: 420px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(31, 41, 51, 0.06);
+        background: linear-gradient(180deg, #f7f9fb 0%, #eef2f6 100%);
+      }
+
+      .demo-icon {
+        width: 290px;
+        height: 290px;
+        display: block;
+      }
+
+      .orbit-center {
+        transform-origin: 170px 151px;
+      }
+
+      .startup .orbit-center {
+        animation: orbit-loop 2.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.25s 1 both;
+      }
+
+      .hover-demo:hover .orbit-center {
+        animation: orbit-loop 1.8s cubic-bezier(0.22, 0.7, 0.22, 1) 1 both;
+      }
+
+      .hover-demo .hint {
+        margin-top: 12px;
+        color: #7b8d9f;
+        font-size: 12px;
+        text-align: center;
+      }
+
+      @keyframes orbit-loop {
+        0% { transform: rotate(0deg); }
+        78% { transform: rotate(360deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      @media (max-width: 980px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <h1>TimeAura B2 Animation Demo</h1>
+        <p>圆弧已经改成完整圆环。橙色原点现在可以沿完整轨道顺时针绕一圈，最后回到原始停靠点，用于启动动画或 hover 反馈都比较顺。</p>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <strong>启动动画</strong>
+          <span>页面加载后自动执行一次，完成一整圈后停回当前点位，适合 Splash / 启动态。</span>
+          <div class="stage startup">
+            <svg class="demo-icon" viewBox="0 0 340 340" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="44" y="34" width="252" height="252" rx="72" fill="white" fill-opacity="0.9"/>
+              <rect x="76" y="66" width="188" height="188" rx="54" fill="url(#demoBlue)"/>
+              <path d="M125 117H215" stroke="white" stroke-width="19" stroke-linecap="round"/>
+              <path d="M170 117V208" stroke="white" stroke-width="19" stroke-linecap="round"/>
+              <path d="M170 208L215 117" stroke="#DDEBFF" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="170" cy="151" r="57" stroke="rgba(255,255,255,0.18)" stroke-width="5"/>
+              <g class="orbit-center">
+                <circle cx="215" cy="117" r="7" fill="#E7A25E"/>
+              </g>
+              <defs>
+                <linearGradient id="demoBlue" x1="82" y1="58" x2="262" y2="270" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#9AC0EB"/>
+                  <stop offset="1" stop-color="#436CA6"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+        </article>
+
+        <article class="card">
+          <strong>Hover 动效</strong>
+          <span>鼠标移入时绕环顺时针走一圈，移出后停在原始点位，适合作为 Dock hover 或品牌按钮反馈。</span>
+          <div class="stage hover-demo">
+            <svg class="demo-icon" viewBox="0 0 340 340" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="44" y="34" width="252" height="252" rx="72" fill="white" fill-opacity="0.9"/>
+              <rect x="76" y="66" width="188" height="188" rx="54" fill="url(#demoBlue2)"/>
+              <path d="M125 117H215" stroke="white" stroke-width="19" stroke-linecap="round"/>
+              <path d="M170 117V208" stroke="white" stroke-width="19" stroke-linecap="round"/>
+              <path d="M170 208L215 117" stroke="#DDEBFF" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="170" cy="151" r="57" stroke="rgba(255,255,255,0.18)" stroke-width="5"/>
+              <g class="orbit-center">
+                <circle cx="215" cy="117" r="7" fill="#E7A25E"/>
+              </g>
+              <defs>
+                <linearGradient id="demoBlue2" x1="82" y1="58" x2="262" y2="270" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#9AC0EB"/>
+                  <stop offset="1" stop-color="#436CA6"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="hint">把鼠标移到图标区域上试试看</div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

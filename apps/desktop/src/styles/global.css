@@ -1828,7 +1828,7 @@ textarea:focus-visible {
 
 .bootstrap-screen {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
   min-height: 240px;
   padding: 28px;
@@ -1846,15 +1846,81 @@ textarea:focus-visible {
   background: rgba(255, 250, 249, 0.92);
 }
 
+.bootstrap-screen-content {
+  width: min(560px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.bootstrap-logo-stage {
+  width: 220px;
+  height: 220px;
+  display: grid;
+  place-items: center;
+}
+
+.bootstrap-logo {
+  width: 220px;
+  height: 220px;
+  display: block;
+  filter: drop-shadow(0 18px 38px rgba(24, 41, 66, 0.1));
+}
+
+.bootstrap-orbit {
+  stroke: rgba(255, 255, 255, 0.18);
+  stroke-width: 5;
+}
+
+.bootstrap-orbit-dot {
+  transform-origin: 170px 151px;
+}
+
+.bootstrap-logo-stage-loading .bootstrap-orbit-dot {
+  animation: bootstrap-orbit-loop 2.65s cubic-bezier(0.22, 0.7, 0.22, 1) infinite;
+}
+
+.bootstrap-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bootstrap-kicker {
+  color: #8091a3;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
 .bootstrap-title {
+  margin-top: 10px;
   font-size: 20px;
   font-weight: 650;
+  letter-spacing: -0.02em;
 }
 
 .bootstrap-detail {
   margin-top: 10px;
   color: #6e7177;
   font-size: 14px;
+  line-height: 1.5;
+}
+
+@keyframes bootstrap-orbit-loop {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  78% {
+    transform: rotate(360deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .card {
@@ -3805,6 +3871,7 @@ body[data-theme="dark"] .workspace-page-title,
 body[data-theme="dark"] .workspace-detail-title,
 body[data-theme="dark"] .summary-pill strong,
 body[data-theme="dark"] .detail-section-title strong,
+body[data-theme="dark"] .bootstrap-title,
 body[data-theme="dark"] .brand-copy h1 {
   color: #e8eef8;
 }
@@ -3813,6 +3880,7 @@ body[data-theme="dark"] .workspace-page-subtitle,
 body[data-theme="dark"] .workspace-detail-subtitle,
 body[data-theme="dark"] .summary-pill span,
 body[data-theme="dark"] .detail-section-title span,
+body[data-theme="dark"] .bootstrap-kicker,
 body[data-theme="dark"] .workspace-filter-label,
 body[data-theme="dark"] .record-meta,
 body[data-theme="dark"] .record-status,
@@ -5733,6 +5801,23 @@ body[data-theme="dark"] .report-actions .report-header-btn:disabled {
 body[data-theme="dark"] .sheet-backdrop {
   background: rgba(4, 10, 18, 0.5);
   backdrop-filter: blur(18px) saturate(1.08);
+}
+
+body[data-theme="dark"] .bootstrap-screen {
+  border-color: rgba(173, 192, 219, 0.08);
+  background: linear-gradient(180deg, rgba(18, 25, 36, 0.94), rgba(14, 21, 33, 0.98));
+  box-shadow:
+    0 24px 56px rgba(2, 7, 16, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+body[data-theme="dark"] .bootstrap-screen-error {
+  border-color: rgba(201, 73, 79, 0.18);
+  background: linear-gradient(180deg, rgba(39, 22, 25, 0.94), rgba(27, 16, 19, 0.98));
+}
+
+body[data-theme="dark"] .bootstrap-logo {
+  filter: drop-shadow(0 18px 38px rgba(2, 7, 16, 0.3));
 }
 
 body[data-theme="dark"] .sheet-panel {

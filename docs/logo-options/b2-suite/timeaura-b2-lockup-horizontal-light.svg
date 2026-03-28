@@ -1,0 +1,19 @@
+<svg width="1800" height="600" viewBox="0 0 1800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>TimeAura B2 Horizontal Lockup Light</title>
+  <defs>
+    <linearGradient id="lockupBlueLight" x1="148" y1="116" x2="438" y2="462" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9AC0EB"/>
+      <stop offset="1" stop-color="#436CA6"/>
+    </linearGradient>
+  </defs>
+  <rect width="1800" height="600" fill="#F6F9FC"/>
+  <rect x="96" y="96" width="408" height="408" rx="116" fill="white" fill-opacity="0.9"/>
+  <rect x="148" y="148" width="304" height="304" rx="86" fill="url(#lockupBlueLight)"/>
+  <path d="M232 228H368" stroke="white" stroke-width="30" stroke-linecap="round"/>
+  <path d="M300 228V366" stroke="white" stroke-width="30" stroke-linecap="round"/>
+  <path d="M300 366L368 228" stroke="#DCEBFF" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="300" cy="280" r="86" stroke="rgba(255,255,255,0.18)" stroke-width="10"/>
+  <circle cx="368" cy="228" r="10" fill="#E7A25E"/>
+  <text x="610" y="280" fill="#223244" font-family="SF Pro Display, PingFang SC, Helvetica Neue, Arial, sans-serif" font-size="144" font-weight="650" letter-spacing="-0.05em">TimeAura</text>
+  <text x="615" y="360" fill="#6F8193" font-family="SF Pro Text, PingFang SC, Helvetica Neue, Arial, sans-serif" font-size="48" font-weight="500">让每个重要时刻如约而至</text>
+</svg>

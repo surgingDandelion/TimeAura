@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TimeAura Logo Options</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "SF Pro Text", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+        background: #eef2f6;
+        color: #223244;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 28px;
+        background:
+          radial-gradient(circle at top left, rgba(255, 255, 255, 0.92), transparent 24%),
+          linear-gradient(180deg, #f8fafc 0%, #e9eef5 100%);
+      }
+
+      .page {
+        max-width: 1360px;
+        margin: 0 auto;
+        display: grid;
+        gap: 16px;
+      }
+
+      .hero {
+        padding: 20px 22px;
+        border: 1px solid rgba(31, 41, 51, 0.08);
+        background: rgba(255, 255, 255, 0.66);
+      }
+
+      .hero h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 650;
+        letter-spacing: -0.03em;
+      }
+
+      .hero p {
+        margin: 8px 0 0;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #6f8193;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        padding: 14px;
+        border: 1px solid rgba(31, 41, 51, 0.08);
+        background: rgba(255, 255, 255, 0.64);
+      }
+
+      .card img {
+        width: 100%;
+        display: block;
+        border: 1px solid rgba(31, 41, 51, 0.06);
+        background: white;
+      }
+
+      .card strong {
+        display: block;
+        margin-top: 10px;
+        font-size: 14px;
+      }
+
+      .card span {
+        display: block;
+        margin-top: 4px;
+        color: #6f8193;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      @media (max-width: 960px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <h1>TimeAura Logo Options</h1>
+        <p>原始 4 个方向保留，同时新增 3 个基于 B 的精修版。B 系列现在更接近可直接继续落地 App 图标与品牌字标的状态。</p>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <img src="./timeaura-logo-option-a-orbit.svg" alt="Option A Orbit" />
+          <strong>A / Orbit Clock</strong>
+          <span>最稳，时间与到点提醒感最明确，适合桌面效率工具。</span>
+        </article>
+        <article class="card">
+          <img src="./timeaura-logo-option-b-monogram.svg" alt="Option B Monogram" />
+          <strong>B / Time Monogram</strong>
+          <span>品牌识别更强，适合后续做字母图标和启动图。</span>
+        </article>
+        <article class="card">
+          <img src="./timeaura-logo-option-b1-refined-balanced.svg" alt="Option B1 Refined Balanced" />
+          <strong>B1 / Balanced Monogram</strong>
+          <span>更平衡，时间感和品牌感都在线，适合作为主标继续细修。</span>
+        </article>
+        <article class="card">
+          <img src="./timeaura-logo-option-b2-refined-appicon.svg" alt="Option B2 Refined App Icon" />
+          <strong>B2 / App Icon Ready</strong>
+          <span>更像真正的桌面应用图标，形体更饱满，缩小后识别也更稳。</span>
+        </article>
+        <article class="card">
+          <img src="./timeaura-logo-option-b3-refined-premium.svg" alt="Option B3 Refined Premium" />
+          <strong>B3 / Premium Badge</strong>
+          <span>更偏品牌与高级感，适合官网、启动页和品牌展示。</span>
+        </article>
+        <article class="card">
+          <img src="./timeaura-logo-option-c-beacon.svg" alt="Option C Beacon" />
+          <strong>C / Time Beacon</strong>
+          <span>更偏提醒、信号、智能触达，AI 感更强一点。</span>
+        </article>
+        <article class="card">
+          <img src="./timeaura-logo-option-d-ribbon.svg" alt="Option D Ribbon" />
+          <strong>D / Aura Ribbon</strong>
+          <span>形态更柔和，品牌化空间大，但时间指向没有 A 明确。</span>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

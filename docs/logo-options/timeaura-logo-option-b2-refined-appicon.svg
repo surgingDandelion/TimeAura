@@ -1,0 +1,36 @@
+<svg width="1400" height="900" viewBox="0 0 1400 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>TimeAura Logo Option B2 - Refined App Icon</title>
+  <defs>
+    <linearGradient id="bgB2" x1="170" y1="92" x2="1190" y2="820" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#E9EEF5"/>
+    </linearGradient>
+    <linearGradient id="shapeB2" x1="492" y1="260" x2="760" y2="555" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9AC0EB"/>
+      <stop offset="1" stop-color="#436CA6"/>
+    </linearGradient>
+    <filter id="shadowB2" x="394" y="178" width="466" height="466" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="22"/>
+      <feGaussianBlur stdDeviation="28"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.145098 0 0 0 0 0.219608 0 0 0 0 0.317647 0 0 0 0.15 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_1"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_1" result="shape"/>
+    </filter>
+  </defs>
+  <rect width="1400" height="900" fill="url(#bgB2)"/>
+  <rect x="82" y="82" width="1236" height="736" rx="36" fill="rgba(255,255,255,0.58)" stroke="rgba(31,41,51,0.08)"/>
+  <g filter="url(#shadowB2)">
+    <rect x="444" y="230" width="366" height="366" rx="92" fill="rgba(255,255,255,0.78)"/>
+    <rect x="486" y="272" width="282" height="282" rx="80" fill="url(#shapeB2)"/>
+    <path d="M571 330H683" stroke="white" stroke-width="26" stroke-linecap="round"/>
+    <path d="M627 330V442" stroke="white" stroke-width="26" stroke-linecap="round"/>
+    <path d="M627 442L683 330" stroke="#DDEBFF" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="627" cy="372" r="71" stroke="rgba(255,255,255,0.18)" stroke-width="9"/>
+    <circle cx="683" cy="330" r="8" fill="#E7A25E"/>
+  </g>
+  <text x="700" y="686" text-anchor="middle" fill="#223244" font-family="SF Pro Display, PingFang SC, Helvetica Neue, Arial, sans-serif" font-size="78" font-weight="650" letter-spacing="-0.04em">TimeAura</text>
+  <text x="700" y="744" text-anchor="middle" fill="#6F8193" font-family="SF Pro Text, PingFang SC, Helvetica Neue, Arial, sans-serif" font-size="30" font-weight="500">让每个重要时刻如约而至</text>
+  <text x="700" y="144" text-anchor="middle" fill="#7B8D9F" font-family="SF Pro Text, PingFang SC, Helvetica Neue, Arial, sans-serif" font-size="22" font-weight="600" letter-spacing="0.08em">B2 / APP ICON READY</text>
+</svg>
