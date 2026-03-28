@@ -250,12 +250,12 @@ fn hide_main_window<R: Runtime>(app: &AppHandle<R>) {
 
 fn create_tray_icon_image() -> Image<'static> {
     const SIZE: usize = 72;
-    const STROKE_MAIN: f32 = 6.0;
-    const STROKE_ACCENT: f32 = 5.4;
-    const STROKE_RING: f32 = 2.6;
-    const RADIUS: f32 = 13.8;
-    const CENTER_X: f32 = 31.5;
-    const CENTER_Y: f32 = 29.0;
+    const STROKE_MAIN: f32 = 7.4;
+    const STROKE_ACCENT: f32 = 6.8;
+    const STROKE_RING: f32 = 3.4;
+    const RADIUS: f32 = 16.8;
+    const CENTER_X: f32 = 32.0;
+    const CENTER_Y: f32 = 30.0;
 
     let mut rgba = vec![0_u8; SIZE * SIZE * 4];
 
@@ -264,9 +264,9 @@ fn create_tray_icon_image() -> Image<'static> {
             let px = x as f32 + 0.5;
             let py = y as f32 + 0.5;
 
-            let horizontal = segment_alpha(px, py, 18.0, 20.0, 44.5, 20.0, STROKE_MAIN);
-            let vertical = segment_alpha(px, py, 31.5, 20.0, 31.5, 46.0, STROKE_MAIN);
-            let accent = segment_alpha(px, py, 31.5, 46.0, 44.5, 20.0, STROKE_ACCENT);
+            let horizontal = segment_alpha(px, py, 14.5, 17.5, 48.5, 17.5, STROKE_MAIN);
+            let vertical = segment_alpha(px, py, 32.0, 17.5, 32.0, 51.5, STROKE_MAIN);
+            let accent = segment_alpha(px, py, 32.0, 51.5, 48.5, 17.5, STROKE_ACCENT);
             let orbit = ring_alpha(px, py, CENTER_X, CENTER_Y, RADIUS, STROKE_RING);
 
             let alpha = horizontal.max(vertical).max(accent).max(orbit);
