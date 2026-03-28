@@ -1,7 +1,29 @@
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Emitter, Manager, Runtime};
+use std::sync::atomic::{AtomicBool, Ordering};
+
+use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
+use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri::{AppHandle, Emitter, Manager, RunEvent, Runtime, WindowEvent};
 
 const NOTIFICATION_ACTION_EVENT: &str = "timeaura://notification-action";
+const MAIN_WINDOW_LABEL: &str = "main";
+const TRAY_OPEN_ID: &str = "tray_open";
+const TRAY_QUIT_ID: &str = "tray_quit";
+
+#[derive(Default)]
+struct ExitGate {
+    allow_exit: AtomicBool,
+}
+
+impl ExitGate {
+    fn allow(&self) {
+        self.allow_exit.store(true, Ordering::SeqCst);
+    }
+
+    fn is_allowed(&self) -> bool {
+        self.allow_exit.load(Ordering::SeqCst)
+    }
+}
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -168,10 +190,71 @@ fn test_action_id_override(input: &ActionableNotificationInput) -> Option<String
         .map(str::to_string)
 }
 
+fn show_main_window<R: Runtime>(app: &AppHandle<R>) {
+    if let Some(window) = app.get_webview_window(MAIN_WINDOW_LABEL) {
+        let _ = window.unminimize();
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+}
+
+fn hide_main_window<R: Runtime>(app: &AppHandle<R>) {
+    if let Some(window) = app.get_webview_window(MAIN_WINDOW_LABEL) {
+        let _ = window.hide();
+    }
+}
+
+fn setup_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
+    let open_item = MenuItem::with_id(app, TRAY_OPEN_ID, "打开 TimeAura", true, None::<&str>)?;
+    let quit_item = MenuItem::with_id(app, TRAY_QUIT_ID, "退出 TimeAura", true, None::<&str>)?;
+    let separator = PredefinedMenuItem::separator(app)?;
+    let menu = Menu::with_items(app, &[&open_item, &separator, &quit_item])?;
+
+    let mut tray = TrayIconBuilder::with_id("timeaura-menubar")
+        .menu(&menu)
+        .tooltip("TimeAura")
+        .show_menu_on_left_click(false)
+        .icon_as_template(false)
+        .on_menu_event(|app, event| match event.id().as_ref() {
+            TRAY_OPEN_ID => show_main_window(app),
+            TRAY_QUIT_ID => {
+                app.state::<ExitGate>().allow();
+                app.exit(0);
+            }
+            _ => {}
+        })
+        .on_tray_icon_event(|tray, event| {
+            if matches!(
+                event,
+                TrayIconEvent::Click {
+                    button: MouseButton::Left,
+                    button_state: MouseButtonState::Up,
+                    ..
+                }
+            ) {
+                show_main_window(tray.app_handle());
+            }
+        });
+
+    if let Some(icon) = app.default_window_icon().cloned() {
+        tray = tray.icon(icon);
+    }
+
+    tray.build(app)?;
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let app = tauri::Builder::default()
+        .manage(ExitGate::default())
         .invoke_handler(tauri::generate_handler![show_actionable_notification])
+        .on_window_event(|window, event| {
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                api.prevent_close();
+                let _ = window.hide();
+            }
+        })
         .setup(|app| {
             let salt_path = app
                 .path()
@@ -181,12 +264,28 @@ pub fn run() {
 
             app.handle()
                 .plugin(tauri_plugin_stronghold::Builder::with_argon2(&salt_path).build())?;
+            setup_tray(&app.handle())?;
             Ok(())
         })
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_sql::Builder::default().build())
-        .run(tauri::generate_context!())
-        .expect("error while running TimeAura desktop");
+        .build(tauri::generate_context!())
+        .expect("error while building TimeAura desktop");
+
+    app.run(|app_handle, event| match event {
+        RunEvent::ExitRequested { api, .. } => {
+            if !app_handle.state::<ExitGate>().is_allowed() {
+                api.prevent_exit();
+                hide_main_window(app_handle);
+            }
+        }
+        #[cfg(target_os = "macos")]
+        RunEvent::Reopen {
+            has_visible_windows: false,
+            ..
+        } => show_main_window(app_handle),
+        _ => {}
+    });
 }
 
 #[cfg(test)]

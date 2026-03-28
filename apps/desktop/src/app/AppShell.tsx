@@ -720,18 +720,19 @@ export function AppShell(): JSX.Element {
           <div className="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
               <defs>
-                <linearGradient id="brandMarkGradient" x1="12" y1="10" x2="51" y2="56" gradientUnits="userSpaceOnUse">
+                <linearGradient id="brandMarkGradient" x1="5" y1="4" x2="58" y2="62" gradientUnits="userSpaceOnUse">
                   <stop stopColor="#9AC0EB" />
                   <stop offset="1" stopColor="#436CA6" />
                 </linearGradient>
               </defs>
-              <rect x="1.5" y="1.5" width="61" height="61" rx="19" className="brand-mark-outer" />
-              <rect x="9" y="9" width="46" height="46" rx="14" className="brand-mark-inner" />
-              <path d="M20 22H42" className="brand-mark-stroke brand-mark-stroke-main" />
-              <path d="M31 22V40" className="brand-mark-stroke brand-mark-stroke-main" />
-              <path d="M31 40L42 22" className="brand-mark-stroke brand-mark-stroke-accent" />
-              <circle cx="31" cy="29.5" r="13.5" className="brand-mark-orbit" />
-              <circle cx="42" cy="22" r="2.8" className="brand-mark-dot" />
+              <rect x="1.5" y="1.5" width="61" height="61" rx="18" className="brand-mark-inner" />
+              <path d="M18 20H45" className="brand-mark-stroke brand-mark-stroke-main" />
+              <path d="M31.5 20V48" className="brand-mark-stroke brand-mark-stroke-main" />
+              <path d="M31.5 48L45 20" className="brand-mark-stroke brand-mark-stroke-accent" />
+              <circle cx="31.5" cy="30" r="15.5" className="brand-mark-orbit" />
+              <g className="brand-mark-orbit-dot">
+                <circle cx="45" cy="20" r="3.1" className="brand-mark-dot" />
+              </g>
             </svg>
           </div>
           <div className="brand-copy">
