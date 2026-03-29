@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { TransitionEvent } from "react";
 
 import type { AppServices, TagCountItem } from "@timeaura-core";
 
@@ -64,6 +65,8 @@ function isTextEditingTarget(target: EventTarget | null): boolean {
 export function AppShell(): JSX.Element {
   const { runtime, services } = useAppServices();
   const reminderScanInFlightRef = useRef(false);
+  const brandOrbitDotRef = useRef<SVGGElement | null>(null);
+  const brandOrbitAnimationRef = useRef<Animation | null>(null);
   const [workspaceBootstrapping, setWorkspaceBootstrapping] = useState(!runtime);
   const [page, setPage] = useState<AppPage>("workspace");
   const [workspaceCounts, setWorkspaceCounts] = useState<WorkspaceSidebarCounts>({
@@ -713,11 +716,110 @@ export function AppShell(): JSX.Element {
     void services.settingsService?.setTheme?.(nextTheme);
   }
 
+  const stopBrandOrbitAnimation = useCallback(() => {
+    brandOrbitAnimationRef.current?.cancel();
+    brandOrbitAnimationRef.current = null;
+  }, []);
+
+  const readBrandOrbitAngle = useCallback((): number => {
+    const orbitDot = brandOrbitDotRef.current;
+
+    if (!orbitDot) {
+      return 0;
+    }
+
+    const transform = window.getComputedStyle(orbitDot).transform;
+
+    if (!transform || transform === "none") {
+      return 0;
+    }
+
+    const matrix = new DOMMatrixReadOnly(transform);
+    let angle = Math.atan2(matrix.b, matrix.a) * (180 / Math.PI);
+
+    if (angle < 0) {
+      angle += 360;
+    }
+
+    return angle;
+  }, []);
+
+  const handleBrandMarkMouseEnter = useCallback(() => {
+    const orbitDot = brandOrbitDotRef.current;
+
+    if (!orbitDot) {
+      return;
+    }
+
+    const startingAngle = readBrandOrbitAngle();
+    stopBrandOrbitAnimation();
+
+    orbitDot.style.transition = "none";
+    orbitDot.style.transform = `rotate(${startingAngle}deg)`;
+
+    brandOrbitAnimationRef.current = orbitDot.animate(
+      [
+        { transform: `rotate(${startingAngle}deg)` },
+        { transform: `rotate(${startingAngle + 360}deg)` },
+      ],
+      {
+        duration: 1350,
+        iterations: Number.POSITIVE_INFINITY,
+        easing: "linear",
+      },
+    );
+  }, [readBrandOrbitAngle, stopBrandOrbitAnimation]);
+
+  const handleBrandMarkMouseLeave = useCallback(() => {
+    const orbitDot = brandOrbitDotRef.current;
+
+    if (!orbitDot) {
+      return;
+    }
+
+    const currentAngle = readBrandOrbitAngle();
+    const normalizedAngle = currentAngle <= 0.5 || currentAngle >= 359.5 ? 0 : currentAngle;
+    const remainingAngle = normalizedAngle === 0 ? 0 : 360 - normalizedAngle;
+
+    stopBrandOrbitAnimation();
+
+    orbitDot.style.transition = "none";
+    orbitDot.style.transform = `rotate(${normalizedAngle}deg)`;
+
+    if (remainingAngle === 0) {
+      orbitDot.style.transform = "rotate(0deg)";
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      orbitDot.style.transition = `transform ${Math.max(remainingAngle / 360 * 420, 140)}ms linear`;
+      orbitDot.style.transform = "rotate(360deg)";
+    });
+  }, [readBrandOrbitAngle, stopBrandOrbitAnimation]);
+
+  const handleBrandMarkTransitionEnd = useCallback((event: TransitionEvent<SVGGElement>) => {
+    if (event.propertyName !== "transform") {
+      return;
+    }
+
+    event.currentTarget.style.transition = "none";
+    event.currentTarget.style.transform = "rotate(0deg)";
+  }, []);
+
+  useEffect(() => () => {
+    stopBrandOrbitAnimation();
+  }, [stopBrandOrbitAnimation]);
+
   return (
     <div className="app-shell">
       <div className="window-bar">
         <div className="window-title">
-          <div className="brand-mark" aria-hidden="true">
+          <div
+            className="brand-mark"
+            aria-hidden="true"
+            onMouseEnter={handleBrandMarkMouseEnter}
+            onMouseLeave={handleBrandMarkMouseLeave}
+          >
             <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
               <defs>
                 <linearGradient id="brandMarkGradient" x1="5" y1="4" x2="58" y2="62" gradientUnits="userSpaceOnUse">
@@ -730,7 +832,11 @@ export function AppShell(): JSX.Element {
               <path d="M31.5 20V48" className="brand-mark-stroke brand-mark-stroke-main" />
               <path d="M31.5 48L45 20" className="brand-mark-stroke brand-mark-stroke-accent" />
               <circle cx="31.5" cy="30" r="15.5" className="brand-mark-orbit" />
-              <g className="brand-mark-orbit-dot">
+              <g
+                ref={brandOrbitDotRef}
+                className="brand-mark-orbit-dot"
+                onTransitionEnd={handleBrandMarkTransitionEnd}
+              >
                 <circle cx="45" cy="20" r="3.1" className="brand-mark-dot" />
               </g>
             </svg>

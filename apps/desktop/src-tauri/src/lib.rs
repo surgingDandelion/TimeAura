@@ -252,8 +252,8 @@ fn create_tray_icon_image() -> Image<'static> {
     const SIZE: usize = 72;
     const STROKE_MAIN: f32 = 8.9;
     const STROKE_ACCENT: f32 = 8.1;
-    const STROKE_RING: f32 = 4.1;
-    const RADIUS: f32 = 18.2;
+    const STROKE_RING: f32 = 5.2;
+    const RADIUS: f32 = 18.9;
     const CENTER_X: f32 = 32.0;
     const CENTER_Y: f32 = 30.0;
 

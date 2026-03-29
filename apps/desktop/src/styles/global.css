@@ -3177,10 +3177,7 @@ body[data-theme="dark"] .window-bar {
 
 .brand-mark-orbit-dot {
   transform-origin: 31.5px 30px;
-}
-
-.brand-mark:hover .brand-mark-orbit-dot {
-  animation: brand-mark-orbit-spin 1.35s linear infinite;
+  transform-box: fill-box;
 }
 
 body[data-theme="dark"] .brand-mark svg {
@@ -3202,16 +3199,6 @@ body[data-theme="dark"] .brand-mark svg {
   font-size: 12px;
   line-height: 1.4;
   letter-spacing: 0.04em;
-}
-
-@keyframes brand-mark-orbit-spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
 }
 
 body[data-theme="dark"] .brand-copy h1 {
